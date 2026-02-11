@@ -1,6 +1,18 @@
+# Node modules
 node_modules/
-bot.db
+
+# Environment variables
 .env
+
+# Database files
+bot.db
 /db/migrations/
 
+# History or temp files
+.history/*
+
+# Generated Prisma client
 /generated/prisma
+
+# Config files
+config.json
