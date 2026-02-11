@@ -2,7 +2,14 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config.json');
+const deploySlashCommands = require('./utils/depolySlashcommands');
+const reloadTextcommands = require('./utils/reloadTextcommands');
+const reloadSlashcommands = require('./utils/reloadSlashcommands');
+const reloadEvents = require('./utils/reloadEvents');
 
+// --------------------------------------------------
+// Client Setup
+// --------------------------------------------------
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -10,27 +17,39 @@ const client = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
-
+client.owners = config.owners || [];
 client.slashCommands = new Collection();
 client.textCommands = new Collection();
+client.subcommandMap = {};          // parent → { subName → command }
+client.commandSettings = {};        // future per-channel/role/user overrides
 client.prefix = config.prefix;
-
-const slashPath = path.join(__dirname, 'commands/slash');
-for (const file of fs.readdirSync(slashPath)) {
-  const cmd = require('./commands/slash/' + file);
-  client.slashCommands.set(cmd.data.name, cmd);
+client.db = require('./db/boobs.js'); // Prisma client instance
+// --------------------------------------------------
+// Helper: Safe loader
+// --------------------------------------------------
+function loadFiles(dir) {
+  return fs.readdirSync(dir).filter(f => f.endsWith('.js'));
 }
+reloadTextcommands(client);
 
-const textPath = path.join(__dirname, 'commands/text');
-for (const file of fs.readdirSync(textPath)) {
-  const cmd = require('./commands/text/' + file);
-  client.textCommands.set(cmd.name, cmd);
-}
+reloadSlashcommands(client);
+// --------------------------------------------------
+// Load Events
+// --------------------------------------------------
+reloadEvents(client);
 
-const eventsPath = path.join(__dirname, 'events');
-for (const file of fs.readdirSync(eventsPath)) {
-  const evt = require('./events/' + file);
-  client.on(evt.name, (...args) => evt.execute(client, ...args));
-}
 
+// --------------------------------------------------
+// Deploy Slash Commands
+// --------------------------------------------------
+deploySlashCommands({
+  token: config.token,
+  clientId: config.clientId,
+  global: true
+}).catch(console.error);
+
+
+// --------------------------------------------------
+// Login
+// --------------------------------------------------
 client.login(config.token);

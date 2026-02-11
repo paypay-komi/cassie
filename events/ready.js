@@ -1,5 +1,5 @@
 module.exports = {
-  name: 'ready',
+  name: 'clientReady',
   execute(client) {
     console.log('Shard ready: ' + client.user.tag);
   }

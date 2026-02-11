@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model UserGlobalCommandStats {
+  id          String   @id @default(cuid())
+  userId      String
+  commandName String
+  count       Int      @default(0)
+  lastUsed    DateTime @default(now())
+
+  @@unique([userId, commandName])
+  @@index([userId])
+}
+
+// ------------------------------------------------------
+// Global Guild Settings Object
+// ------------------------------------------------------
+model GuildSettingsObject {
+  id   String @id @default("guild_settings")
+  data Json
+}
+
+// ------------------------------------------------------
+// Global User Data Object
+// ------------------------------------------------------
+model UserDataObject {
+  id   String @id @default("user_data")
+  data Json
+}
+
+// ------------------------------------------------------
+// Guild-Level Settings
+// ------------------------------------------------------
+model GuildSettings {
+  guildId              String  @id
+  prefix               String? @default("c.")
+  disabledCommands     Json
+  roleDisabledCommands Json
+  userDisabledCommands Json
+
+  channels     ChannelSettings[]
+  userSettings GuildUserSettings[]
+}
+
+// ------------------------------------------------------
+// Channel-Level Settings (per guild)
+// ------------------------------------------------------
+model ChannelSettings {
+  id               Int    @id @default(autoincrement())
+  channelId        String
+  disabledCommands Json
+
+  guild   GuildSettings @relation(fields: [guildId], references: [guildId])
+  guildId String
+}
+
+// ------------------------------------------------------
+// Per-User Settings (per guild)
+// ------------------------------------------------------
+model GuildUserSettings {
+  id      Int    @id @default(autoincrement())
+  guildId String
+  userId  String
+
+  disabledCommands Json
+  customPrefix     String?
+  statTracking     Boolean @default(true)
+
+  guild GuildSettings @relation(fields: [guildId], references: [guildId])
+
+  @@unique([guildId, userId])
+  @@index([guildId])
+  @@index([userId])
+}
+
+// ------------------------------------------------------
+// Per-User Per-Command Stats (per guild or "dm")
+// ------------------------------------------------------
+model UserCommandStats {
+  id          String   @id @default(cuid())
+  userId      String
+  guildId     String // use "dm" for direct messages
+  commandName String
+  count       Int      @default(0)
+  lastUsed    DateTime @default(now())
+
+  @@unique([userId, guildId, commandName])
+  @@index([guildId])
+  @@index([userId])
+}
+
+// ------------------------------------------------------
+// Global Stats Container (ONE ROW ONLY)
+// ------------------------------------------------------
+model GlobalStats {
+  id       String               @id @default("global")
+  commands GlobalCommandStats[]
+}
+
+// ------------------------------------------------------
+// Global Command Stats (children of GlobalStats)
+// ------------------------------------------------------
+model GlobalCommandStats {
+  id          String   @id @default(cuid())
+  commandName String
+  count       Int      @default(0)
+  lastUsed    DateTime @default(now())
+
+  globalStats   GlobalStats @relation(fields: [globalStatsId], references: [id])
+  globalStatsId String
+
+  @@unique([globalStatsId, commandName])
+}
