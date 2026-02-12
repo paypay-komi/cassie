@@ -37,6 +37,16 @@ model UserDataObject {
   data Json
 }
 
+model todolist {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  completed Boolean  @default(false)
+
+  @@index([userId])
+}
+
 // ------------------------------------------------------
 // Guild-Level Settings
 // ------------------------------------------------------

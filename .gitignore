@@ -7,7 +7,7 @@ node_modules/
 # Database files
 bot.db
 /db/migrations/
-
+*.db
 # History or temp files
 .history/*
 
