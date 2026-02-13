@@ -12,7 +12,7 @@ function createEmbed(currentPage, items) {
         .setTitle('Your Todo List')
         .setDescription(items[currentPage].map((item, index) => `${currentPage * 10 + index + 1}. (${item.completed ? '✓' : '✗'}) ${item.content}`).join('\n'))
 
-        .setFooter({ text: `Page ${currentPage + 1}` });
+        .setFooter({ text: `Page ${currentPage + 1}/${items.length}` });
     return embed;
 }
 module.exports = {
