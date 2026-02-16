@@ -36,37 +36,24 @@ function doStartupTasks() {
 	const startupTaskFiles = walk(startupTasksPath).filter((file) =>
 		file.endsWith(".js"),
 	);
+
 	for (const file of startupTaskFiles) {
-		const task = require(file);
-		if (typeof task.execute === "function") {
-			console.log(
-				`Executing startup task: ${task.name} - ${task.description}`,
-			);
+		delete require.cache[require.resolve(file)];
+	}
+	const startupTasks = startupTaskFiles.map((file) => require(file));
+	const taskPromises = startupTasks.map(async (task) => {
+		try {
 			const returnValue = task.execute(client);
-			if (returnValue instanceof Promise) {
-				returnValue
-					.then(() => {
-						console.log(`✅ Startup task completed: ${task.name}`);
-					})
-					.catch((error) => {
-						console.error(
-							`❌ Error executing startup task ${task.name}:`,
-							error,
-						);
-					});
-			} else {
-				console.log(`✅ Startup task completed: ${task.name}`);
-			}
-			console.log(
-				`Startup task ${task.name} executed with return value:`,
-				returnValue,
-			);
-		} else {
-			console.warn(
-				`Startup task ${file} does not export an execute function`,
+			await returnValue; // ensures async tasks finish
+			console.log(`✅ Startup task completed: ${task.name}`);
+		} catch (error) {
+			console.error(
+				`❌ Error executing startup task ${task.name}:`,
+				error,
 			);
 		}
-	}
+	});
+	return Promise.allSettled(taskPromises);
 }
 doStartupTasks();
 // --------------------------------------------------
