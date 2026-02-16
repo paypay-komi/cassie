@@ -8,8 +8,8 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true });
 
-        reloadTextCommands(interaction.client);
-        reloadSlashcommands(interaction.client);
-        await interaction.editReply({ content: '✅ All commands reloaded!' });
+         const textCommandsReloaded = reloadTextCommands(interaction.client);
+        const slashCommandsReloaded = reloadSlashcommands(interaction.client);
+        await interaction.editReply({ content: `✅ All commands reloaded! Text commands reloaded: ${textCommandsReloaded}, Slash commands reloaded: ${slashCommandsReloaded}` });
     }
 };

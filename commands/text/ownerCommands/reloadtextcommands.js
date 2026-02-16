@@ -4,7 +4,7 @@ module.exports = {
     description: 'Reload text commands',
     permissions: ['botOwner'],
     async execute(message, args) {
-        reloadTextCommands(message.client);
-        await message.reply('✅ Text commands reloaded!');
+        const textCommandsReloaded = reloadTextCommands(message.client);
+        await message.reply(`✅ Text commands reloaded! ${JSON.stringify(textCommandsReloaded, null, 2)}`);
     }
 };
