@@ -9,9 +9,6 @@ module.exports = {
 	aliases: ["add", "new", "set"],
 	parent: "reminders",
 	async execute(message, args) {
-		message.reply(
-			"This command is not implemented yet. Please check back later!",
-		);
 		const userId = message.author.id;
 		const content = args.slice(0, -1).join(" ");
 		const time = args[args.length - 1];
