@@ -1,54 +1,74 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-const config = require('./config.json');
-const deploySlashCommands = require('./utils/depolySlashcommands');
-const reloadTextcommands = require('./utils/reloadTextcommands');
-const reloadSlashcommands = require('./utils/reloadSlashcommands');
-const reloadEvents = require('./utils/reloadEvents');
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
+const config = require("./config.json");
+const deploySlashCommands = require("./utils/depolySlashcommands");
+const reloadTextcommands = require("./utils/reloadTextcommands");
+const reloadSlashcommands = require("./utils/reloadSlashcommands");
+const reloadEvents = require("./utils/reloadEvents");
 
 // --------------------------------------------------
 // Client Setup
 // --------------------------------------------------
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+	],
 });
-client.owners = config.owners || [];
-client.slashCommands = new Collection();
-client.textCommands = new Collection();
-client.subcommandMap = {};          // parent → { subName → command }
-client.commandSettings = {};        // future per-channel/role/user overrides
-client.prefix = config.prefix;
-client.db = require('./db/boobs.js'); // Prisma client instance
-// --------------------------------------------------
-// Helper: Safe loader
-// --------------------------------------------------
-function loadFiles(dir) {
-  return fs.readdirSync(dir).filter(f => f.endsWith('.js'));
+function walk(dir) {
+	let results = [];
+	const list = fs.readdirSync(dir);
+	list.forEach((file) => {
+		file = path.join(dir, file);
+		const stat = fs.statSync(file);
+		if (stat && stat.isDirectory()) {
+			results = results.concat(walk(file));
+		} else {
+			results.push(file);
+		}
+	});
+	return results;
 }
-reloadTextcommands(client);
-
-reloadSlashcommands(client);
-// --------------------------------------------------
-// Load Events
-// --------------------------------------------------
-reloadEvents(client);
-
-
-// --------------------------------------------------
-// Deploy Slash Commands
-// --------------------------------------------------
-deploySlashCommands({
-  token: config.token,
-  clientId: config.clientId,
-  global: true
-}).catch(console.error);
-
-
+function doStartupTasks() {
+	const startupTasksPath = path.join(__dirname, "startuptasks");
+	const startupTaskFiles = walk(startupTasksPath).filter((file) =>
+		file.endsWith(".js"),
+	);
+	for (const file of startupTaskFiles) {
+		const task = require(file);
+		if (typeof task.execute === "function") {
+			console.log(
+				`Executing startup task: ${task.name} - ${task.description}`,
+			);
+			const returnValue = task.execute(client);
+			if (returnValue instanceof Promise) {
+				returnValue
+					.then(() => {
+						console.log(`✅ Startup task completed: ${task.name}`);
+					})
+					.catch((error) => {
+						console.error(
+							`❌ Error executing startup task ${task.name}:`,
+							error,
+						);
+					});
+			} else {
+				console.log(`✅ Startup task completed: ${task.name}`);
+			}
+			console.log(
+				`Startup task ${task.name} executed with return value:`,
+				returnValue,
+			);
+		} else {
+			console.warn(
+				`Startup task ${file} does not export an execute function`,
+			);
+		}
+	}
+}
+doStartupTasks();
 // --------------------------------------------------
 // Login
 // --------------------------------------------------
