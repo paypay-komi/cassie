@@ -46,7 +46,17 @@ model todolist {
 
   @@index([userId])
 }
+model reminder {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  remindAt  DateTime
+  createdAt DateTime @default(now())
+  repeating DateTime? // if set, this is the interval for repeating reminders
+  
 
+  @@index([userId])
+}
 // ------------------------------------------------------
 // Guild-Level Settings
 // ------------------------------------------------------

@@ -19,7 +19,20 @@ module.exports = {
 		}
 		const reminderDate = new Date(Date.now() + reminderTime);
 		const discordTimestamp = parseDateIntoDiscordTimeStamp(reminderDate, discordTimeStampFormats.ShortDateTime);
-		// Save the reminder to the database (not implemented yet)
-		message.reply(`Reminder set for "${content}" at ${discordTimestamp}`);
+		message.client.Datebase.prisma.reminder.create({
+			data: {
+				userId,
+				content,
+				time: reminderDate
+			}
+		})
+			.then(() => {
+				message.reply(`Reminder set for "${content}" at ${discordTimestamp}`);
+			}
+			)
+			.catch(error => {
+				console.error('Error creating reminder:', error);
+				message.reply('Failed to create the reminder. Please try again later.');
+			});
 	}
 };
