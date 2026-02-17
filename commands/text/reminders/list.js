@@ -78,5 +78,8 @@ module.exports = {
 				embeds: [pagateReminders(reminders, currentPage)],
 			});
 		});
+		collector.on("end", async () => {
+			await reminderMessage.edit({ components: [] });
+		});
 	},
 };
