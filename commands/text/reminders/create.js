@@ -12,6 +12,20 @@ module.exports = {
 		const userId = message.author.id;
 		const content = args.slice(0, -1).join(" ");
 		const time = args[args.length - 1];
+		// attempt to dm the user to confirm the reminder, if dm fails, reply in channel but warn about dms being closed
+		try {
+			await message.author.send(
+				`You set a reminder for "${content}" at ${time}. I will remind you in DMs!`,
+			);
+		} catch (error) {
+			console.warn(
+				`Could not send DM to user ${message.author.tag} (${message.author.id}). They might have DMs closed.`,
+				error,
+			);
+			return await message.reply(
+				`You tried to set a reminder for "${content}" at ${time}. I would love to remind you in DMs, but it seems like I can't DM you. Please check your DM settings!`,
+			);
+		}
 		if (!content || !time) {
 			return message.reply(
 				"Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`",
