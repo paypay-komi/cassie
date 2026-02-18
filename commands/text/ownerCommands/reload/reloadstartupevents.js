@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 module.exports = {
 	name: "startuptasks",
 	description: "Reloads the startup tasks.",
