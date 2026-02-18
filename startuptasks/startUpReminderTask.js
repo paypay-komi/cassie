@@ -13,8 +13,26 @@ module.exports = {
 			await Promise.all(
 				reminders.map(async (reminder) => {
 					try {
-						const user = await client.users.fetch(reminder.userId);
-						await user.send(`⏰ Reminder: ${reminder.content}`);
+						if (reminder.remindInChannel && reminder.channelId) {
+							const channel = await client.channels.fetch(
+								reminder.channelId,
+							);
+							if (channel) {
+								await channel.send(
+									`⏰ Reminder for <@${reminder.userId}>: ${reminder.content}`,
+								);
+							} else {
+								console.warn(
+									`Could not find channel ${reminder.channelId} to send reminder for user ${reminder.userId}.`,
+								);
+							}
+						} else {
+							const user = await client.users.fetch(
+								reminder.userId,
+							);
+							await user.send(`⏰ Reminder: ${reminder.content}`);
+						}
+
 						await client.db.prisma.reminder.delete({
 							where: { id: reminder.id },
 						});
