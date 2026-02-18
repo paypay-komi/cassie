@@ -32,16 +32,16 @@ module.exports = {
 							);
 							await user.send(`⏰ Reminder: ${reminder.content}`);
 						}
-
-						await client.db.prisma.reminder.delete({
-							where: { id: reminder.id },
-						});
 					} catch (err) {
 						console.error(
 							`Failed to send reminder to ${reminder.userId}:`,
 							err,
 						);
 					}
+					// delete no matter what to prevent stuck reminders, even if sending fails
+					await client.db.prisma.reminder.delete({
+						where: { id: reminder.id },
+					});
 				}),
 			);
 
