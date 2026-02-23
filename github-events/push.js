@@ -1,14 +1,16 @@
+const { CLIENT_RENEG_LIMIT } = require("tls");
+
 module.exports = {
-	name: "ping",
+	name: "push",
 	async execute(payload, client) {
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
 			if (owner) {
 				owner.send(
-					`Received ping event from GitHub: ${JSON.stringify(payload)}`,
+					`Received push event from GitHub: ${JSON.stringify(payload)}`,
 				);
 			}
 		});
-		console.log("Received ping event:", payload);
+		console.log("Received push event:", payload);
 	},
 };

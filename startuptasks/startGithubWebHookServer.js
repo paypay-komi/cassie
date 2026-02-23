@@ -24,12 +24,13 @@ module.exports = {
 			if (!handler) {
 				console.log(`⚠️ No handler for event: ${eventName}`);
 				// create a file in github-events with the name of the event and a template for handling it
-				const template = `module.exports = {
-	name: "${eventName}",
-	async execute(payload, client) {
-	console.log("Received ${eventName} event:", payload);
-	}
-			};
+				const template = `
+	module.exports = {
+		name: "${eventName}",
+		async execute(payload, client) {
+			console.log("Received ${eventName} event:", payload);
+		},
+	};
 			`;
 				fs.writeFileSync(
 					`${path.join(__dirname, "..", "github-events", `${eventName}.js`)}`,
