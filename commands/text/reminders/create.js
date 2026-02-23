@@ -12,7 +12,7 @@ module.exports = {
 		const userId = message.author.id;
 		const content = args.slice(0, -1).join(" ");
 		const time = args[args.length - 1];
-
+		
 		if (!content || !time) {
 			return message.reply(
 				"Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`",
