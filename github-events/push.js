@@ -12,13 +12,18 @@ module.exports = {
 					: "Unknown";
 				const commits = payload.commits ? payload.commits.length : 0;
 				const compareUrl = payload.compare || "N/A";
+				const commitMessages = payload.commits
+					? payload.commits
+							.map((c) => `- ${c.message} (${c.url})`)
+							.join("\n")
+					: "No commits";
+
 				owner.send(
-					`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}`,
+					`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}\nCommit Messages:\n${commitMessages}`,
 				);
 				console.log(
 					`Sent push event notification to owner ${owner.tag}`,
 				);
-				console.log(`Received push event: ${JSON.stringify(payload)}`);
 			}
 		});
 		console.log("Received push event:", payload);
