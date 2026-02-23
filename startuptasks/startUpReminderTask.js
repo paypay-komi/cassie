@@ -63,8 +63,8 @@ module.exports = {
 	cleanUp(client) {
 		if (this.timer) clearTimeout(this.timer);
 	},
-	recheck() {
-		this.cleanUp();
-		this.execute(client);
+	recheck(CLIENT) {
+		this.cleanUp(CLIENT);
+		this.execute(CLIENT);
 	},
 };
