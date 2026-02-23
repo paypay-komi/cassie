@@ -63,4 +63,8 @@ module.exports = {
 	cleanUp(client) {
 		if (this.timer) clearTimeout(this.timer);
 	},
+	recheck() {
+		this.cleanUp();
+		this.execute(client);
+	},
 };

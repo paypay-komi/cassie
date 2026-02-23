@@ -1,4 +1,5 @@
 const parseTime = require("../../../utils/parseTime.js");
+const setupReminderTask = require("../../../startuptasks/startUpReminderTask.js");
 const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
@@ -12,7 +13,7 @@ module.exports = {
 		const userId = message.author.id;
 		const content = args.slice(0, -1).join(" ");
 		const time = args[args.length - 1];
-		
+
 		if (!content || !time) {
 			return message.reply(
 				"Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`",
@@ -60,6 +61,7 @@ module.exports = {
 				message.reply(
 					`Reminder set for "${content}" at ${discordTimestamp}`,
 				);
+				setupReminderTask.recheck(); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
 			})
 			.catch((error) => {
 				console.error("Error creating reminder:", error);
