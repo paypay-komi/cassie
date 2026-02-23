@@ -1,7 +1,6 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const reloadEvents = require("../utils/reloadEvents");
 
 let server;
 const eventHandlers = new Map();
@@ -18,7 +17,7 @@ module.exports = {
 			const payload = req.body;
 
 			res.sendStatus(200);
-
+			console.log(`raw data: ${JSON.stringify(payload)}`);
 			const handler = eventHandlers.get(eventName);
 
 			if (!handler) {
