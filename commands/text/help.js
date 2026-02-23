@@ -35,7 +35,7 @@ module.exports = {
 
         if (args.length) {
             const name = args[0].toLowerCase();
-            let cmd = textCommands.get(name)
+            const cmd = textCommands.get(name)
                 || [...textCommands.values()].find(c => c.aliases?.includes(name));
 
             if (!cmd) return message.reply(`I couldn't find a command named \`${name}\`.`);

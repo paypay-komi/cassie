@@ -31,7 +31,7 @@ module.exports = {
 			discordTimeStampFormats.ShortDateTime,
 		);
 		// attempt to dm the user to confirm the reminder, if dm fails, reply in channel but warn about dms being closed
-		let dmSuccess = true;
+		const dmSuccess = true;
 
 		try {
 			await message.author.send(

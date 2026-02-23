@@ -109,7 +109,7 @@ module.exports = {
 
 			// ===== Helper to update message safely =====
 			async function updateMessage(final = false) {
-				let displayText = fixCodeBlocks(fullResponse);
+				const displayText = fixCodeBlocks(fullResponse);
 
 				if (displayText.length <= DISCORD_LIMIT) {
 					await replyMessage.edit(displayText || '‎');

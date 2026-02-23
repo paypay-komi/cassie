@@ -1,9 +1,39 @@
 import globals from "globals";
-import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
-  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], languageOptions: { globals: globals.browser } },
-  tseslint.configs.recommended,
+	{
+		ignores: ["node_modules", ".history"],
+	},
+	{
+		files: ["**/*.js"],
+		languageOptions: {
+			sourceType: "commonjs",
+			globals: globals.node,
+		},
+		rules: {
+			// 🔥 Logic Safety
+			eqeqeq: ["error", "always"],
+			"no-constant-condition": "warn",
+			"no-unreachable": "error",
+
+			// 🧠 Variable Sanity
+			"no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+			"no-var": "error",
+			"prefer-const": "warn",
+
+			// 🧹 Clean Code
+			yoda: ["error", "never"],
+			"no-trailing-spaces": "warn",
+			"eol-last": ["warn", "always"],
+
+			// 🚫 Bug Prevention
+			"no-async-promise-executor": "error",
+			"require-await": "warn",
+			"no-duplicate-imports": "error",
+
+			// 🧯 Optional but Nice
+			"no-console": "off", // Discord bots use console.log a lot
+		},
+	},
 ]);

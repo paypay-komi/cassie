@@ -249,7 +249,7 @@ class checkersGame {
             ? aiPlayer
             : (aiPlayer.id === this.player1.id ? this.player2 : this.player1);
 
-        let moves = activePiece ? this.getValidMovesFromPiece(activePiece) : this.getAllValidMoves(currentPlayer);
+        const moves = activePiece ? this.getValidMovesFromPiece(activePiece) : this.getAllValidMoves(currentPlayer);
 
         if (moves.length === 0) {
             const score = this.evaluateGameScore(aiPlayer);
@@ -341,7 +341,7 @@ class checkersGame {
         let bestScore = -Infinity;
         let bestMove = null;
 
-        let moves = this.getAllValidMoves(aiPlayer);
+        const moves = this.getAllValidMoves(aiPlayer);
         console.log(`[DEBUG] Evaluating ${moves.length} possible moves for ${aiPlayer.tag}`);
 
         for (const move of moves) {
