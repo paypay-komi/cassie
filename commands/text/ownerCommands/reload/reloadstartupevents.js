@@ -62,7 +62,7 @@ module.exports = {
 			}
 		}
 		// idk nwhy this never runs but okay ig
-		
+
 		await message.reply("Startup tasks reloaded.");
 	},
 };
