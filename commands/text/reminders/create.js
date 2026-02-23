@@ -61,7 +61,7 @@ module.exports = {
 				message.reply(
 					`Reminder set for "${content}" at ${discordTimestamp}`,
 				);
-				setupReminderTask.recheck(); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
+				setupReminderTask.recheck(client); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
 			})
 			.catch((error) => {
 				console.error("Error creating reminder:", error);
