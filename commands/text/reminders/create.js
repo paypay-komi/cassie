@@ -7,7 +7,7 @@ const {
 module.exports = {
 	name: "create",
 	description: "Create a reminder",
-	aliases: ["add", "new", "set"],
+	aliases: ["add", "new", "set", "make"],
 	parent: "reminders",
 	async execute(message, args) {
 		const userId = message.author.id;
