@@ -13,7 +13,7 @@ module.exports = {
 				const commits = payload.commits ? payload.commits.length : 0;
 				const compareUrl = payload.compare || "N/A";
 				owner.send(
-					`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}\nFull Payload: ${JSON.stringify(payload)}`,
+					`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}`,
 				);
 				console.log(
 					`Sent push event notification to owner ${owner.tag}`,

@@ -6,9 +6,8 @@ module.exports = {
 			if (owner) {
 				const was_deleted = payload.action === "deleted";
 				owner.send(
-					`Received star event from GitHub: ${JSON.stringify(
-						payload,
-					)}\nAction: ${payload.action}\nStarred at: ${
+					`Received star event from GitHub:
+					\nAction: ${payload.action}\nStarred at: ${
 						payload.starred_at
 					}\nWas deleted: ${was_deleted}`,
 				);
