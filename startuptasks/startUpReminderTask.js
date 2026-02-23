@@ -50,7 +50,7 @@ module.exports = {
 			});
 
 			if (nextReminder) {
-				const delay = new Date(nextReminder.time) - new Date();
+				const delay = new Date(nextReminder.remindAt) - new Date();
 				this.timer = setTimeout(runTask, delay);
 			} else {
 				this.timer = setTimeout(runTask, 60 * 1000); // Check again in 1 min if no reminders
