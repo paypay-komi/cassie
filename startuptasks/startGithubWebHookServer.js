@@ -44,7 +44,7 @@ module.exports = {
 			try {
 				await handler.execute(payload, client);
 			} catch (err) {
-				console.error(`❌ Error handling ${eventName}:`, err);
+				console.error('❌ Error handling %s:', eventName, err);
 			}
 		});
 
