@@ -26,6 +26,7 @@ export default defineConfig([
 			yoda: ["error", "never"],
 			"no-trailing-spaces": "warn",
 			"eol-last": ["warn", "always"],
+			quotes: ["error", "single", { avoidEscape: true }],
 
 			// 🚫 Bug Prevention
 			"no-async-promise-executor": "error",
@@ -33,7 +34,7 @@ export default defineConfig([
 			"no-duplicate-imports": "error",
 
 			// 🧯 Optional but Nice
-			"no-console": "off", // Discord bots use console.log a lot
+			"no-console": "off",
 		},
 	},
 ]);
