@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 function walk(dir) {
 	let results = [];
 	const list = fs.readdirSync(dir);
@@ -19,14 +19,14 @@ function walk(dir) {
 }
 
 module.exports = {
-	name: "startuptasks",
-	description: "Reloads the startup tasks.",
-	parent: "reload",
+	name: 'startuptasks',
+	description: 'Reloads the startup tasks.',
+	parent: 'reload',
 
 	async execute(message, client) {
-		const tasksPath = path.join(process.cwd(), "startuptasks");
+		const tasksPath = path.join(process.cwd(), 'startuptasks');
 
-		const files = walk(tasksPath).filter((f) => f.endsWith(".js"));
+		const files = walk(tasksPath).filter((f) => f.endsWith('.js'));
 
 		for (const file of files) {
 			try {
@@ -40,11 +40,11 @@ module.exports = {
 					continue;
 				}
 
-				if (typeof task.cleanup === "function") {
+				if (typeof task.cleanup === 'function') {
 					await task.cleanup(client);
 				}
 
-				if (typeof task.execute === "function") {
+				if (typeof task.execute === 'function') {
 					await task.execute(client);
 					console.log(
 						`✅ Startup task ${task.name} reloaded successfully.`,
@@ -63,6 +63,6 @@ module.exports = {
 		}
 		// idk nwhy this never runs but okay ig
 
-		await message.reply("Startup tasks reloaded.");
+		await message.reply('Startup tasks reloaded.');
 	},
 };

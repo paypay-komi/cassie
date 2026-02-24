@@ -1,6 +1,6 @@
 module.exports = {
-	name: "workflow_job",
+	name: 'workflow_job',
 	async execute(payload, client) {
-		console.log("Received workflow_job event:", payload);
+		console.log('Received workflow_job event:', payload);
 	},
 };

@@ -1,17 +1,17 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder } = require('discord.js');
 module.exports = {
-	name: "list",
-	description: "List all your reminders",
-	aliases: ["ls", "l"],
-	parent: "reminders",
+	name: 'list',
+	description: 'List all your reminders',
+	aliases: ['ls', 'l'],
+	parent: 'reminders',
 	async execute(message, args) {
 		const userId = message.author.id;
 		const reminders = await message.client.db.prisma.reminder.findMany({
 			where: { userId },
-			orderBy: { remindAt: "asc" },
+			orderBy: { remindAt: 'asc' },
 		});
 		if (reminders.length === 0) {
-			return message.reply("You have no reminders set.");
+			return message.reply('You have no reminders set.');
 		}
 		const embed = new EmbedBuilder()
 			.setTitle(`${message.author.username}'s Reminders`)
@@ -27,11 +27,11 @@ module.exports = {
 						(r, i) =>
 							`**${start + i + 1}.** ${r.content} - <t:${Math.floor(new Date(r.remindAt).getTime() / 1000)}:R>`,
 					)
-					.join("\n"),
+					.join('\n'),
 			);
 			if (embed.data.description.length > 4096) {
 				embed.setDescription(
-					"Too many reminders to display. Please delete some reminders to see the list.",
+					'Too many reminders to display. Please delete some reminders to see the list.',
 				);
 			}
 			return embed;
@@ -46,16 +46,16 @@ module.exports = {
 			if (currentPage > 0) {
 				buttons.push(
 					new ButtonBuilder()
-						.setCustomId("prev")
-						.setLabel("Previous")
+						.setCustomId('prev')
+						.setLabel('Previous')
 						.setStyle(ButtonStyle.Primary),
 				);
 			}
 			if (currentPage < totalPages - 1) {
 				buttons.push(
 					new ButtonBuilder()
-						.setCustomId("next")
-						.setLabel("Next")
+						.setCustomId('next')
+						.setLabel('Next')
 						.setStyle(ButtonStyle.Primary),
 				);
 			}
@@ -68,17 +68,17 @@ module.exports = {
 			idle: 60000,
 			filter: (i) => i.user.id === message.author.id,
 		});
-		collector.on("collect", async (i) => {
-			if (i.customId === "prev") {
+		collector.on('collect', async (i) => {
+			if (i.customId === 'prev') {
 				currentPage--;
-			} else if (i.customId === "next") {
+			} else if (i.customId === 'next') {
 				currentPage++;
 			}
 			await i.update({
 				embeds: [pagateReminders(reminders, currentPage)],
 			});
 		});
-		collector.on("end", async () => {
+		collector.on('end', async () => {
 			await reminderMessage.edit({ components: [] });
 		});
 	},

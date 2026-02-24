@@ -31,7 +31,7 @@ function flattenCommandTree(cmd, parents = []) {
 		const newParents = [...parents, name];
 
 		if (!cmd.subcommands || Object.keys(cmd.subcommands).length === 0) {
-			paths.push({ path: newParents.join(" "), command: cmd });
+			paths.push({ path: newParents.join(' '), command: cmd });
 			continue;
 		}
 

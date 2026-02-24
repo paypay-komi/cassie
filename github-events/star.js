@@ -1,10 +1,10 @@
 module.exports = {
-	name: "star",
+	name: 'star',
 	async execute(payload, client) {
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
 			if (owner) {
-				const was_deleted = payload.action === "deleted";
+				const was_deleted = payload.action === 'deleted';
 				owner.send(
 					`Received star event from GitHub:
 					\nAction: ${payload.action}\nStarred at: ${
@@ -16,6 +16,6 @@ module.exports = {
 				);
 			}
 		});
-		console.log("Received star event:", payload);
+		console.log('Received star event:', payload);
 	},
 };

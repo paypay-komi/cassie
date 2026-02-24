@@ -1,5 +1,5 @@
 module.exports = {
-	name: "ping",
+	name: 'ping',
 	async execute(payload, client) {
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
@@ -9,6 +9,6 @@ module.exports = {
 				);
 			}
 		});
-		console.log("Received ping event:", payload);
+		console.log('Received ping event:', payload);
 	},
 };

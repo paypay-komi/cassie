@@ -1,7 +1,7 @@
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
-const fs = require("fs");
-const path = require("path");
-const config = require("./config.json");
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+const config = require('./config.json');
 
 // --------------------------------------------------
 // Client Setup
@@ -28,9 +28,9 @@ function walk(dir) {
 	return results;
 }
 function doStartupTasks() {
-	const startupTasksPath = path.join(__dirname, "startuptasks");
+	const startupTasksPath = path.join(__dirname, 'startuptasks');
 	const startupTaskFiles = walk(startupTasksPath).filter((file) =>
-		file.endsWith(".js"),
+		file.endsWith('.js'),
 	);
 
 	for (const file of startupTaskFiles) {

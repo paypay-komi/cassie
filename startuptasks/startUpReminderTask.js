@@ -1,6 +1,6 @@
 module.exports = {
-	name: "startUpReminderTask",
-	description: "Start the reminder task on startup",
+	name: 'startUpReminderTask',
+	description: 'Start the reminder task on startup',
 	reloadAble: true,
 	timer: null,
 	async execute(client) {
@@ -46,7 +46,7 @@ module.exports = {
 			);
 
 			const nextReminder = await client.db.prisma.reminder.findFirst({
-				orderBy: { remindAt: "asc" },
+				orderBy: { remindAt: 'asc' },
 			});
 
 			if (nextReminder) {
@@ -58,7 +58,7 @@ module.exports = {
 		};
 
 		runTask();
-		console.log("✅ Reminder task started on startup");
+		console.log('✅ Reminder task started on startup');
 	},
 	cleanUp(client) {
 		if (this.timer) clearTimeout(this.timer);

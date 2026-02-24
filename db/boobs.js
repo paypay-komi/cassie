@@ -1,5 +1,5 @@
 // db/index.js
-const prisma = require("../prisma/client");
+const prisma = require('../prisma/client');
 
 // Small utility
 const now = () => new Date();
@@ -115,7 +115,7 @@ const stats = {
 	// 1. Per-user per-guild per-command (DM-safe)
 	// ------------------------------------------------------
 	async incrementUserCommand(guildId, userId, commandName) {
-		const gid = guildId ?? "dm";
+		const gid = guildId ?? 'dm';
 
 		await prisma.userCommandStats.upsert({
 			where: {
@@ -165,15 +165,15 @@ const stats = {
 	// ------------------------------------------------------
 	async incrementGlobalCommand(commandName) {
 		await prisma.globalStats.upsert({
-			where: { id: "global" },
+			where: { id: 'global' },
 			update: {},
-			create: { id: "global" },
+			create: { id: 'global' },
 		});
 
 		await prisma.globalCommandStats.upsert({
 			where: {
 				globalStatsId_commandName: {
-					globalStatsId: "global",
+					globalStatsId: 'global',
 					commandName,
 				},
 			},
@@ -182,7 +182,7 @@ const stats = {
 				lastUsed: now(),
 			},
 			create: {
-				globalStatsId: "global",
+				globalStatsId: 'global',
 				commandName,
 				count: 1,
 				lastUsed: now(),
@@ -192,7 +192,7 @@ const stats = {
 
 	async getGlobal() {
 		return prisma.globalStats.findUnique({
-			where: { id: "global" },
+			where: { id: 'global' },
 			include: { commands: true },
 		});
 	},
@@ -204,31 +204,31 @@ const stats = {
 const global = {
 	async getGuildSettingsObject() {
 		const row = await prisma.guildSettingsObject.findUnique({
-			where: { id: "guild_settings" },
+			where: { id: 'guild_settings' },
 		});
 		return row?.data || {};
 	},
 
 	async updateGuildSettingsObject(data) {
 		return prisma.guildSettingsObject.upsert({
-			where: { id: "guild_settings" },
+			where: { id: 'guild_settings' },
 			update: { data },
-			create: { id: "guild_settings", data },
+			create: { id: 'guild_settings', data },
 		});
 	},
 
 	async getUserDataObject() {
 		const row = await prisma.userDataObject.findUnique({
-			where: { id: "user_data" },
+			where: { id: 'user_data' },
 		});
 		return row?.data || {};
 	},
 
 	async updateUserDataObject(data) {
 		return prisma.userDataObject.upsert({
-			where: { id: "user_data" },
+			where: { id: 'user_data' },
 			update: { data },
-			create: { id: "user_data", data },
+			create: { id: 'user_data', data },
 		});
 	},
 };
@@ -279,7 +279,7 @@ const settings = {
 			...userMapDisabled,
 		]);
 
-		const prefix = u.customPrefix || g.prefix || "c.";
+		const prefix = u.customPrefix || g.prefix || 'c.';
 
 		return {
 			guildId,

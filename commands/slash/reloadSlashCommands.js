@@ -1,4 +1,4 @@
-const reloadSlashcommands = require("../../utils/reloadSlashcommands");
+const reloadSlashcommands = require('../../utils/reloadSlashcommands');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
  data: new SlashCommandBuilder()

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const reloadTextCommands = require("../../utils/reloadTextcommands");
+const reloadTextCommands = require('../../utils/reloadTextcommands');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('reloadtext')

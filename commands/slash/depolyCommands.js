@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const depolySlashcommands = require("../../utils/depolySlashcommands");
-const config = require("../../config.json");
+const depolySlashcommands = require('../../utils/depolySlashcommands');
+const config = require('../../config.json');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('deploy')

@@ -1,28 +1,28 @@
-const parseTime = require("../../../utils/parseTime.js");
-const setupReminderTask = require("../../../startuptasks/startUpReminderTask.js");
+const parseTime = require('../../../utils/parseTime.js');
+const setupReminderTask = require('../../../startuptasks/startUpReminderTask.js');
 const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
-} = require("../../../utils/parseDateIntoDiscordTimeStamp.js");
+} = require('../../../utils/parseDateIntoDiscordTimeStamp.js');
 module.exports = {
-	name: "create",
-	description: "Create a reminder",
-	aliases: ["add", "new", "set", "make"],
-	parent: "reminders",
+	name: 'create',
+	description: 'Create a reminder',
+	aliases: ['add', 'new', 'set', 'make'],
+	parent: 'reminders',
 	async execute(message, args) {
 		const userId = message.author.id;
-		const content = args.slice(0, -1).join(" ");
+		const content = args.slice(0, -1).join(' ');
 		const time = args[args.length - 1];
 
 		if (!content || !time) {
 			return message.reply(
-				"Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`",
+				'Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`',
 			);
 		}
 		const reminderTime = parseTime(time);
 		if (!reminderTime) {
 			return message.reply(
-				"Invalid time format. Please use formats like `10m`, `2h`, or `1d`.",
+				'Invalid time format. Please use formats like `10m`, `2h`, or `1d`.',
 			);
 		}
 		const reminderDate = new Date(Date.now() + reminderTime);
@@ -64,9 +64,9 @@ module.exports = {
 				setupReminderTask.recheck(message.client); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
 			})
 			.catch((error) => {
-				console.error("Error creating reminder:", error);
+				console.error('Error creating reminder:', error);
 				message.reply(
-					"Failed to create the reminder. Please try again later.",
+					'Failed to create the reminder. Please try again later.',
 				);
 			});
 	},
