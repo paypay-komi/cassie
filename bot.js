@@ -2,10 +2,6 @@ const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const config = require("./config.json");
-const deploySlashCommands = require("./utils/depolySlashcommands");
-const reloadTextcommands = require("./utils/reloadTextcommands");
-const reloadSlashcommands = require("./utils/reloadSlashcommands");
-const reloadEvents = require("./utils/reloadEvents");
 
 // --------------------------------------------------
 // Client Setup
