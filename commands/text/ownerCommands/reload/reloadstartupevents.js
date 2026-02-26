@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 function walk(dir) {
 	let results = [];
 	const list = fs.readdirSync(dir);
@@ -17,52 +17,78 @@ function walk(dir) {
 
 	return results;
 }
+const path = require("path");
 
 module.exports = {
-	name: 'startuptasks',
-	description: 'Reloads the startup tasks.',
-	parent: 'reload',
+	name: "startuptasks",
+	description: "Reloads the startup tasks.",
+	parent: "reload",
 
-	async execute(message, client) {
-		const tasksPath = path.join(process.cwd(), 'startuptasks');
+	async execute(message) {
+		const tasksPath = path.join(process.cwd(), "startuptasks");
 
-		const files = walk(tasksPath).filter((f) => f.endsWith('.js'));
+		const results = await message.client.shard.broadcastEval(
+			async (client, { tasksPath }) => {
+				const fs = require("fs");
+				const path = require("path");
 
-		for (const file of files) {
-			try {
-				delete require.cache[require.resolve(file)];
-				const task = require(file);
+				function walk(dir) {
+					let results = [];
+					const list = fs.readdirSync(dir);
 
-				if (!task?.reloadAble) {
-					console.log(
-						`⚠️ Startup task ${task.name} is not reloadable. Skipping...`,
-					);
-					continue;
+					for (const file of list) {
+						const fullPath = path.join(dir, file);
+						const stat = fs.statSync(fullPath);
+
+						if (stat.isDirectory()) {
+							results = results.concat(walk(fullPath));
+						} else {
+							results.push(fullPath);
+						}
+					}
+
+					return results;
 				}
 
-				if (typeof task.cleanup === 'function') {
-					await task.cleanup(client);
+				const files = walk(tasksPath).filter((f) => f.endsWith(".js"));
+
+				let reloaded = 0;
+
+				for (const file of files) {
+					try {
+						delete require.cache[require.resolve(file)];
+						const task = require(file);
+
+						if (!task?.reloadAble) continue;
+
+						if (typeof task.cleanup === "function") {
+							await task.cleanup(client);
+						}
+
+						if (typeof task.execute === "function") {
+							await task.execute(client);
+							reloaded++;
+						}
+					} catch (err) {
+						console.error(
+							`Shard ${client.shard.ids[0]} failed:`,
+							err,
+						);
+					}
 				}
 
-				if (typeof task.execute === 'function') {
-					await task.execute(client);
-					console.log(
-						`✅ Startup task ${task.name} reloaded successfully.`,
-					);
-				} else {
-					console.log(
-						`⚠️ Startup task ${task.name} has no execute() function. Skipping...`,
-					);
-				}
-			} catch (err) {
-				console.error(
-					`❌ Failed to reload startup task at ${file}:`,
-					err,
-				);
-			}
-		}
-		// idk nwhy this never runs but okay ig
+				return {
+					shard: client.shard.ids[0],
+					reloaded,
+				};
+			},
+			{
+				context: { tasksPath },
+			},
+		);
 
-		await message.reply('Startup tasks reloaded.');
+		await message.reply({
+			content: `✅ Startup tasks reloaded on ${results.length} shard(s).`,
+		});
 	},
 };

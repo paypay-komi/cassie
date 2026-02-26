@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 /**
  * Reload slash commands
@@ -7,13 +7,13 @@ const path = require('path');
  * @param {string} [name] specific command name
  */
 module.exports = function reloadSlashCommands(client, name) {
-	const slashPath = path.join(__dirname, '../commands/slash');
+	const slashPath = path.join(__dirname, "../commands/slash");
 
 	let reloaded = 0;
 	const failed = [];
 
 	for (const file of fs.readdirSync(slashPath)) {
-		if (!file.endsWith('.js')) continue;
+		if (!file.endsWith(".js")) continue;
 
 		const filePath = path.join(slashPath, file);
 
