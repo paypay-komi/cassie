@@ -48,7 +48,16 @@ module.exports = {
 					});
 				const [game_id, message_id, user_id, piece] =
 					interaction.customId.split("-");
-				interaction.reply(`you played ${piece}`);
+
+				const random_piece = ["🪨", "📄", "✂️"][
+					Math.floor(Math.random() * 3)
+				];
+				interaction.reply(
+					`you played ${piece}\ncomptuer played ${random_piece} `,
+				);
+			});
+			collector.on("end", () => {
+				game_message.edit({ components: [] });
 			});
 		}
 		message.reply("this is wip");
