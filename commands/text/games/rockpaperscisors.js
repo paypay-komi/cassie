@@ -3,11 +3,13 @@ const {
 	ButtonStyle,
 	ActionRowBuilder,
 	Component,
+	ComponentType,
 } = require("discord.js");
 module.exports = {
 	name: "rockPaperScissors",
 	parent: "games",
 	aliases: ["rps"],
+
 	async execute(message, args) {
 		const game_message = await message.reply("loading...");
 		function makeButtons(user) {
@@ -33,6 +35,20 @@ module.exports = {
 			await game_message.edit({
 				components: [makeButtons(message.member.user)],
 				content: "pick your weapon",
+			});
+			const collector = game_message.createMessageComponentCollector({
+				componentType: ComponentType.Button,
+				idle: 60_000,
+			});
+			collector.on("collect", (interaction) => {
+				if (interaction.user.id !== message.author.id)
+					return interaction.reply({
+						ephemeral: true,
+						content: "this is not your game!!!",
+					});
+				const [game_id, message_id, user_id, piece] =
+					interaction.customId.split("-");
+				interaction.reply(`you played ${piece}`);
 			});
 		}
 		message.reply("this is wip");
