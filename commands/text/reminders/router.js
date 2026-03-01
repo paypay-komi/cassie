@@ -1,5 +1,5 @@
 module.exports = {
-	name: 'reminders',
-	description: 'Manage your reminders',
-	aliases: ['remind', 'reminder', 'rmdrs'],
+	name: "reminders",
+	description: "Manage your reminders",
+	aliases: ["remind", "reminder", "rmdrs"],
 };

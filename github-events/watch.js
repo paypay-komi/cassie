@@ -1,6 +1,6 @@
 module.exports = {
-	name: 'watch',
+	name: "watch",
 	async execute(payload, client) {
-		console.log('Received watch event:', payload);
+		console.log("Received watch event:", payload);
 	},
 };

@@ -4,14 +4,14 @@ const {
 	ButtonBuilder,
 	ButtonStyle,
 	MessageFlags,
-} = require('discord.js');
+} = require("discord.js");
 
 class TicTacToe {
 	constructor(player1, player2, channel) {
 		this.board = [
-			[' ', ' ', ' '],
-			[' ', ' ', ' '],
-			[' ', ' ', ' '],
+			[" ", " ", " "],
+			[" ", " ", " "],
+			[" ", " ", " "],
 		];
 
 		this.player1 = player1;
@@ -29,7 +29,7 @@ class TicTacToe {
 		const createButton = (r, c) =>
 			new ButtonBuilder()
 				.setCustomId(`${prefix}-${r},${c}`)
-				.setLabel('\u2B1B') // black square
+				.setLabel("\u2B1B") // black square
 				.setStyle(ButtonStyle.Secondary);
 
 		const row1 = new ActionRowBuilder().addComponents(
@@ -68,10 +68,10 @@ class TicTacToe {
 			if (!interaction.isButton()) return false;
 
 			const [prefix, player1Id, player2Id] =
-				interaction.customId.split('-');
+				interaction.customId.split("-");
 			const gameID = `${player1Id}-${player2Id}`;
 
-			return prefix === 'ttt' && gameID === this.gameID;
+			return prefix === "ttt" && gameID === this.gameID;
 		};
 
 		const collector = this.channel.createMessageComponentCollector({
@@ -79,15 +79,15 @@ class TicTacToe {
 			time: 5 * 60 * 1000, // 5 minutes
 		});
 
-		collector.on('collect', async (interaction) => {
+		collector.on("collect", async (interaction) => {
 			const [prefix, player1Id, player2Id, position] =
-				interaction.customId.split('-');
-			const [row, col] = position.split(',').map(Number);
+				interaction.customId.split("-");
+			const [row, col] = position.split(",").map(Number);
 			await interaction.deferUpdate(); // ALWAYS defer or reply to avoid "This interaction failed" message, even if you plan to update later in the code
 			if (this.gameOver) {
 				await interaction.followUp({
 					content:
-						'The game is already over! (this is an error should never happen)',
+						"The game is already over! (this is an error should never happen)",
 					flags: MessageFlags.Ephemeral,
 				});
 				return;
@@ -100,9 +100,9 @@ class TicTacToe {
 				return;
 			}
 
-			if (this.board[row][col] !== ' ') {
+			if (this.board[row][col] !== " ") {
 				await interaction.followUp({
-					content: 'Spot already taken!',
+					content: "Spot already taken!",
 					flags: MessageFlags.Ephemeral,
 				});
 				return;
@@ -110,7 +110,7 @@ class TicTacToe {
 
 			// Set X/O emoji
 			const symbol =
-				this.currentPlayer.id === this.player1.id ? '❌' : '⭕';
+				this.currentPlayer.id === this.player1.id ? "❌" : "⭕";
 			this.board[row][col] = symbol;
 			this.buttons[row].components[col]
 				.setLabel(symbol)
@@ -176,7 +176,7 @@ class TicTacToe {
 			}
 		});
 
-		collector.on('end', async () => {
+		collector.on("end", async () => {
 			// Disable all buttons if game ended
 			// debug uncoment for debugging await this.gameMessage.reply(`Game ended. Disabling all buttons...`);
 			this.buttons.forEach((row) =>
@@ -206,7 +206,7 @@ class TicTacToe {
 			if (!this.gameOver) {
 				// debug uncoment for debugging await this.gameMessage.reply(`No win or draw detected. Assuming timeout. updating game message...`);
 				await this.gameMessage.edit({
-					content: 'Game ended due to inactivity.',
+					content: "Game ended due to inactivity.",
 					components: this.buttons,
 				});
 			} else {
@@ -269,7 +269,7 @@ class TicTacToe {
 			const [a, b, c] = line;
 			const val = this.board[a[0]][a[1]];
 			if (
-				val !== ' ' &&
+				val !== " " &&
 				val === this.board[b[0]][b[1]] &&
 				val === this.board[c[0]][c[1]]
 			) {
@@ -280,7 +280,7 @@ class TicTacToe {
 	}
 
 	checkDraw() {
-		return this.board.flat().every((cell) => cell !== ' ');
+		return this.board.flat().every((cell) => cell !== " ");
 	}
 
 	async makeAiMove() {
@@ -291,8 +291,8 @@ class TicTacToe {
 		if (!bestMove) return;
 
 		const { row, col } = bestMove;
-		this.board[row][col] = '⭕';
-		this.buttons[row].components[col].setLabel('⭕').setDisabled(true);
+		this.board[row][col] = "⭕";
+		this.buttons[row].components[col].setLabel("⭕").setDisabled(true);
 
 		const winner = this.checkWin();
 		if (winner) {
@@ -317,7 +317,7 @@ class TicTacToe {
 		if (this.gameOver) return;
 		this.currentPlayer = this.player1;
 		await this.gameMessage.edit({
-			content: `It's ${this.currentPlayer}'s turn! ${isBlunder ? '( the ai Blundered!)' : ''}`,
+			content: `It's ${this.currentPlayer}'s turn! ${isBlunder ? "( the ai Blundered!)" : ""}`,
 			components: this.buttons,
 		});
 	}
@@ -326,10 +326,10 @@ class TicTacToe {
 
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
-				if (this.board[i][j] === ' ') {
-					this.board[i][j] = '⭕';
+				if (this.board[i][j] === " ") {
+					this.board[i][j] = "⭕";
 					const score = this.minimax(0, false);
-					this.board[i][j] = ' ';
+					this.board[i][j] = " ";
 					moves.push({ row: i, col: j, score });
 				}
 			}
@@ -351,10 +351,10 @@ class TicTacToe {
 
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
-				if (this.board[i][j] === ' ') {
-					this.board[i][j] = '⭕';
+				if (this.board[i][j] === " ") {
+					this.board[i][j] = "⭕";
 					const moveVal = this.minimax(0, false);
-					this.board[i][j] = ' ';
+					this.board[i][j] = " ";
 					if (moveVal > bestVal) {
 						bestVal = moveVal;
 						bestMove = { row: i, col: j };
@@ -368,18 +368,18 @@ class TicTacToe {
 
 	minimax(depth, isMax) {
 		const winner = this.checkWin();
-		if (winner === '⭕') return 10 - depth;
-		if (winner === '❌') return depth - 10;
+		if (winner === "⭕") return 10 - depth;
+		if (winner === "❌") return depth - 10;
 		if (this.checkDraw()) return 0;
 
 		if (isMax) {
 			let best = -Infinity;
 			for (let i = 0; i < 3; i++) {
 				for (let j = 0; j < 3; j++) {
-					if (this.board[i][j] === ' ') {
-						this.board[i][j] = '⭕';
+					if (this.board[i][j] === " ") {
+						this.board[i][j] = "⭕";
 						best = Math.max(best, this.minimax(depth + 1, false));
-						this.board[i][j] = ' ';
+						this.board[i][j] = " ";
 					}
 				}
 			}
@@ -388,10 +388,10 @@ class TicTacToe {
 			let best = Infinity;
 			for (let i = 0; i < 3; i++) {
 				for (let j = 0; j < 3; j++) {
-					if (this.board[i][j] === ' ') {
-						this.board[i][j] = '❌';
+					if (this.board[i][j] === " ") {
+						this.board[i][j] = "❌";
 						best = Math.min(best, this.minimax(depth + 1, true));
-						this.board[i][j] = ' ';
+						this.board[i][j] = " ";
 					}
 				}
 			}
@@ -400,20 +400,20 @@ class TicTacToe {
 	}
 }
 module.exports = {
-	name: 'tic-tac-toe',
-	description: 'Play a game of tic-tac-toe against another user or me!',
-	aliases: ['ttt', 'tictactoe', 'tic-tac-toe'],
-	parent: 'games',
+	name: "tic-tac-toe",
+	description: "Play a game of tic-tac-toe against another user or me!",
+	aliases: ["ttt", "tictactoe", "tic-tac-toe"],
+	parent: "games",
 
 	async execute(message, args) {
 		const opponent = message.mentions.users.first();
 		if (!opponent) {
 			return message.reply(
-				'Please mention a user to play against. you can mention me if you want to play against me!',
+				"Please mention a user to play against. you can mention me if you want to play against me!",
 			);
 		}
 		if (opponent.id === message.author.id) {
-			return message.reply('You cannot play against yourself.');
+			return message.reply("You cannot play against yourself.");
 		}
 		const game = new TicTacToe(message.author, opponent, message.channel);
 		await game.start();

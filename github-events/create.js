@@ -1,6 +1,6 @@
 module.exports = {
-	name: 'create',
+	name: "create",
 	async execute(payload, client) {
-		console.log('Received create event:', payload);
+		console.log("Received create event:", payload);
 	},
 };

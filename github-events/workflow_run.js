@@ -1,6 +1,6 @@
 module.exports = {
-	name: 'workflow_run',
+	name: "workflow_run",
 	async execute(payload, client) {
-		console.log('Received workflow_run event:', payload);
+		console.log("Received workflow_run event:", payload);
 	},
 };
