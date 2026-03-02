@@ -74,6 +74,37 @@ model GuildSettings {
     userSettings GuildUserSettings[]
 }
 
+model GlobalAfkUser {
+    userId String   @id
+    reason String?
+    since  DateTime @default(now())
+
+    // Optional enhancements
+    autoReply    Boolean @default(true)
+    ignoreBots   Boolean @default(true)
+    notifyOnPing Boolean @default(true)
+
+    mentionCount Int @default(0)
+
+    mentions GlobalAfkMention[]
+
+    updatedAt DateTime @updatedAt
+}
+
+model GlobalAfkMention {
+    id          String   @id @default(cuid())
+    userId      String
+    guildId     String
+    channelId   String
+    messageId   String
+    mentionedBy String
+    createdAt   DateTime @default(now())
+
+    afkUser GlobalAfkUser @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+    @@index([userId])
+}
+
 // ------------------------------------------------------
 // Channel-Level Settings (per guild)
 // ------------------------------------------------------
