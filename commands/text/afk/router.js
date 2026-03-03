@@ -1,4 +1,4 @@
 module.exports = {
 	name: "afk",
-	description: "afk related commades",
+	description: "afk related commands",
 };
