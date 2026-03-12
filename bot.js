@@ -36,7 +36,14 @@ function doStartupTasks() {
 	for (const file of startupTaskFiles) {
 		delete require.cache[require.resolve(file)];
 	}
-	const startupTasks = startupTaskFiles.map((file) => require(file));
+	const startupTasks = startupTaskFiles
+		.map((file) => require(file))
+		.sort((a, b) => {
+			const a_priority = a.priority || 0;
+			const b_priority = b.priority || 0;
+			return b_priority - a_priority;
+		});
+
 	const taskPromises = startupTasks.map(async (task) => {
 		try {
 			const returnValue = task.execute(client);
