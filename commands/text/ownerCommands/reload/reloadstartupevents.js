@@ -1,23 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-function walk(dir) {
-	let results = [];
-	const list = fs.readdirSync(dir);
-
-	for (const file of list) {
-		const fullPath = path.join(dir, file);
-		const stat = fs.statSync(fullPath);
-
-		if (stat.isDirectory()) {
-			results = results.concat(walk(fullPath));
-		} else {
-			results.push(fullPath);
-		}
-	}
-
-	return results;
-}
-const path = require("path");
 
 module.exports = {
 	name: "startuptasks",
