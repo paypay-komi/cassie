@@ -17,6 +17,12 @@ module.exports = {
 				userId: message.author.id,
 			},
 		});
+		message.client.afk.set(
+			message.author.id,
+			db.prisma.globalAfkUser.findFirst({
+				select: { userId: message.author.id },
+			}),
+		);
 		await message.reply("afk status is upserteddddd YIPEEEEEEE");
 	},
 };
