@@ -14,6 +14,7 @@ module.exports = {
 			if (!afk_data) continue;
 			final_message += `<@${afk_data.userId}> has been afk since: ${afk_data.since}\n reason: ${afk_data.reason}\n`;
 		}
+		if (final_message == "") return;
 		message.reply(final_message);
 	},
 };
