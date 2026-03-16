@@ -1,4 +1,3 @@
-const { JsonNull } = require("@prisma/client/runtime/client");
 const { Events } = require("discord.js");
 const { time } = require("discord.js");
 
