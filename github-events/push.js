@@ -18,9 +18,13 @@ module.exports = {
 							.join("\n")
 					: "No commits";
 
-				owner.send(
-					`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}\nCommit Messages:\n${commitMessages}`,
-				);
+				owner
+					.send(
+						`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}\nCommit Messages:\n${commitMessages}`,
+					)
+					.catch(
+						`failed to send to ${JSON.stringify(owner, null, 2)}`,
+					);
 				console.log(
 					`Sent push event notification to owner ${owner.tag}`,
 				);
