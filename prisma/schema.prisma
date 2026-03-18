@@ -91,6 +91,17 @@ model GlobalAfkUser {
     updatedAt DateTime @updatedAt
 }
 
+model userTimezone {
+    userId        String   @id
+    offset        Int?
+    timeZone      String?
+    location      String?
+    timeFormat    String? // "12h" or "24h"
+    notifyEnabled Boolean? @default(false)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+}
+
 model GlobalAfkMention {
     id          String   @id @default(cuid())
     userId      String
