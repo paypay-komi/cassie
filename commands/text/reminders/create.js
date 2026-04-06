@@ -42,6 +42,7 @@ module.exports = {
 				`Could not send DM to user ${message.author.tag} (${message.author.id}). They might have DMs closed.`,
 				error,
 			);
+			dmSuccess = false;
 			await message.reply(
 				`You tried to set a reminder for "${content}" at ${time}. I would love to remind you in DMs, but it seems like I can't DM you. Please check your DM settings! instead, I'll reply here when it's time to remind you.`,
 			);
