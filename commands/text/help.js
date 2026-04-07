@@ -114,11 +114,11 @@ module.exports = {
 			);
 
 		const msg = await message.reply({
-			embeds: [generateEmbed(page)],
-			components: [createRow(null, page)], // temp, fixed immediately
+			content: "loading.....",
 		});
 
 		await msg.edit({
+			content: "",
 			embeds: [generateEmbed(page)],
 			components: [createRow(msg.id, page)],
 		});
