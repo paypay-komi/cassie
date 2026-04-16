@@ -203,7 +203,6 @@ module.exports = {
 					current_page = current_page % pages.length;
 				}
 				if (i.isStringSelectMenu()) {
-					//TODO: implement the db updateing
 					await db.prisma.userTimezone.upsert({
 						where: { userId: message.author.id },
 						update: {
