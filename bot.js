@@ -1,4 +1,9 @@
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
+const {
+	Client,
+	GatewayIntentBits,
+	Collection,
+	Partials,
+} = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const config = require("./config.json");
@@ -11,7 +16,10 @@ const client = new Client({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.DirectMessages, // need this
+		GatewayIntentBits.DirectMessageReactions, // optional but recommended
 	],
+	partials: [Partials.Channel], // required for DMs to fire MessageCreate
 });
 function walk(dir) {
 	let results = [];
