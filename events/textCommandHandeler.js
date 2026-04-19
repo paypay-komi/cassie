@@ -1,6 +1,5 @@
-const { Events, PermissionsBitField } = require("discord.js");
+const { Events, PermissionsBitField, Message } = require("discord.js");
 const didYouMean = require("../utils/didyoumean.js");
-
 /**
  * Show available subcommands when parent is called
  */
@@ -89,13 +88,40 @@ function checkPermissions(command, client, message) {
 
 	return true;
 }
+/**
+ *
+ * @param {any} command
+ * @param {*} client
+ * @param {Message} message
+ * @returns
+ */
+function handleUseLocation(command, client, message) {
+	let node = command;
+
+	while (node) {
+		if (Object.hasOwn(node, "dmUse") && !node.dmUse && !message.inGuild()) {
+			message.reply("this command must be used in a server");
+			return false;
+		}
+		if (
+			Object.hasOwn(node, "guildUse") &&
+			!node.guildUse &&
+			message.inGuild()
+		) {
+			message.reply("this command must be used in dms");
+			return false;
+		}
+		node = node.parentRef;
+	}
+
+	return true;
+}
 
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(client, message) {
 		const prefix = client.prefix;
 
-		if (!message.guild) return;
 		if (message.author.bot) return;
 		if (!message.content.toLowerCase().startsWith(prefix)) return;
 
@@ -140,7 +166,7 @@ module.exports = {
 		// Permissions
 		// ---------------------------
 		if (!checkPermissions(finalCommand, client, message)) return;
-
+		if (!handleUseLocation(finalCommand, client, message)) return;
 		// ---------------------------
 		// Execute
 		// ---------------------------
@@ -151,13 +177,15 @@ module.exports = {
 			// Stats
 			// ---------------------------
 			const statName = path.join(".");
-			const gid = message.guild.id;
 
-			await client.db.stats.incrementUserCommand(
-				gid,
-				message.author.id,
-				statName,
-			);
+			if (message.inGuild()) {
+				const gid = message.guild.id;
+				await client.db.stats.incrementUserCommand(
+					gid,
+					message.author.id,
+					statName,
+				);
+			}
 			await client.db.stats.incrementUserGlobalCommand(
 				message.author.id,
 				statName,
