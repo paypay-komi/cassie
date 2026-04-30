@@ -1,3 +1,4 @@
+const db = require("../db/boobs.js");
 module.exports = {
 	name: "startUpReminderTask",
 	description: "Start the reminder task on startup",
@@ -6,7 +7,7 @@ module.exports = {
 	async execute(client) {
 		const runTask = async () => {
 			const now = new Date();
-			const reminders = await client.db.prisma.reminder.findMany({
+			const reminders = await db.prisma.reminder.findMany({
 				where: { remindAt: { lte: now } },
 			});
 
@@ -38,9 +39,20 @@ module.exports = {
 							err,
 						);
 					}
-					// delete no matter what to prevent stuck reminders, even if sending fails
-					await client.db.prisma.reminder.delete({
+
+					if (!reminder.repeatingSecs) {
+						// delete no matter what to prevent stuck reminders, even if sending fails
+						return db.prisma.reminder.delete({
+							where: {
+								id: reminder.id,
+							},
+						});
+					}
+					return db.prisma.reminder.update({
 						where: { id: reminder.id },
+						data: {
+							remindAt: Date.now() + reminder.repeatingSecs,
+						},
 					});
 				}),
 			);
