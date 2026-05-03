@@ -48,13 +48,13 @@ model todolist {
 }
 
 model reminder {
-    id              String    @id @default(cuid())
+    id              String   @id @default(cuid())
     userId          String
     content         String
     remindAt        DateTime
-    createdAt       DateTime  @default(now())
-    repeatingSecs       Int? // if set, this is the interval for repeating reminders
-    remindInChannel Boolean   @default(false) // if true, reminder will be sent in the channel instead of DM
+    createdAt       DateTime @default(now())
+    repeatingSecs   Int? // if set, this is the interval for repeating reminders
+    remindInChannel Boolean  @default(false) // if true, reminder will be sent in the channel instead of DM
     channelId       String? // if remindInChannel is true, this is the ID of the channel to send the reminder in
 
     @@index([userId])
@@ -182,4 +182,36 @@ model GlobalCommandStats {
     globalStatsId String
 
     @@unique([globalStatsId, commandName])
+}
+
+model Idea {
+
+    id           String     @id @default(cuid())
+    authorId     String
+    content      String
+    status       String     @default("pending") // "pending" | "approved" | "rejected"
+
+    rejectedBy   String?
+    rejectedAt   DateTime?
+    rejectReason String?
+
+    approvedBy   String?
+    approvedAt   DateTime?
+
+    spamScore    String?
+    createdAt    DateTime   @default(now())
+    votes        IdeaVote[]
+}
+
+model IdeaVote {
+    id        String   @id @default(cuid())
+    ideaId    String
+    userId    String
+    value     Int      // 1 = upvote, -1 = downvote
+    createdAt DateTime @default(now())
+    idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+    @@unique([ideaId, userId])
+    @@index([ideaId])
+    @@index([userId])
 }
