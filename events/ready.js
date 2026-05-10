@@ -6,5 +6,8 @@ module.exports = {
 		console.log(
 			`Serving ${client.guilds.cache.size} guild(s) and ${client.users.cache.size} user(s)`,
 		);
+		client.guilds.cache.forEach((guild) => {
+			console.log(`Shard ${client.shard.ids[0]} — Guild: ${guild.name}`);
+		});
 	},
 };
