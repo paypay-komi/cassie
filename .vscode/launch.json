@@ -1,13 +1,26 @@
 {
-	"configurations": [
-		{
-			"name": "Launch Program",
-			"program": "${workspaceFolder}/sharder.js",
-			"request": "launch",
-			"skipFiles": [
-				"<node_internals>/**"
-			],
-			"type": "node"
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+{
+    "name": "Launch sharder.js",
+    "request": "launch",
+    "program": "${workspaceFolder}/sharder.js",
+    "skipFiles": [
+        "<node_internals>/**"
+    ],
+    "type": "node"
+}
+
+    {
+      "name": "Attach to Bot (PM2)",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ]
 }

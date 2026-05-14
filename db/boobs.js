@@ -52,7 +52,87 @@ const guild = {
 		return this.update(guildId, { userDisabledCommands });
 	},
 };
+const ideas = {
+	async handleVote(userId, ideaId, value) {
+		const existing = await prisma.ideaVote.findUnique({
+			where: { ideaId_userId: { ideaId, userId } },
+		});
 
+		// toggling off
+		if (existing?.value === value) {
+			await prisma.$transaction([
+				prisma.ideaVote.delete({
+					where: { ideaId_userId: { ideaId, userId } },
+				}),
+				prisma.idea.update({
+					where: { id: ideaId },
+					data: { vote_score: { increment: -value } },
+				}),
+			]);
+			return "removed";
+		}
+
+		const previousValue = existing?.value ?? 0;
+		const scoreDelta = value - previousValue;
+
+		await prisma.$transaction([
+			prisma.ideaVote.upsert({
+				where: { ideaId_userId: { ideaId, userId } },
+				update: { value },
+				create: { ideaId, userId, value },
+			}),
+			prisma.idea.update({
+				where: { id: ideaId },
+				data: { vote_score: { increment: scoreDelta } },
+			}),
+		]);
+
+		return value === 1 ? "upvoted" : "downvoted";
+	},
+	/**
+	 *
+	 * @param {Number} requestedPage
+	 * @param {Number} pageSize
+	 * @param {string} sort
+	 */
+	async getIdeasPage(
+		requestedPage,
+		userId,
+		{ pageSize = 10, sort = "desc" },
+	) {
+		const totalIdeas = await prisma.idea.count({
+			where: { status: "approved" },
+		});
+		const totalPages = Math.ceil(totalIdeas / pageSize);
+
+		let page = requestedPage;
+		let wrapped = false;
+
+		if (requestedPage > totalPages) {
+			page = 1;
+			wrapped = "start";
+		} else if (requestedPage < 1) {
+			page = totalPages;
+			wrapped = "end";
+		}
+
+		const ideas = await prisma.idea.findMany({
+			skip: (page - 1) * pageSize,
+			take: pageSize,
+			where: {
+				status: "approved",
+			},
+			include: {
+				votes: {
+					where: { userId }, // only the current user's vote
+				},
+			},
+			orderBy: { vote_score: "desc" },
+		});
+
+		return { ideas, page, totalPages, wrapped };
+	},
+};
 // ------------------------------------------------------
 // NAMESPACE: channel
 // ------------------------------------------------------
@@ -306,6 +386,7 @@ const db = {
 	user,
 	stats,
 	global,
+	ideas,
 	settings,
 };
 

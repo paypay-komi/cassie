@@ -24,6 +24,16 @@ module.exports = {
 
 		const validation = await validateIdea(idea);
 
+		const aiData = {
+			aiResult: validation.result ?? null,
+			aiReason: validation.reason ?? null,
+			aiThoughts: validation.thoughts ?? null,
+			aiConfidence: validation.confidence ?? null,
+			aiCategory: validation.category ?? null,
+			aiImprovedIdea: validation.improved_idea ?? null,
+			aiDuplicateOf: validation.duplicate_of ?? null,
+		};
+
 		if (validation.result === "rejected") {
 			await db.prisma.idea
 				.create({
@@ -35,14 +45,20 @@ module.exports = {
 							validation.reason ?? "failed automated screening",
 						rejectedBy: "auto",
 						rejectedAt: new Date(),
-						spamScore: validation.reason ?? null,
+						...aiData,
 					},
 				})
 				.catch((err) =>
 					console.error("failed to save rejected idea:", err),
 				);
 
-			return message.reply(`❌ idea rejected: ${validation.reason}`);
+			let replyMsg = `❌ idea rejected: ${validation.reason}`;
+			if (validation.duplicate_of)
+				replyMsg += `\nalready suggested: *${validation.duplicate_of}*`;
+			if (validation.improved_idea)
+				replyMsg += `\ntry something like: *${validation.improved_idea}*`;
+
+			return message.reply(replyMsg);
 		}
 
 		const status =
@@ -54,7 +70,7 @@ module.exports = {
 					authorId: message.author.id,
 					content: idea,
 					status,
-					spamScore: validation.reason ?? null,
+					...aiData,
 					...(status === "approved" && {
 						approvedBy: "auto",
 						approvedAt: new Date(),
@@ -69,6 +85,7 @@ module.exports = {
 					`⏳ idea submitted but is pending mod review${validation.reason ? `: ${validation.reason}` : ""}!`,
 				);
 			}
+
 			bustIdeaCache();
 		} catch (err) {
 			console.error(err);

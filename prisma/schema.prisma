@@ -185,29 +185,37 @@ model GlobalCommandStats {
 }
 
 model Idea {
+    id       String @id @default(cuid())
+    authorId String
+    content  String
+    status   String @default("pending") // "pending" | "approved" | "rejected"
 
-    id           String     @id @default(cuid())
-    authorId     String
-    content      String
-    status       String     @default("pending") // "pending" | "approved" | "rejected"
-
+    // moderation
     rejectedBy   String?
     rejectedAt   DateTime?
     rejectReason String?
-
     approvedBy   String?
     approvedAt   DateTime?
 
-    spamScore    String?
-    createdAt    DateTime   @default(now())
-    votes        IdeaVote[]
+    // ai analysis
+    aiResult       String? // "approved" | "pending" | "rejected"
+    aiReason       String?
+    aiThoughts     String?
+    aiConfidence   Float?
+    aiCategory     String? // "moderation" | "fun" | "economy" | "utility" | "music" | "info" | "other"
+    aiImprovedIdea String?
+    aiDuplicateOf  String?
+
+    createdAt  DateTime   @default(now())
+    vote_score Int        @default(0)
+    votes      IdeaVote[]
 }
 
 model IdeaVote {
     id        String   @id @default(cuid())
     ideaId    String
     userId    String
-    value     Int      // 1 = upvote, -1 = downvote
+    value     Int // 1 = upvote, -1 = downvote
     createdAt DateTime @default(now())
     idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
 
