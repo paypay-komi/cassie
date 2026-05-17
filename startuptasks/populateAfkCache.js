@@ -2,6 +2,7 @@ module.exports = {
 	name: "loadAfkCache",
 	description: "polulates the afk cache",
 	reloadAble: true,
+	prerequisites: ["startPrisma"],
 	async execute(client) {
 		const rows = await client.db.prisma.GlobalAfkUser.findMany();
 		for (const row of rows) {

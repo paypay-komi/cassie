@@ -1,19 +1,18 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-
+const fs = require("fs");
+const path = require("path");
+const express = require("express");
 let server;
 const eventHandlers = new Map();
 module.exports = {
-	name: 'startGithubWebHookServer',
+	name: "startGithubWebHookServer",
 	reloadAble: true,
 
 	async execute(client) {
 		const app = express();
 		app.use(express.json());
 		this.reloadEvents(client); // Load event handlers on startup
-		app.post('/webhook', async (req, res) => {
-			const eventName = req.headers['x-github-event'];
+		app.post("/webhook", async (req, res) => {
+			const eventName = req.headers["x-github-event"];
 			const payload = req.body;
 
 			res.sendStatus(200);
@@ -32,7 +31,7 @@ module.exports = {
 	};
 			`;
 				fs.writeFileSync(
-					`${path.join(__dirname, '..', 'github-events', `${eventName}.js`)}`,
+					`${path.join(__dirname, "..", "github-events", `${eventName}.js`)}`,
 					template,
 				);
 				console.log(
@@ -44,12 +43,12 @@ module.exports = {
 			try {
 				await handler.execute(payload, client);
 			} catch (err) {
-				console.error('❌ Error handling %s:', eventName, err);
+				console.error("❌ Error handling %s:", eventName, err);
 			}
 		});
 
 		server = app.listen(3000, () => {
-			console.log('🌐 GitHub webhook server running on port 3000');
+			console.log("🌐 GitHub webhook server running on port 3000");
 		});
 	},
 
@@ -59,13 +58,13 @@ module.exports = {
 	reloadEvents: async function (client) {
 		// Reload event handlers
 		eventHandlers.clear();
-		const eventsPath = path.join(__dirname, '..', 'github-events');
+		const eventsPath = path.join(__dirname, "..", "github-events");
 		for (const file of fs.readdirSync(eventsPath)) {
-			if (!file.endsWith('.js')) continue;
+			if (!file.endsWith(".js")) continue;
 			delete require.cache[require.resolve(path.join(eventsPath, file))];
 			const event = require(path.join(eventsPath, file));
 			eventHandlers.set(event.name, event);
 		}
-		console.log('🔄 GitHub webhook event handlers reloaded.');
+		console.log("🔄 GitHub webhook event handlers reloaded.");
 	},
 };
