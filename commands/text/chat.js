@@ -42,7 +42,7 @@ module.exports = {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					model: "gemma3",
+					model: "llama3.1:latest",
 					messages: convo,
 					stream: true,
 				}),
@@ -110,7 +110,7 @@ module.exports = {
 				const displayText = fixCodeBlocks(fullResponse);
 
 				if (displayText.length <= DISCORD_LIMIT) {
-					await replyMessage.edit(displayText || "‎");
+					await replyMessage.edit(displayText.trim() || "‎");
 				} else {
 					// Handle overflow
 					await replyMessage.edit(
