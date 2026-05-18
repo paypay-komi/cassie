@@ -15,7 +15,7 @@ require("dotenv/config");
 module.exports = {
 	name: "dblVoteListener",
 	prerequisites: ["startDbl"],
-	reloadAble: true,
+	reloadAble: false,
 
 	server: null,
 	app: null,
