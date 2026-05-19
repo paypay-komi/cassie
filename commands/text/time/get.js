@@ -8,7 +8,6 @@ const {
 } = require("discord.js");
 const db = require("../../../db/boobs.js");
 const { DateTime } = require("luxon");
-const { time } = require("node:console");
 module.exports = {
 	name: "get",
 	parent: "time",
