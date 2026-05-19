@@ -19,8 +19,6 @@ module.exports = {
 			return message.reply(
 				"must enter an idea e.g. `c.idea add random quote fetcher`",
 			);
-		if (idea.length < 20)
-			return message.reply("idea must be at least 20 characters");
 
 		const validation = await validateIdea(idea);
 
