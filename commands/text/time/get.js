@@ -1,4 +1,11 @@
-const { Message } = require("discord.js");
+const {
+	Message,
+	TextDisplayBuilder,
+	MessageFlags,
+	ContainerBuilder,
+	SeparatorBuilder,
+	SeparatorSpacingSize,
+} = require("discord.js");
 const db = require("../../../db/boobs.js");
 const { DateTime } = require("luxon");
 const { time } = require("node:console");
@@ -40,8 +47,34 @@ module.exports = {
 			timezone = `UTC${sign}${hours}:${minutes}`;
 		}
 		const dt = DateTime.now().setZone(timezone);
-		message.reply(
-			`other persons time: \n ${dt.toFormat("hh:mm")}\n dst: ${dt.isInDST}`,
+		const user = message.mentions.users.first();
+
+		const title = new TextDisplayBuilder().setContent(
+			`# 🕒 ${user.displayName}'s Time`,
 		);
+
+		const body = new TextDisplayBuilder().setContent(
+			[
+				`## ${dt.toFormat("h:mm a")}`,
+				`### ${dt.toFormat("cccc, LLLL d")}`,
+				"",
+				`- 🌍 ${timezone}`,
+				`- ☀️ DST: ${dt.isInDST ? "Yes" : "No"}`,
+			].join("\n"),
+		);
+
+		const separator = new SeparatorBuilder().setSpacing(
+			SeparatorSpacingSize.Small,
+		);
+
+		const container = new ContainerBuilder()
+			.addTextDisplayComponents(title)
+			.addSeparatorComponents(separator)
+			.addTextDisplayComponents(body);
+
+		message.reply({
+			components: [container],
+			flags: MessageFlags.IsComponentsV2,
+		});
 	},
 };
