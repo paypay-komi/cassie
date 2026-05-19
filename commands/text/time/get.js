@@ -26,10 +26,19 @@ module.exports = {
 				`${message.mentions.users.first().displayName} has not set their timezone ask them to run c.time set`,
 			);
 		let timezone;
-		if (other_persons_time_zone_data.timeZoneString)
+		if (other_persons_time_zone_data.timeZoneString !== "NONE") {
 			timezone = other_persons_time_zone_data.timeZoneString;
-		else
-			timezone = `UTC${Math.round(other_persons_time_zone_data.minsOffset / 60)}`;
+		} else {
+			const offsetMinutes = other_persons_time_zone_data.minsOffset;
+
+			const sign = offsetMinutes >= 0 ? "+" : "-";
+			const absMinutes = Math.abs(offsetMinutes);
+
+			const hours = String(Math.floor(absMinutes / 60)).padStart(2, "0");
+			const minutes = String(absMinutes % 60).padStart(2, "0");
+
+			timezone = `UTC${sign}${hours}:${minutes}`;
+		}
 		const dt = DateTime.now().setZone(timezone);
 		message.reply(
 			`other persons time: \n ${dt.toFormat("hh:mm")}\n dst: ${dt.isInDST}`,
