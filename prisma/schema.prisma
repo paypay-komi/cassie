@@ -211,6 +211,16 @@ model Idea {
     votes      IdeaVote[]
 }
 
+model UserVoteStats {
+    userId            String    @id
+    lastVote          DateTime?
+    totalVotes        Int       @default(0)
+    voteStreak        Int       @default(0)
+    bestStreak        Int       @default(0)
+    lastClaimedReward DateTime?
+    updatedAt         DateTime  @updatedAt
+}
+
 model IdeaVote {
     id        String   @id @default(cuid())
     ideaId    String
@@ -222,4 +232,14 @@ model IdeaVote {
     @@unique([ideaId, userId])
     @@index([ideaId])
     @@index([userId])
+}
+
+model DblVote {
+    userId            String    @id
+    lastVote          DateTime?
+    totalVotes        Int       @default(0)
+    voteStreak        Int       @default(0)
+    bestStreak        Int       @default(0)
+    lastClaimedReward DateTime?
+    updatedAt         DateTime  @updatedAt
 }

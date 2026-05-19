@@ -15,7 +15,7 @@ require("dotenv/config");
 module.exports = {
 	name: "dblVoteListener",
 	prerequisites: ["startDbl"],
-	reloadAble: false,
+	reloadAble: true,
 
 	server: null,
 	app: null,
@@ -92,13 +92,51 @@ module.exports = {
 					),
 				);
 			if (!vote_channel.isSendable()) console.log("channel not sendable");
-			vote_channel.send({
+			await vote_channel.send({
 				components: [containor],
 				flags: MessageFlags.IsComponentsV2,
 			});
+			try {
+				const dm = await user.createDM();
+				const contain = new ContainerBuilder()
+					.addSectionComponents(
+						new SectionBuilder()
+							.addTextDisplayComponents(
+								new TextDisplayBuilder().setContent(
+									"# thank you for voting \n when you vote it movates my owner a lot to keep going and helps me grow \n-# ps you also get a shout out in her support server for voting",
+								),
+							)
+							.setThumbnailAccessory(
+								new ThumbnailBuilder().setURL(
+									user.displayAvatarURL({
+										dynamic: true,
+										size: 1024,
+									}),
+								),
+							),
+					)
+					.addActionRowComponents(
+						new ActionRowBuilder().addComponents(
+							new ButtonBuilder()
+								.setURL("https://discord.ly/cassie")
+								.setLabel("vote here!!!")
+								.setStyle(ButtonStyle.Link),
+							new ButtonBuilder()
+								.setURL("https://discord.gg/udHtsDcPtW")
+								.setLabel("join her support server")
+								.setStyle(ButtonStyle.Link),
+						),
+					);
+				await dm.send({
+					components: [contain],
+					flags: MessageFlags.IsComponentsV2,
+				});
+			} catch (e) {
+				console.error(e);
+			}
 		};
+		client.dbl.removeAllListeners("vote");
 
-		client.dbl.removeListener("vote", this.voteHandler);
 		client.dbl.on("vote", this.voteHandler);
 
 		this.server = app.listen(3001, () => {
