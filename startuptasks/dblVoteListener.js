@@ -62,77 +62,85 @@ module.exports = {
 				</html>
 			`);
 		});
+		const buildVoteButton = () =>
+			new ButtonBuilder()
+				.setURL("https://discord.ly/cassie")
+				.setLabel("vote here!!!")
+				.setStyle(ButtonStyle.Link);
 
-		this.voteHandler = async (vote) => {
-			const vote_channel = await (
-				await client.guilds.fetch("1489809097401307340")
-			).channels.fetch("1505707808165855242");
-			const user = await client.users.fetch(vote.id);
-			if (!vote_channel?.isTextBased())
-				return console.error("vote channel does not exist");
-			const section = new SectionBuilder()
+		const buildSupportServerButton = () =>
+			new ButtonBuilder()
+				.setURL("https://discord.gg/udHtsDcPtW")
+				.setLabel("join her support server")
+				.setStyle(ButtonStyle.Link);
+
+		const buildUserSection = (user, content) =>
+			new SectionBuilder()
 				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						`thank you for voting <@${user.id}>`,
-					),
+					new TextDisplayBuilder().setContent(content),
 				)
 				.setThumbnailAccessory(
 					new ThumbnailBuilder().setURL(
 						user.displayAvatarURL({ dynamic: true, size: 1024 }),
 					),
 				);
-			const containor = new ContainerBuilder()
-				.addSectionComponents(section)
-				.addActionRowComponents(
-					new ActionRowBuilder().addComponents(
-						new ButtonBuilder()
-							.setURL("https://discord.ly/cassie")
-							.setLabel("vote here!!!")
-							.setStyle(ButtonStyle.Link),
+
+		const buildActionRow = (...buttons) =>
+			new ActionRowBuilder().addComponents(...buttons);
+
+		this.voteHandler = async (vote) => {
+			const guild = await client.guilds.fetch("1489809097401307340");
+			const voteChannel = await guild.channels.fetch(
+				"1505707808165855242",
+			);
+
+			if (!voteChannel?.isTextBased()) {
+				return console.error("Vote channel does not exist.");
+			}
+
+			const user = await client.users.fetch(vote.id);
+
+			// --- Shoutout message in vote channel ---
+			const shoutoutContainer = new ContainerBuilder()
+				.addSectionComponents(
+					buildUserSection(
+						user,
+						`Thank you for voting <@${user.id}>!`,
 					),
-				);
-			if (!vote_channel.isSendable()) console.log("channel not sendable");
-			await vote_channel.send({
-				components: [containor],
-				flags: MessageFlags.IsComponentsV2,
-			});
-			try {
-				const dm = await user.createDM();
-				const contain = new ContainerBuilder()
-					.addSectionComponents(
-						new SectionBuilder()
-							.addTextDisplayComponents(
-								new TextDisplayBuilder().setContent(
-									"# thank you for voting \n when you vote it movates my owner a lot to keep going and helps me grow \n-# ps you also get a shout out in her support server for voting",
-								),
-							)
-							.setThumbnailAccessory(
-								new ThumbnailBuilder().setURL(
-									user.displayAvatarURL({
-										dynamic: true,
-										size: 1024,
-									}),
-								),
-							),
-					)
-					.addActionRowComponents(
-						new ActionRowBuilder().addComponents(
-							new ButtonBuilder()
-								.setURL("https://discord.ly/cassie")
-								.setLabel("vote here!!!")
-								.setStyle(ButtonStyle.Link),
-							new ButtonBuilder()
-								.setURL("https://discord.gg/udHtsDcPtW")
-								.setLabel("join her support server")
-								.setStyle(ButtonStyle.Link),
-						),
-					);
-				await dm.send({
-					components: [contain],
+				)
+				.addActionRowComponents(buildActionRow(buildVoteButton()));
+
+			if (voteChannel.isSendable()) {
+				await voteChannel.send({
+					components: [shoutoutContainer],
 					flags: MessageFlags.IsComponentsV2,
 				});
-			} catch (e) {
-				console.error(e);
+			}
+
+			// --- Thank you DM ---
+			const dmContent = [
+				"# Thank you for voting!",
+				"When you vote, it motivates my owner a lot to keep going and helps me grow.",
+				"-# PS: you also get a shoutout in her support server for voting!",
+			].join("\n");
+
+			const dmContainer = new ContainerBuilder()
+				.addSectionComponents(buildUserSection(user, dmContent))
+				.addActionRowComponents(
+					buildActionRow(
+						buildVoteButton(),
+						buildSupportServerButton(),
+					),
+				);
+
+			try {
+				const dm = await user.createDM();
+				await dm.send({
+					components: [dmContainer],
+					flags: MessageFlags.IsComponentsV2,
+				});
+			} catch (error) {
+				console.error("Failed to send vote thank-you DM:", error);
 			}
 		};
 		client.dbl.removeAllListeners("vote");
