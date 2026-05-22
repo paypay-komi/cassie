@@ -13,7 +13,6 @@ module.exports = {
 		client.commandSettings = {}; // future per-channel/role/user overrides
 		client.prefix = config.prefix;
 		client.afk = new Map();
-		client.__eventListeners = [];
 		console.log("✅ Client variables initialized on startup");
 	},
 };
