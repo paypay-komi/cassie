@@ -11,6 +11,10 @@
 		"strictFunctionTypes": true,
 		"strict": true
 	},
+	"include": [
+		"**/*.js",
+		"types/**/*.d.ts"
+	],
 	"exclude": [
 		"node_modules",
 		"**/node_modules/*"

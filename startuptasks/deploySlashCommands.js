@@ -1,11 +1,11 @@
-const { glob } = require('fs');
+const { glob } = require("fs");
 
 module.exports = {
-	name: 'deploySlashCommands',
-	description: 'Deploy slash commands on startup',
-	needsClientReady: true,
+	name: "deploySlashCommands",
+	description: "Deploy slash commands on startup",
+	needsReadyClient: true,
 	async execute(client) {
-		const deploySlashcommands = require('../utils/depolySlashcommands');
+		const deploySlashcommands = require("../utils/depolySlashcommands");
 		const slashCommandsReloaded = await deploySlashcommands(client, {
 			global: true,
 		});
