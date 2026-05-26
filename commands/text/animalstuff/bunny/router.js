@@ -11,5 +11,6 @@ module.exports = {
 		"bunnys",
 	],
 	description: "main command for bunny gif or image",
+
 	parent: "animal",
 };

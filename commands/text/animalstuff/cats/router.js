@@ -10,5 +10,6 @@ module.exports = {
 		"catts",
 	],
 	description: "main command for cat things",
+
 	parent: "animal",
 };

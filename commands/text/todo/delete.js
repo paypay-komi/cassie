@@ -1,7 +1,9 @@
+const { PermissionsBitField } = require("discord.js");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList.js");
 module.exports = {
 	name: "delete",
 	description: "Delete a todo item by its ID",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	aliases: ["d", "del", "remove", "r"],
 	parent: "todo",
 	async execute(message, args) {

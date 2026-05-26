@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	EmbedBuilder,
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -9,6 +10,7 @@ const {
 module.exports = {
 	name: "help",
 	description: "List all commands or get info about a specific command.",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	aliases: ["h"],
 
 	async execute(message, args) {

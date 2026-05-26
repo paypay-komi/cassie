@@ -1,3 +1,4 @@
+const { PermissionsBitField } = require("discord.js");
 const conversations = new Map();
 
 const SYSTEM_PROMPT = {
@@ -12,6 +13,7 @@ const DISCORD_LIMIT = 2000;
 module.exports = {
 	name: "chat",
 	description: "Chat with AI (streaming, formatted)",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	aliases: ["talk", "gpt", "ai"],
 
 	async execute(message, args) {

@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	Message,
 	TextDisplayBuilder,
 	MessageFlags,
@@ -12,6 +13,7 @@ module.exports = {
 	name: "get",
 	parent: "time",
 	description: "gets the time from a mentioned user",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	/**
 	 *
 	 * @param {Message} message
@@ -73,7 +75,7 @@ module.exports = {
 
 		message.reply({
 			components: [container],
-			flags: MessageFlags.IsComponentsV2,
+			flags: MessagePermissionsBitField.Flags.IsComponentsV2,
 		});
 	},
 };

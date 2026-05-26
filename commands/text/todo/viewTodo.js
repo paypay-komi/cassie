@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	EmbedBuilder,
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -31,6 +32,7 @@ function createEmbed(currentPage, items) {
 module.exports = {
 	name: "view",
 	description: "View your todo list",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	aliases: ["vt", "list"],
 	parent: "todo",
 	async execute(message, args) {

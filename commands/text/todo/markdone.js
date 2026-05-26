@@ -1,8 +1,10 @@
+const { PermissionsBitField } = require("discord.js");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList");
 
 module.exports = {
 	name: "complete",
 	description: "Mark a todo item as done",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "todo",
 	aliases: ["done", "markdone", "finish"],
 	async execute(message, args) {

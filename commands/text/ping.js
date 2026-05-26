@@ -1,8 +1,9 @@
-const { EmbedBuilder } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	name: "ping",
 	description: "Check the bot's latency.",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	category: "Utility",
 	aliases: ["p"],
 

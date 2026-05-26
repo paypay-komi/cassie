@@ -1,3 +1,4 @@
+const { PermissionsBitField } = require("discord.js");
 const db = require("../../../db/boobs.js");
 const {
 	validateIdea,
@@ -7,6 +8,7 @@ const {
 module.exports = {
 	name: "add",
 	description: "adds an idea to the idea board",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "idea",
 
 	/**

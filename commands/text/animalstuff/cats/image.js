@@ -1,6 +1,8 @@
+const { PermissionsBitField } = require("discord.js");
 module.exports = {
 	name: "image",
 	description: "Sends a random cat image",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	parent: "cat",
 	async execute(message, args) {
 		const fetch = require("node-fetch");

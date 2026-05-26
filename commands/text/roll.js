@@ -1,4 +1,4 @@
-const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder, AttachmentBuilder } = require("discord.js");
 
 const MAX_DICE = 100000;
 const MAX_SIDES = 1000000;
@@ -7,6 +7,7 @@ const SHOW_ROLLS_LIMIT = 50;
 module.exports = {
 	name: "roll",
 	description: "Roll dice. Usage: c.roll [NdN] e.g. c.roll 2d6",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.AttachFiles],
 	execute(message, args) {
 		if (!args[0])
 			return message.reply(

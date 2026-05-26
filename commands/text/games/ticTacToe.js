@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	EmbedBuilder,
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -88,14 +89,14 @@ class TicTacToe {
 				await interaction.followUp({
 					content:
 						"The game is already over! (this is an error should never happen)",
-					flags: MessageFlags.Ephemeral,
+					flags: MessagePermissionsBitField.Flags.Ephemeral,
 				});
 				return;
 			}
 			if (interaction.user.id !== this.currentPlayer.id) {
 				await interaction.followUp({
 					content: "It's not your turn!",
-					flags: MessageFlags.Ephemeral,
+					flags: MessagePermissionsBitField.Flags.Ephemeral,
 				});
 				return;
 			}
@@ -103,7 +104,7 @@ class TicTacToe {
 			if (this.board[row][col] !== " ") {
 				await interaction.followUp({
 					content: "Spot already taken!",
-					flags: MessageFlags.Ephemeral,
+					flags: MessagePermissionsBitField.Flags.Ephemeral,
 				});
 				return;
 			}
@@ -402,6 +403,7 @@ class TicTacToe {
 module.exports = {
 	name: "tic-tac-toe",
 	description: "Play a game of tic-tac-toe against another user or me!",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	aliases: ["ttt", "tictactoe", "tic-tac-toe"],
 	parent: "games",
 

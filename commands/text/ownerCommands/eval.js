@@ -1,3 +1,4 @@
+const { PermissionsBitField } = require("discord.js");
 const { VM } = require("vm2");
 const util = require("util");
 const db = require("../../../db/boobs");
@@ -31,6 +32,7 @@ module.exports = {
 	name: "eval",
 	aliases: ["ev"],
 	description: "Owner-only eval (safe VM REPL)",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.AttachFiles],
 
 	async execute(message, args) {
 		const code = args.join(" ");

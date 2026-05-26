@@ -1,8 +1,9 @@
-const { EmbedBuilder } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	name: "image",
 	description: "Sends a random bunny image",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	parent: "bunny",
 	async execute(message, args) {
 		let jsonData;

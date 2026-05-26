@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
@@ -1017,6 +1018,7 @@ class checkersGame {
 module.exports = {
 	name: "checkers",
 	description: "Play a game of checkers against another user or me!",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.UseExternalEmoji],
 	aliases: ["draughts"],
 	parent: "games",
 

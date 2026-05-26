@@ -5,6 +5,7 @@ const ct = require("countries-and-timezones");
 module.exports = {
 	name: "set",
 	description: "sets your time zone following a simple flow",
+	requiredBotPermissions: [Discord.PermissionsBitField.Flags.SendMessages, Discord.PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "time",
 
 	/**
@@ -101,7 +102,7 @@ module.exports = {
 			if (creatorId !== interaction.user.id) {
 				return interaction.reply({
 					content: "this is not your message",
-					flags: Discord.MessageFlags.Ephemeral,
+					flags: Discord.MessageDiscord.PermissionsBitField.Flags.Ephemeral,
 				});
 			}
 

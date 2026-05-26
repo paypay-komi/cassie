@@ -1,6 +1,8 @@
+const { PermissionsBitField } = require("discord.js");
 module.exports = {
 	name: "create",
 	description: "Create a new todo item",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	aliases: ["c", "add", "a"],
 	parent: "todo",
 	async execute(message, args) {

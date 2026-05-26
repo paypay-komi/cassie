@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	ButtonBuilder,
 	ButtonStyle,
 	ActionRowBuilder,
@@ -8,6 +9,7 @@ const {
 module.exports = {
 	name: "rockPaperScissors",
 	description: "Play rock paper scissors against the bot or another user",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "games",
 	aliases: ["rps"],
 

@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 const answers = [
 	// Positive
@@ -24,6 +24,7 @@ const answers = [
 module.exports = {
 	name: "8ball",
 	description: "Ask the magic 8-ball a question",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	execute(message, args) {
 		const question = args.join(" ");
 

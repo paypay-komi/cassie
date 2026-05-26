@@ -1,9 +1,11 @@
+const { PermissionsBitField } = require("discord.js");
 const path = require("path");
-const { postCommandsToDbl } = require("../../../utils/postCommandsToDbl");
+const { postCommandsToDbl } = require("../../../../utils/postCommandsToDbl");
 
 module.exports = {
 	name: "text",
 	description: "Reload text commands and repost to DBL",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	permissions: ["botOwner"],
 	parent: "reload",
 

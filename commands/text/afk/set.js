@@ -1,7 +1,9 @@
+const { PermissionsBitField } = require("discord.js");
 const db = require("../../../db/boobs.js");
 module.exports = {
 	name: "set",
 	description: "sets your afk optional message arg",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "afk",
 	async execute(message, args) {
 		await db.prisma.globalAfkUser.upsert({

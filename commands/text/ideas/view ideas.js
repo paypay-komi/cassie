@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	EmbedBuilder,
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -20,7 +21,7 @@ const db = require("../../../db/boobs.js");
 async function makeIdeaStuff(page, source) {
 	const userId = source.user?.id ?? source.author?.id;
 
-	const {
+const {
 		ideas,
 		page: safePage,
 		totalPages,
@@ -104,6 +105,7 @@ async function makeIdeaStuff(page, source) {
 module.exports = {
 	name: "view",
 	description: "Browse and vote on submitted ideas",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "idea",
 	/**
 	 * @param {import("discord.js").Message} message
@@ -120,7 +122,7 @@ module.exports = {
 		const components = [...ideastuff.ideaContainers, ideastuff.navButtons];
 		console.log("total components:", countComponents(components));
 		const botMessage = await message.reply({
-			flags: MessageFlags.IsComponentsV2,
+			flags: MessagePermissionsBitField.Flags.IsComponentsV2,
 			components: [...ideastuff.ideaContainers, ideastuff.navButtons],
 		});
 		const collector = botMessage.createMessageComponentCollector({
@@ -133,7 +135,7 @@ module.exports = {
 			if (interaction.user.id != authorid)
 				return interaction.reply({
 					content: "this is not your command run your own command",
-					flags: MessageFlags.Ephemeral,
+					flags: MessagePermissionsBitField.Flags.Ephemeral,
 				});
 			if (action == "changePage") {
 				const [direcion, lastPage] = args;
@@ -151,7 +153,7 @@ module.exports = {
 			}
 			ideastuff = await makeIdeaStuff(page, message);
 			interaction.update({
-				flags: MessageFlags.IsComponentsV2,
+				flags: MessagePermissionsBitField.Flags.IsComponentsV2,
 				components: [...ideastuff.ideaContainers, ideastuff.navButtons],
 			});
 		});

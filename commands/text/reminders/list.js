@@ -1,4 +1,5 @@
 const {
+	PermissionsBitField,
 	EmbedBuilder,
 	ButtonBuilder,
 	ButtonStyle,
@@ -7,6 +8,7 @@ const {
 module.exports = {
 	name: "list",
 	description: "List all your reminders",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	aliases: ["ls", "l"],
 	parent: "reminders",
 	async execute(message, args) {

@@ -1,3 +1,4 @@
+const { PermissionsBitField } = require("discord.js");
 const parseTime = require("../../../utils/parseTime.js");
 const setupReminderTask = require("../../../startuptasks/startUpReminderTask.js");
 const {
@@ -7,6 +8,7 @@ const {
 module.exports = {
 	name: "create",
 	description: "Create a reminder",
+	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	aliases: ["add", "new", "set", "make"],
 	parent: "reminders",
 	async execute(message, args) {
