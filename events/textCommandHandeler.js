@@ -1,4 +1,4 @@
-const { Events, PermissionsBitField, Message } = require("discord.js");
+const { Events, PermissionsBitField, Message, Client } = require("discord.js");
 const didYouMean = require("../utils/didyoumean.js");
 /**
  * Show available subcommands when parent is called
@@ -52,22 +52,29 @@ function resolveNested(command, args) {
 }
 
 /**
- * Walk parent chain to check permissions
+ * @param {Client} client
+ * @param {import("discord.js").Message} message
  */
-function checkPermissions(command, client, message) {
+async function checkPermissions(command, client, message) {
 	let node = command;
-
+	const clientMember = await message.guild.members.fetchMe();
 	while (node) {
 		// Discord permissions
 		if (node.requiredDiscordPermissions?.length) {
-			const missing = node.requiredDiscordPermissions.filter((perm) => {
-				const flag = PermissionsBitField.Flags[perm] ?? perm;
-				return !message.member.permissions.has(flag);
-			});
-
+			if (!message.inGuild()) return true; // always has perms in dms
+			const missing = [];
+			for (const perm of node.requiredBotPermissions) {
+				if (!message.channel.permissionsFor(clientMember).has(perm)) {
+					const name =
+						new PermissionsBitField(perm)
+							.toArray()[0]
+							?.replace(/([a-z])([A-Z])/g, "$1 $2") ?? perm;
+					missing.push(name);
+				}
+			}
 			if (missing.length) {
 				message.reply(
-					`You lack the required permissions: ${missing.join(", ")}`,
+					`I lack the required permissions: ${missing.join(", ")} to run this command`,
 				);
 				return false;
 			}
@@ -165,7 +172,7 @@ module.exports = {
 		// ---------------------------
 		// Permissions
 		// ---------------------------
-		if (!checkPermissions(finalCommand, client, message)) return;
+		if (!(await checkPermissions(finalCommand, client, message))) return;
 		if (!handleUseLocation(finalCommand, client, message)) return;
 		// ---------------------------
 		// Execute
