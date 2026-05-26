@@ -7,6 +7,7 @@ const {
 } = require("discord.js");
 module.exports = {
 	name: "rockPaperScissors",
+	description: "Play rock paper scissors against the bot or another user",
 	parent: "games",
 	aliases: ["rps"],
 

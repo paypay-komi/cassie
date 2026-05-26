@@ -103,6 +103,7 @@ async function makeIdeaStuff(page, source) {
 
 module.exports = {
 	name: "view",
+	description: "Browse and vote on submitted ideas",
 	parent: "idea",
 	/**
 	 * @param {import("discord.js").Message} message
