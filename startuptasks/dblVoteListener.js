@@ -166,7 +166,7 @@ module.exports = {
 					.addSectionComponents(
 						buildUserSection(
 							user,
-							`Thank you for voting <@${user.id}>!`,
+							`# Thank you for voting <@${user.id}>! \n streak: ${newStreak} \n total: ${(existing?.totalVotes ?? 0) + 1}`,
 						),
 					)
 					.addActionRowComponents(buildActionRow(buildVoteButton()));
