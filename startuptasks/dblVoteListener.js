@@ -13,7 +13,7 @@ const express = require("express");
 const db = require("../db/boobs");
 require("dotenv/config");
 
-const STREAK_TIMEOUT = 12 * 60 * 60 * 1000;
+const STREAK_TIMEOUT = 24 * 60 * 60 * 1000;
 let nextTimeout = null;
 
 async function scheduleNextExpiry() {
@@ -126,7 +126,7 @@ module.exports = {
 					60 /
 					60;
 				const newStreak =
-					!existing || hoursSinceLastVote > 12
+					!existing || hoursSinceLastVote > 24
 						? 1
 						: existing.voteStreak + 1;
 
