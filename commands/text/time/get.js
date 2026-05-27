@@ -75,7 +75,7 @@ module.exports = {
 
 		message.reply({
 			components: [container],
-			flags: MessagePermissionsBitField.Flags.IsComponentsV2,
+			flags: MessageFlags.IsComponentsV2,
 		});
 	},
 };

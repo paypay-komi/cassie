@@ -122,7 +122,7 @@ module.exports = {
 		const components = [...ideastuff.ideaContainers, ideastuff.navButtons];
 		console.log("total components:", countComponents(components));
 		const botMessage = await message.reply({
-			flags: MessagePermissionsBitField.Flags.IsComponentsV2,
+			flags: MessageFlags.IsComponentsV2,
 			components: [...ideastuff.ideaContainers, ideastuff.navButtons],
 		});
 		const collector = botMessage.createMessageComponentCollector({
@@ -135,7 +135,7 @@ module.exports = {
 			if (interaction.user.id != authorid)
 				return interaction.reply({
 					content: "this is not your command run your own command",
-					flags: MessagePermissionsBitField.Flags.Ephemeral,
+					flags: MessageFlags.Ephemeral,
 				});
 			if (action == "changePage") {
 				const [direcion, lastPage] = args;
@@ -153,7 +153,7 @@ module.exports = {
 			}
 			ideastuff = await makeIdeaStuff(page, message);
 			interaction.update({
-				flags: MessagePermissionsBitField.Flags.IsComponentsV2,
+				flags: MessageFlags.IsComponentsV2,
 				components: [...ideastuff.ideaContainers, ideastuff.navButtons],
 			});
 		});

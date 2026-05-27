@@ -89,14 +89,14 @@ class TicTacToe {
 				await interaction.followUp({
 					content:
 						"The game is already over! (this is an error should never happen)",
-					flags: MessagePermissionsBitField.Flags.Ephemeral,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
 			if (interaction.user.id !== this.currentPlayer.id) {
 				await interaction.followUp({
 					content: "It's not your turn!",
-					flags: MessagePermissionsBitField.Flags.Ephemeral,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -104,7 +104,7 @@ class TicTacToe {
 			if (this.board[row][col] !== " ") {
 				await interaction.followUp({
 					content: "Spot already taken!",
-					flags: MessagePermissionsBitField.Flags.Ephemeral,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
