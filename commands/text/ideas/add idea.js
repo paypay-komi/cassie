@@ -22,7 +22,15 @@ module.exports = {
 				"must enter an idea e.g. `c.idea add random quote fetcher`",
 			);
 
-		const validation = await validateIdea(idea);
+		const thinking = await message.reply("🤔 thinking...");
+
+		let validation;
+		try {
+			validation = await validateIdea(idea);
+		} catch (err) {
+			console.error(err);
+			return thinking.edit("❌ error validating idea, try again later");
+		}
 
 		const aiData = {
 			aiResult: validation.result ?? null,
@@ -58,7 +66,7 @@ module.exports = {
 			if (validation.improved_idea)
 				replyMsg += `\ntry something like: *${validation.improved_idea}*`;
 
-			return message.reply(replyMsg);
+			return thinking.edit(replyMsg);
 		}
 
 		const status =
@@ -79,9 +87,9 @@ module.exports = {
 			});
 
 			if (status === "approved") {
-				message.reply("✅ idea submitted and approved!");
+				thinking.edit("✅ idea submitted and approved!");
 			} else {
-				message.reply(
+				thinking.edit(
 					`⏳ idea submitted but is pending mod review${validation.reason ? `: ${validation.reason}` : ""}!`,
 				);
 			}
@@ -89,7 +97,7 @@ module.exports = {
 			bustIdeaCache();
 		} catch (err) {
 			console.error(err);
-			message.reply("failed to submit idea, try again later");
+			thinking.edit("failed to submit idea, try again later");
 		}
 	},
 };

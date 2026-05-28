@@ -60,6 +60,13 @@ module.exports = function reloadTextCommands(client, targetName) {
 	const files = walk(textPath);
 	console.log("🔹 Files found for loading:", files);
 
+	// clear all project modules from cache so any changed files get picked up
+	const root = path.resolve(__dirname, "..");
+	for (const id of Object.keys(require.cache)) {
+		if (id.startsWith(root) && !id.includes("node_modules"))
+			delete require.cache[id];
+	}
+
 	const allCommands = new Map();
 
 	// --------------------------------------------------
