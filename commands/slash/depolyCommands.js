@@ -6,6 +6,9 @@ module.exports = {
 		.setName("deploy")
 		.setDescription("Deploys slash commands to the server"),
 	async execute(interaction) {
+		if (!interaction.client.owners?.includes(interaction.user.id))
+			return interaction.reply({ content: "This command can only be used by bot owners.", ephemeral: true });
+
 		await interaction.deferReply({ ephemeral: true });
 
 		await depolySlashcommands({
