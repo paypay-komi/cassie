@@ -218,6 +218,7 @@ model UserVoteStats {
     voteStreak        Int       @default(0)
     bestStreak        Int       @default(0)
     lastClaimedReward DateTime?
+    voteDmOptOut      Boolean   @default(false)
     updatedAt         DateTime  @updatedAt
 }
 
