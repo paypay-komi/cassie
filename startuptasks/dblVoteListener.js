@@ -10,7 +10,7 @@ const {
 	MessageFlags,
 } = require("discord.js");
 const express = require("express");
-const db = require("../db/boobs");
+const db = require("../db");
 require("dotenv/config");
 
 const STREAK_TIMEOUT = 24 * 60 * 60 * 1000;
@@ -178,31 +178,41 @@ module.exports = {
 					});
 				}
 
-				// --- Thank you DM ---
-				const dmContent = [
-					"# Thank you for voting!",
-					"When you vote, it motivates my owner a lot to keep going and helps me grow.",
-					"-# PS: you also get a shoutout in her support server for voting!",
-				].join("\n");
+			// --- Thank you DM (skip if opted out) ---
+			const prefs = await db.prisma.userVoteStats.findUnique({
+				where: { userId: user.id },
+			});
+			if (prefs?.voteDmOptOut) {
+				console.log(`Skipping vote DM for ${user.id} (opted out)`);
+				return;
+			}
 
-				const dmContainer = new ContainerBuilder()
-					.addSectionComponents(buildUserSection(user, dmContent))
-					.addActionRowComponents(
-						buildActionRow(
-							buildVoteButton(),
-							buildSupportServerButton(),
-						),
-					);
+			const dmContent = [
+				"# Thank you for voting!",
+				"When you vote, it motivates my owner a lot to keep going and helps me grow.",
+				"-# PS: you also get a shoutout in her support server for voting!",
+				"",
+				"-# — Cassie Bot  •  run `c.optout dms` to stop these",
+			].join("\n");
 
-				try {
-					const dm = await user.createDM();
-					await dm.send({
-						components: [dmContainer],
-						flags: MessageFlags.IsComponentsV2,
-					});
-				} catch (error) {
-					console.error("Failed to send vote thank-you DM:", error);
-				}
+			const dmContainer = new ContainerBuilder()
+				.addSectionComponents(buildUserSection(user, dmContent))
+				.addActionRowComponents(
+					buildActionRow(
+						buildVoteButton(),
+						buildSupportServerButton(),
+					),
+				);
+
+			try {
+				const dm = await user.createDM();
+				await dm.send({
+					components: [dmContainer],
+					flags: MessageFlags.IsComponentsV2,
+				});
+			} catch (error) {
+				console.error("Failed to send vote thank-you DM:", error);
+			}
 			} catch (error) {
 				console.error("Vote handler failed:", error);
 			}

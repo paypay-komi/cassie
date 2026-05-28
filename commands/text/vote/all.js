@@ -6,7 +6,7 @@ const {
 	SeparatorSpacingSize,
 	MessageFlags,
 } = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 
 module.exports = {
 	name: "all",

@@ -1,4 +1,4 @@
-const db = require("../../db/boobs.js");
+const db = require("../../db");
 
 // cache
 let ideaCache = [];

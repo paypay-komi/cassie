@@ -4,7 +4,7 @@ const {
 	TextDisplayBuilder,
 	MessageFlags,
 } = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 
 module.exports = {
 	name: "topactive",

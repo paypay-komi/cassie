@@ -1,7 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const { VM } = require("vm2");
 const util = require("util");
-const db = require("../../../db/boobs");
+const db = require("../../../db");
 function createSandbox(message) {
 	return {
 		// Discord context
@@ -32,6 +32,7 @@ module.exports = {
 	name: "eval",
 	aliases: ["ev"],
 	description: "Owner-only eval (safe VM REPL)",
+	permissions: ["botOwner"],
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.AttachFiles],
 
 	async execute(message, args) {

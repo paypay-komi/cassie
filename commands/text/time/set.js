@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 const ct = require("countries-and-timezones");
 
 module.exports = {

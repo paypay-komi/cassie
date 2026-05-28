@@ -11,7 +11,7 @@ const {
 	SectionBuilder,
 	ContainerBuilder,
 } = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 /**
  * @param {number} page
  * @param {(data: import('discord.js').InteractionReplyOptions) => Promise<void>} responder

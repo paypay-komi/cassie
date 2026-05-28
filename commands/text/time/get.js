@@ -7,7 +7,7 @@ const {
 	SeparatorBuilder,
 	SeparatorSpacingSize,
 } = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 const { DateTime } = require("luxon");
 module.exports = {
 	name: "get",

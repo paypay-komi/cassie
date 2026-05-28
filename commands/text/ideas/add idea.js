@@ -1,5 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
-const db = require("../../../db/boobs.js");
+const db = require("../../../db");
 const {
 	validateIdea,
 	bustIdeaCache,

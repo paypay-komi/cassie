@@ -1,4 +1,3 @@
-// db/index.js
 const prisma = require("../prisma/client");
 
 // Small utility

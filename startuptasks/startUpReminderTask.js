@@ -1,4 +1,4 @@
-const db = require("../db/boobs.js");
+const db = require("../db");
 module.exports = {
 	name: "startUpReminderTask",
 	description: "Start the reminder task on startup",
