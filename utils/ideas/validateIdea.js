@@ -104,10 +104,16 @@ async function checkOpenAIModeration(idea) {
 	return { result: "pass" };
 }
 function nullify(val) {
-	if (val === null) return null;
 	if (val === undefined) return null;
-	if (typeof val === "string" && val.trim().toLowerCase() === "null")
-		return null;
+	if (typeof val !== "string") return val;
+	const cleaned = val.trim().toLowerCase();
+	if (cleaned === "null") return null;
+	if (cleaned === "none") return null;
+	if (cleaned === "n/a" || cleaned === "na") return null;
+	if (cleaned === "nil") return null;
+	if (cleaned === "undefined") return null;
+	if (cleaned === "") return null;
+
 	return val;
 }
 async function checkOllama(idea) {
@@ -155,7 +161,13 @@ async function checkOllama(idea) {
 					improved_idea: { type: "string" },
 					duplicate_of: { type: "string" },
 				},
-				required: ["thinking", "result", "reason", "confidence", "category"],
+				required: [
+					"thinking",
+					"result",
+					"reason",
+					"confidence",
+					"category",
+				],
 			},
 			messages: [
 				{
