@@ -16,3 +16,4 @@ bot.db
 
 # Config files
 config.json
+.vscode/boilerplate.code-snippets

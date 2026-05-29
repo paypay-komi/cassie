@@ -9,7 +9,7 @@
         "<node_internals>/**"
     ],
     "type": "node"
-}
+},
 
     {
       "name": "Attach to Bot (PM2)",

@@ -218,7 +218,7 @@ RESPONSE RULES:
 - confidence: 0.0 to 1.0
 - category: what type of feature
 - duplicate_of: if duplicate, which existing idea
-- improved_idea: optional suggestion if approved`,
+- improved_idea: optional suggestion if rejected`,
 				},
 				{
 					role: "user",
