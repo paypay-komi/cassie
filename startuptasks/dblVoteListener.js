@@ -30,7 +30,7 @@ module.exports = {
 			);
 			res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
 
-			if (req.method === "OPTIONS") return res.sendStatus(204);
+			if (req.method === "OPTIONS") return res.status(204).end();
 
 			next();
 		});

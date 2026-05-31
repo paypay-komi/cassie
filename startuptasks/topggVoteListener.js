@@ -103,7 +103,7 @@ module.exports = {
 			const eventType = payload.type || payload.data?.type;
 			if (eventType === "test" || eventType === "webhook.test") {
 				console.log("[Top.gg] Received test vote — acknowledged");
-				return res.sendStatus(200);
+				return res.status(200).send("OK");
 			}
 
 			voteEmitter.emit("vote", {
@@ -112,7 +112,7 @@ module.exports = {
 			});
 
 			console.log(`[Top.gg] Processed vote from ${userId}`);
-			res.sendStatus(200);
+			res.status(200).send("OK");
 		});
 
 		app.get("/", (req, res) => {

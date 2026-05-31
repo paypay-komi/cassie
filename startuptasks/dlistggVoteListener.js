@@ -18,7 +18,7 @@ module.exports = {
 		this.app = app;
 
 		// Body is a raw JWT string, not JSON
-		app.use(express.text());
+		app.use(express.text({ type: "*/*" }));
 
 		app.post("/dlistgg", (req, res) => {
 			const secret = process.env.DLISTGG_WEBHOOK_AUTH;
@@ -26,6 +26,11 @@ module.exports = {
 			if (!secret) {
 				console.warn("[DlistGG] No DLISTGG_WEBHOOK_AUTH set — skipping verification");
 				return res.status(500).send("Server not configured");
+			}
+
+			if (!req.body) {
+				console.warn("[DlistGG] No body received");
+				return res.status(400).send("No body");
 			}
 
 			let decoded;
@@ -39,7 +44,7 @@ module.exports = {
 			// decoded = { user_id, bot_id, is_test }
 			if (decoded.is_test) {
 				console.log("[DlistGG] Received test vote");
-				return res.sendStatus(200);
+				return res.status(200).send("OK");
 			}
 
 			if (!decoded.user_id) {
