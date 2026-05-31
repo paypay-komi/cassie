@@ -80,14 +80,14 @@ function ensureTunnel(devtunnelPath) {
 	// Create a new tunnel
 	console.log("[Tunnel] Creating new tunnel...");
 	const createOut = run("create");
-	// Parse tunnel ID from output like: "Created tunnel: abc12345"
-	const tunnelId = createOut.match(/Created tunnel: (\S+)/)?.[1]?.trim();
+	// Parse tunnel ID from output table like: "Tunnel ID: puzzled-horse-4q977fh.usw3"
+	const tunnelId = createOut.match(/Tunnel ID\s*:\s*(\S+)/)?.[1]?.trim();
 	if (!tunnelId) {
 		throw new Error(`Failed to parse tunnel ID from: ${createOut}`);
 	}
 
-	// Also grab cluster from the host URL if available
-	const cluster = createOut.match(/https:\/\/(\S+?)\./)?.[1] || "usw2";
+	// Extract cluster from the tunnel ID (e.g. "abc123.usw3" → "usw3")
+	const cluster = tunnelId.split(".").pop() || "usw2";
 
 	console.log(`[Tunnel] Created tunnel: ${tunnelId} (cluster: ${cluster})`);
 
