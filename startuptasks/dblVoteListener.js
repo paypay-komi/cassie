@@ -17,6 +17,11 @@ module.exports = {
 	execute(client) {
 		this.cleanup();
 
+		if (!client.dbl) {
+			console.warn("[DBL] No DBL client — skipping vote listener");
+			return;
+		}
+
 		const app = express();
 		this.app = app;
 
