@@ -45,13 +45,13 @@ async function scheduleNextExpiry() {
 const SITE_VOTE_URLS = {
 	discordbotlist: "https://discord.ly/cassie",
 	// topgg: "https://top.gg/bot/1461183051949412384",
-	// discordlistgg: "https://discordlist.gg/bot/1461183051949412384",
+	discordlistgg: "https://discordlist.gg/bot/1461183051949412384",
 };
 
 const SITE_DISPLAY_NAMES = {
 	discordbotlist: "Discord Bot List",
 	// topgg: "top.gg",
-	// discordlistgg: "Discord List",
+	discordlistgg: "Discord List",
 };
 
 const buildAllVoteButtons = () =>
