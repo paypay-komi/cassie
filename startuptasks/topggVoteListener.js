@@ -1,72 +1,138 @@
+const crypto = require("crypto");
 const express = require("express");
-const Topgg = require("@top-gg/sdk");
 const voteEmitter = require("../utils/voteEmitter");
 require("dotenv/config");
 
+/**
+ * Verify a v1 top.gg webhook using x-topgg-signature HMAC-SHA256.
+ */
+function verifyV1Signature(rawBody, signatureHeader, secret) {
+	if (!signatureHeader || !secret) return false;
+
+	const parts = signatureHeader.split(",");
+	const tPart = parts.find((p) => p.startsWith("t="));
+	const v1Part = parts.find((p) => p.startsWith("v1="));
+	if (!tPart || !v1Part) return false;
+
+	const timestamp = tPart.slice(2);
+	const receivedSig = v1Part.slice(3);
+
+	const expected = crypto
+		.createHmac("sha256", secret)
+		.update(`${timestamp}.${rawBody}`)
+		.digest("hex");
+
+	try {
+		return crypto.timingSafeEqual(
+			Buffer.from(expected, "hex"),
+			Buffer.from(receivedSig, "hex"),
+		);
+	} catch {
+		return false;
+	}
+}
+
 module.exports = {
-  name: "topggVoteListener",
-  description: "Starts the top.gg vote webhook endpoint",
-  reloadAble: true,
+	name: "topggVoteListener",
+	description: "Starts the top.gg vote webhook endpoint",
+	reloadAble: true,
 
-  server: null,
-  app: null,
+	server: null,
+	app: null,
 
-  execute(client) {
-    this.cleanup();
+	execute(client) {
+		this.cleanup();
 
-    const secret = process.env.TOPGG_WEBHOOK_SECRET;
-    if (!secret) {
-      console.warn("[Top.gg] No TOPGG_WEBHOOK_SECRET set — vote webhook not registered");
-      return;
-    }
+		const secret = process.env.TOPGG_WEBHOOK_SECRET;
+		if (!secret) {
+			console.warn(
+				"[Top.gg] No TOPGG_WEBHOOK_SECRET set — vote webhook not registered",
+			);
+			return;
+		}
 
-    const app = express();
-    this.app = app;
+		const app = express();
+		this.app = app;
 
-    // The @top-gg/sdk Webhook middleware parses the raw body itself,
-    // so we don't use express.json() here.
-    const webhook = new Topgg.Webhook(secret);
+		// Capture raw body as text for v1 signature verification.
+		// The route handler decides how to parse it.
+		app.use(express.text({ type: "*/*" }));
 
-    app.post("/topgg", webhook.listener((vote) => {
-      // vote.user is the Discord user ID (SDK normalizes across v0/v1)
-      if (!vote.user) {
-        // v1 payload: vote.data?.user?.platform_id
-        const userId = vote.data?.user?.platform_id;
-        if (!userId) {
-          console.warn("[Top.gg] Received vote without user ID:", JSON.stringify(vote).slice(0, 200));
-          return;
-        }
-        voteEmitter.emit("vote", {
-          userId,
-          site: "topgg",
-        });
-        return;
-      }
+		app.post("/topgg", (req, res) => {
+			const rawBody = req.body; // string from express.text()
+			const contentType = req.get("Content-Type") || "";
 
-      voteEmitter.emit("vote", {
-        userId: vote.user,
-        site: "topgg",
-      });
-    }));
+			// --- v1: verify x-topgg-signature HMAC ---
+			const sigHeader = req.get("x-topgg-signature");
+			let userId = null;
+			let payload = null;
 
-    app.get("/", (req, res) => {
-      res.send(`
+			if (verifyV1Signature(rawBody, sigHeader, secret)) {
+				try {
+					payload = JSON.parse(rawBody);
+					// v1 payload: { type, data: { user: { platform_id } } }
+					if (payload.data?.user?.platform_id) {
+						userId = payload.data.user.platform_id;
+					}
+				} catch {
+					return res.status(400).json({ error: "Invalid JSON body" });
+				}
+			}
+
+			// --- Fallback: v0 legacy Authorization check ---
+			if (!userId && req.headers.authorization === secret) {
+				try {
+					payload = JSON.parse(rawBody);
+					// v0 payload: { bot, user, type, isWeekend, query }
+					if (payload.user) {
+						userId = payload.user;
+					}
+				} catch {
+					return res.status(400).json({ error: "Invalid JSON body" });
+				}
+			}
+
+			if (!userId) {
+				console.warn(
+					"[Top.gg] Unauthorized webhook request — signature mismatch",
+				);
+				return res.status(403).json({ error: "Unauthorized" });
+			}
+
+			// Silence test events from the dashboard
+			const eventType = payload.type || payload.data?.type;
+			if (eventType === "test" || eventType === "webhook.test") {
+				console.log("[Top.gg] Received test vote — acknowledged");
+				return res.sendStatus(200);
+			}
+
+			voteEmitter.emit("vote", {
+				userId,
+				site: "topgg",
+			});
+
+			console.log(`[Top.gg] Processed vote from ${userId}`);
+			res.sendStatus(200);
+		});
+
+		app.get("/", (req, res) => {
+			res.send(`
         <!DOCTYPE html>
         <html>
           <head><title>Cassie's Backend</title></head>
           <body><h1>top.gg Vote Listener Running</h1></body>
         </html>
       `);
-    });
+		});
 
-    this.server = app.listen(3003, () => {
-      console.log("[Top.gg] Vote webhook running on port 3003");
-    });
-  },
+		this.server = app.listen(3003, () => {
+			console.log("[Top.gg] Vote webhook running on port 3003");
+		});
+	},
 
-  cleanup() {
-    if (this.server) this.server.close();
-    this.server = null;
-    this.app = null;
-  },
+	cleanup() {
+		if (this.server) this.server.close();
+		this.server = null;
+		this.app = null;
+	},
 };
