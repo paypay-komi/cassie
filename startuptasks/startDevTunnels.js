@@ -5,13 +5,34 @@ const { spawn, execSync } = require("child_process");
 const TUNNEL_STATE_FILE = path.join(__dirname, "..", ".tunnel-state.json");
 const PORTS = [3000, 3001];
 
-function checkDevTunnel() {
+function findDevTunnel() {
+	// Try PATH first
 	try {
-		execSync("devtunnel --version", { stdio: "ignore" });
-		return true;
-	} catch {
-		return false;
+		const out = execSync("where.exe devtunnel 2>nul || which devtunnel 2>/dev/null", {
+			encoding: "utf8",
+			stdio: "pipe",
+		});
+		const path = out.trim().split("\n")[0]?.trim();
+		if (path) return path;
+	} catch {}
+
+	// Search common winget install locations
+	const searchPaths = [
+		`${process.env.LOCALAPPDATA}\\Microsoft\\WinGet\\Packages`,
+		`${process.env.PROGRAMFILES}\\Microsoft\\WinGet\\Packages`,
+	];
+	for (const base of searchPaths) {
+		try {
+			const files = execSync(
+				`dir /s /b "${base}\\devtunnel.exe" 2>nul`,
+				{ encoding: "utf8" },
+			);
+			const match = files.trim().split("\n")[0]?.trim();
+			if (match) return match;
+		} catch {}
 	}
+
+	return null;
 }
 
 function loadTunnelState() {
@@ -29,12 +50,20 @@ function saveTunnelState(state) {
 	fs.writeFileSync(TUNNEL_STATE_FILE, JSON.stringify(state, null, 2));
 }
 
-function ensureTunnel() {
+function getExe(cmd) {
+	return (...args) => execSync(`"${cmd}" ${args.join(" ")}`, {
+		encoding: "utf8",
+		stdio: ["ignore", "pipe", "pipe"],
+	});
+}
+
+function ensureTunnel(devtunnelPath) {
+	const run = getExe(devtunnelPath);
 	const existing = loadTunnelState();
 
 	if (existing?.tunnelId) {
 		try {
-			execSync(`devtunnel show ${existing.tunnelId}`, {
+			execSync(`"${devtunnelPath}" show ${existing.tunnelId}`, {
 				stdio: "ignore",
 			});
 			console.log(
@@ -50,9 +79,7 @@ function ensureTunnel() {
 
 	// Create a new tunnel
 	console.log("[Tunnel] Creating new tunnel...");
-	const createOut = execSync("devtunnel create", {
-		encoding: "utf8",
-	});
+	const createOut = run("create");
 	// Parse tunnel ID from output like: "Created tunnel: abc12345"
 	const tunnelId = createOut.match(/Created tunnel: (\S+)/)?.[1]?.trim();
 	if (!tunnelId) {
@@ -67,12 +94,9 @@ function ensureTunnel() {
 	// Add ports
 	for (const port of PORTS) {
 		try {
-			execSync(
-				`devtunnel port create ${tunnelId} -p ${port} --allow-anonymous`,
-				{ stdio: "ignore" },
-			);
+			run(`port create ${tunnelId} -p ${port} --allow-anonymous`);
 			console.log(`[Tunnel] Added port ${port}`);
-		} catch (err) {
+		} catch {
 			// Port may already exist, that's fine
 			console.log(`[Tunnel] Port ${port} may already exist`);
 		}
@@ -94,16 +118,19 @@ module.exports = {
 	execute(client) {
 		this.cleanup();
 
-		if (!checkDevTunnel()) {
+		const devtunnelPath = findDevTunnel();
+		if (!devtunnelPath) {
 			console.warn(
 				"[Tunnel] devtunnel CLI not found. Install with: winget install Microsoft.devtunnel && devtunnel user login",
 			);
 			return;
 		}
 
+		console.log(`[Tunnel] Using devtunnel at: ${devtunnelPath}`);
+
 		let state;
 		try {
-			state = ensureTunnel();
+			state = ensureTunnel(devtunnelPath);
 		} catch (err) {
 			console.error("[Tunnel] Setup failed:", err.message);
 			return;
@@ -117,12 +144,11 @@ module.exports = {
 			"host",
 			state.tunnelId,
 			"--allow-anonymous",
-			"--no-connect", // don't try to open the URL
 		];
 
-		console.log(`[Tunnel] Starting: devtunnel ${hostArgs.join(" ")}`);
+		console.log(`[Tunnel] Starting: ${hostArgs.join(" ")}`);
 
-		const proc = spawn("devtunnel", hostArgs, {
+		const proc = spawn(devtunnelPath, hostArgs, {
 			stdio: ["ignore", "pipe", "pipe"],
 		});
 
