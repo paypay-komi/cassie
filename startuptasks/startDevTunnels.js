@@ -91,7 +91,24 @@ function ensureTunnel(devtunnelPath) {
 
 	console.log(`[Tunnel] Created tunnel: ${tunnelId} (cluster: ${cluster})`);
 
-	// Ports will be added by the host command via -p flags
+	// Add ports individually (batch update isn't supported)
+	for (const port of PORTS) {
+		try {
+			execSync(
+				`"${devtunnelPath}" port create ${tunnelId} -p ${port} --allow-anonymous`,
+				{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
+			);
+			console.log(`[Tunnel] Added port ${port}`);
+		} catch (err) {
+			const msg = err.stderr?.toString() || err.message || "";
+			if (msg.includes("already exists")) {
+				console.log(`[Tunnel] Port ${port} already exists`);
+			} else {
+				console.warn(`[Tunnel] Port ${port} warn: ${msg.slice(0, 200)}`);
+			}
+		}
+	}
+
 	const state = { tunnelId, cluster };
 	saveTunnelState(state);
 	return state;
@@ -129,12 +146,11 @@ module.exports = {
 		// Store URLs on client for other tasks
 		client.devTunnelUrls = {};
 
-		// Spawn the host process with ports
+		// Spawn the host process (ports already added above)
 		const hostArgs = [
 			"host",
 			state.tunnelId,
 			"--allow-anonymous",
-			...PORTS.flatMap((p) => ["-p", String(p)]),
 		];
 
 		console.log(`[Tunnel] Starting: ${hostArgs.join(" ")}`);
