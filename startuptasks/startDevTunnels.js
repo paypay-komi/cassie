@@ -6,36 +6,32 @@ const TUNNEL_STATE_FILE = path.join(__dirname, "..", ".tunnel-state.json");
 const PORTS = [3000, 3001];
 
 function findDevTunnel() {
-	// Try PATH first
 	try {
-		const out = execSync("where.exe devtunnel 2>nul || which devtunnel 2>/dev/null", {
-			encoding: "utf8",
-			stdio: "pipe",
-		});
-		const path = out.trim().split("\n")[0]?.trim();
-		if (path) return path;
+		const out = execSync(
+			"where.exe devtunnel 2>nul || which devtunnel 2>/dev/null",
+			{ encoding: "utf8", stdio: "pipe" },
+		);
+		const p = out.trim().split("\n")[0]?.trim();
+		if (p) return p;
 	} catch {}
 
-	// Search common winget install locations
 	const searchPaths = [
 		`${process.env.LOCALAPPDATA}\\Microsoft\\WinGet\\Packages`,
 		`${process.env.PROGRAMFILES}\\Microsoft\\WinGet\\Packages`,
 	];
 	for (const base of searchPaths) {
 		try {
-			const files = execSync(
-				`dir /s /b "${base}\\devtunnel.exe" 2>nul`,
-				{ encoding: "utf8" },
-			);
+			const files = execSync(`dir /s /b "${base}\\devtunnel.exe" 2>nul`, {
+				encoding: "utf8",
+			});
 			const match = files.trim().split("\n")[0]?.trim();
 			if (match) return match;
 		} catch {}
 	}
-
 	return null;
 }
 
-function loadTunnelState() {
+function loadAllTunnelState() {
 	try {
 		if (fs.existsSync(TUNNEL_STATE_FILE)) {
 			return JSON.parse(fs.readFileSync(TUNNEL_STATE_FILE, "utf8"));
@@ -43,23 +39,16 @@ function loadTunnelState() {
 	} catch (err) {
 		console.error("Failed to load tunnel state:", err.message);
 	}
-	return null;
+	return {};
 }
 
-function saveTunnelState(state) {
+function saveAllTunnelState(state) {
 	fs.writeFileSync(TUNNEL_STATE_FILE, JSON.stringify(state, null, 2));
 }
 
-function getExe(cmd) {
-	return (...args) => execSync(`"${cmd}" ${args.join(" ")}`, {
-		encoding: "utf8",
-		stdio: ["ignore", "pipe", "pipe"],
-	});
-}
-
-function ensureTunnel(devtunnelPath) {
-	const run = getExe(devtunnelPath);
-	const existing = loadTunnelState();
+function ensureTunnelForPort(devtunnelPath, port, allState) {
+	const key = String(port);
+	const existing = allState[key];
 
 	if (existing?.tunnelId) {
 		try {
@@ -67,57 +56,54 @@ function ensureTunnel(devtunnelPath) {
 				stdio: "ignore",
 			});
 			console.log(
-				`[Tunnel] Reusing existing tunnel: ${existing.tunnelId}`,
+				`[Tunnel] Port ${port} reusing tunnel: ${existing.tunnelId}`,
 			);
 			return existing;
 		} catch {
 			console.log(
-				`[Tunnel] Saved tunnel no longer exists, creating new one...`,
+				`[Tunnel] Port ${port} saved tunnel gone, creating new one...`,
 			);
 		}
 	}
 
-	// Create a new tunnel
-	console.log("[Tunnel] Creating new tunnel...");
-	const createOut = run("create");
-	// Parse tunnel ID from output table like: "Tunnel ID: puzzled-horse-4q977fh.usw3"
+	console.log(`[Tunnel] Port ${port} creating new tunnel...`);
+	const createOut = execSync(`"${devtunnelPath}" create`, {
+		encoding: "utf8",
+		stdio: ["ignore", "pipe", "pipe"],
+	});
+
 	const tunnelId = createOut.match(/Tunnel ID\s*:\s*(\S+)/)?.[1]?.trim();
 	if (!tunnelId) {
-		throw new Error(`Failed to parse tunnel ID from: ${createOut}`);
+		throw new Error(`Port ${port} — failed to parse tunnel ID from: ${createOut}`);
 	}
 
-	// Extract cluster from the tunnel ID (e.g. "abc123.usw3" → "usw3")
-	const cluster = tunnelId.split(".").pop() || "usw2";
+	console.log(`[Tunnel] Port ${port} created tunnel: ${tunnelId}`);
 
-	console.log(`[Tunnel] Created tunnel: ${tunnelId} (cluster: ${cluster})`);
-
-	// Add ports individually (batch update isn't supported)
-	for (const port of PORTS) {
-		try {
-			execSync(
-				`"${devtunnelPath}" port create ${tunnelId} -p ${port} --allow-anonymous`,
-				{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
-			);
-			console.log(`[Tunnel] Added port ${port}`);
-		} catch (err) {
-			const msg = err.stderr?.toString() || err.message || "";
-			if (msg.includes("already exists")) {
-				console.log(`[Tunnel] Port ${port} already exists`);
-			} else {
-				console.warn(`[Tunnel] Port ${port} warn: ${msg.slice(0, 200)}`);
-			}
+	// Add the single port to this tunnel
+	try {
+		execSync(
+			`"${devtunnelPath}" port create ${tunnelId} -p ${port} --allow-anonymous`,
+			{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
+		);
+		console.log(`[Tunnel] Port ${port} added to tunnel`);
+	} catch (err) {
+		const msg = err.stderr?.toString() || err.message || "";
+		if (!msg.includes("already exists")) {
+			console.warn(`[Tunnel] Port ${port} add warn: ${msg.slice(0, 200)}`);
 		}
 	}
 
+	const cluster = tunnelId.split(".").pop() || "usw2";
 	const state = { tunnelId, cluster };
-	saveTunnelState(state);
+	allState[key] = state;
+	saveAllTunnelState(allState);
 	return state;
 }
 
 module.exports = {
 	name: "startDevTunnels",
 	description:
-		"Creates and hosts dev tunnels for webhook ports via Microsoft devtunnel CLI",
+		"Creates and hosts a dev tunnel per webhook port via Microsoft devtunnel CLI",
 	reloadAble: true,
 
 	processes: [],
@@ -135,39 +121,33 @@ module.exports = {
 
 		console.log(`[Tunnel] Using devtunnel at: ${devtunnelPath}`);
 
-		let state;
-		try {
-			state = ensureTunnel(devtunnelPath);
-		} catch (err) {
-			console.error("[Tunnel] Setup failed:", err.message);
-			return;
-		}
-
-		// Store URLs on client for other tasks
+		const allState = loadAllTunnelState();
 		client.devTunnelUrls = {};
 
-		// Spawn the host process (ports already added above)
-		const hostArgs = [
-			"host",
-			state.tunnelId,
-			"--allow-anonymous",
-		];
+		for (const port of PORTS) {
+			let state;
+			try {
+				state = ensureTunnelForPort(devtunnelPath, port, allState);
+			} catch (err) {
+				console.error(`[Tunnel] Port ${port} setup failed:`, err.message);
+				continue;
+			}
 
-		console.log(`[Tunnel] Starting: ${hostArgs.join(" ")}`);
+			const hostArgs = ["host", state.tunnelId, "--allow-anonymous"];
 
-		const proc = spawn(devtunnelPath, hostArgs, {
-			stdio: ["ignore", "pipe", "pipe"],
-		});
+			console.log(`[Tunnel] Port ${port} spawning: ${hostArgs.join(" ")}`);
 
-		this.processes.push(proc);
+			const proc = spawn(devtunnelPath, hostArgs, {
+				stdio: ["ignore", "pipe", "pipe"],
+			});
 
-		proc.stdout.on("data", (data) => {
-			const output = data.toString();
-			console.log(`[devtunnel] ${output.trim()}`);
+			this.processes.push(proc);
 
-			// Parse URLs from output like:
-			// "Port 3001: https://abc12345-3001.usw2.devtunnels.ms/"
-			for (const port of PORTS) {
+			proc.stdout.on("data", (data) => {
+				const output = data.toString();
+				console.log(`[devtunnel:${port}] ${output.trim()}`);
+
+				// "Port 3000: https://abc-3000.usw2.devtunnels.ms/"
 				const match = output.match(
 					new RegExp(
 						`Port ${port}:\\s+(https://\\S+\\.devtunnels\\.ms/?)`,
@@ -179,16 +159,16 @@ module.exports = {
 						`[Tunnel] Port ${port} → ${client.devTunnelUrls[port]}`,
 					);
 				}
-			}
-		});
+			});
 
-		proc.stderr.on("data", (data) => {
-			console.error(`[devtunnel ERR] ${data.toString().trim()}`);
-		});
+			proc.stderr.on("data", (data) => {
+				console.error(`[devtunnel:${port} ERR] ${data.toString().trim()}`);
+			});
 
-		proc.on("exit", (code) => {
-			console.log(`[Tunnel] Process exited with code ${code}`);
-		});
+			proc.on("exit", (code) => {
+				console.log(`[Tunnel] Port ${port} process exited with code ${code}`);
+			});
+		}
 	},
 
 	cleanup() {
