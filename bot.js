@@ -6,7 +6,7 @@ const {
 } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
-const config = require("./config.json");
+require("dotenv/config");
 const { waitUntil } = require("async-wait-until");
 // --------------------------------------------------
 // Client Setup
@@ -134,4 +134,4 @@ doStartupTasks();
 // --------------------------------------------------
 // Login
 // --------------------------------------------------
-client.login(config.token);
+client.login(process.env.DISCORD_TOKEN);

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const depolySlashcommands = require("../../utils/depolySlashcommands");
-const config = require("../../config.json");
+require("dotenv/config");
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("deploy")
@@ -12,8 +12,7 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 
 		await depolySlashcommands({
-			token: config.token,
-			clientId: config.clientId,
+			token: process.env.DISCORD_TOKEN,
 			guildId: interaction.guildId,
 			global: true,
 		});

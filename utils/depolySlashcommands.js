@@ -2,13 +2,14 @@ const { REST, Routes } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const config = require("../config.json");
+require("dotenv/config");
 module.exports = async function deploySlashCommands(client, options = {}) {
 	const commands = [];
 
 	const commandsPath =
 		options.commandsPath || path.join(__dirname, "..", "commands", "slash");
 
-	const token = config.token;
+	const token = process.env.DISCORD_TOKEN;
 	const clientId = config.clientId;
 	const guildId = options.guildId;
 	const deployGlobal = options.global || false;
