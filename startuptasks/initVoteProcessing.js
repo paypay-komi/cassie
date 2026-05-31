@@ -41,11 +41,30 @@ async function scheduleNextExpiry() {
 	}, delay);
 }
 
-const buildVoteButton = () =>
-	new ButtonBuilder()
-		.setURL("https://discord.ly/cassie")
-		.setLabel("vote here!!!")
+// Add your bot listing URLs here as you add vote sites
+const SITE_VOTE_URLS = {
+	discordbotlist: "https://discord.ly/cassie",
+	// topgg: "https://top.gg/bot/1461183051949412384",
+	// discordlistgg: "https://discordlist.gg/bot/1461183051949412384",
+};
+
+const SITE_DISPLAY_NAMES = {
+	discordbotlist: "Discord Bot List",
+	// topgg: "top.gg",
+	// discordlistgg: "Discord List",
+};
+
+const buildVoteButton = (site, displayName) => {
+	const url = SITE_VOTE_URLS[site];
+	if (!url) {
+		console.warn(`No vote URL configured for site: ${site}`);
+		return null;
+	}
+	return new ButtonBuilder()
+		.setURL(url)
+		.setLabel(`vote on ${displayName}`)
 		.setStyle(ButtonStyle.Link);
+};
 
 const buildSupportServerButton = () =>
 	new ButtonBuilder()
@@ -131,14 +150,18 @@ module.exports = {
 					return console.error("Vote channel does not exist.");
 				}
 
-				const shoutoutContainer = new ContainerBuilder()
-					.addSectionComponents(
-						buildUserSection(
-							user,
-							`# Thank you for voting <@${user.id}>! \n streak: ${newStreak} \n total: ${(existing?.totalVotes ?? 0) + 1}`,
-						),
-					)
-					.addActionRowComponents(buildActionRow(buildVoteButton()));
+			const siteLabel = SITE_DISPLAY_NAMES[site] || site;
+
+			const shoutoutContainer = new ContainerBuilder()
+				.addSectionComponents(
+					buildUserSection(
+						user,
+						`# Thank you for voting on ${siteLabel} <@${user.id}>! \n streak: ${newStreak} \n total: ${(existing?.totalVotes ?? 0) + 1}`,
+					),
+				)
+				.addActionRowComponents(
+					buildActionRow(...[buildVoteButton(site, siteLabel)].filter(Boolean)),
+				);
 
 				if (voteChannel.isSendable()) {
 					await voteChannel.send({
@@ -158,22 +181,21 @@ module.exports = {
 					return;
 				}
 
-				const dmContent = [
-					"# Thank you for voting!",
-					"When you vote, it motivates my owner a lot to keep going and helps me grow.",
-					"-# PS: you also get a shoutout in her support server for voting!",
-					"",
-					"-# — Cassie Bot  •  run `c.optout dms` to stop these",
-				].join("\n");
+			const dmContent = [
+				`# Thank you for voting on ${siteLabel}!`,
+				"When you vote, it motivates my owner a lot to keep going and helps me grow.",
+				"-# PS: you also get a shoutout in her support server for voting!",
+				"",
+				"-# — Cassie Bot  •  run `c.optout dms` to stop these",
+			].join("\n");
 
-				const dmContainer = new ContainerBuilder()
-					.addSectionComponents(buildUserSection(user, dmContent))
-					.addActionRowComponents(
-						buildActionRow(
-							buildVoteButton(),
-							buildSupportServerButton(),
-						),
-					);
+			const dmContainer = new ContainerBuilder()
+				.addSectionComponents(buildUserSection(user, dmContent))
+				.addActionRowComponents(
+					buildActionRow(
+						...[buildVoteButton(site, siteLabel), buildSupportServerButton()].filter(Boolean),
+					),
+				);
 
 				try {
 					const dm = await user.createDM();
