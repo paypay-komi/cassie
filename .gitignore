@@ -17,3 +17,6 @@ bot.db
 # Config files
 config.json
 .vscode/boilerplate.code-snippets
+
+# Dev tunnel state
+.tunnel-state.json
