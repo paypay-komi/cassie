@@ -54,17 +54,15 @@ const SITE_DISPLAY_NAMES = {
 	// discordlistgg: "Discord List",
 };
 
-const buildVoteButton = (site, displayName) => {
-	const url = SITE_VOTE_URLS[site];
-	if (!url) {
-		console.warn(`No vote URL configured for site: ${site}`);
-		return null;
-	}
-	return new ButtonBuilder()
-		.setURL(url)
-		.setLabel(`vote on ${displayName}`)
-		.setStyle(ButtonStyle.Link);
-};
+const buildAllVoteButtons = () =>
+	Object.entries(SITE_VOTE_URLS)
+		.filter(([, url]) => url)
+		.map(([site, url]) =>
+			new ButtonBuilder()
+				.setURL(url)
+				.setLabel(`vote on ${SITE_DISPLAY_NAMES[site] || site}`)
+				.setStyle(ButtonStyle.Link),
+		);
 
 const buildSupportServerButton = () =>
 	new ButtonBuilder()
@@ -160,7 +158,7 @@ module.exports = {
 					),
 				)
 				.addActionRowComponents(
-					buildActionRow(...[buildVoteButton(site, siteLabel)].filter(Boolean)),
+					buildActionRow(...buildAllVoteButtons()),
 				);
 
 				if (voteChannel.isSendable()) {
@@ -193,7 +191,8 @@ module.exports = {
 				.addSectionComponents(buildUserSection(user, dmContent))
 				.addActionRowComponents(
 					buildActionRow(
-						...[buildVoteButton(site, siteLabel), buildSupportServerButton()].filter(Boolean),
+						...buildAllVoteButtons(),
+						buildSupportServerButton(),
 					),
 				);
 
