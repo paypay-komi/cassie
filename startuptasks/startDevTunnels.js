@@ -3,7 +3,7 @@ const path = require("path");
 const { spawn, execSync } = require("child_process");
 
 const TUNNEL_STATE_FILE = path.join(__dirname, "..", ".tunnel-state.json");
-const PORTS = [3000, 3001];
+const PORTS = [3000, 3001,3002];
 
 function findDevTunnel() {
 	try {
@@ -58,6 +58,20 @@ function ensureTunnelForPort(devtunnelPath, port, allState) {
 			console.log(
 				`[Tunnel] Port ${port} reusing tunnel: ${existing.tunnelId}`,
 			);
+			// Ensure the port is added (in case the tunnel was
+			// created without ports on a previous run)
+			try {
+				execSync(
+					`"${devtunnelPath}" port create ${existing.tunnelId} -p ${port}`,
+					{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
+				);
+				console.log(`[Tunnel] Port ${port} added to tunnel`);
+			} catch (err) {
+				const msg = err.stderr?.toString() || err.message || "";
+				if (!msg.includes("already exists")) {
+					console.warn(`[Tunnel] Port ${port} add warn: ${msg.slice(0, 200)}`);
+				}
+			}
 			return existing;
 		} catch {
 			console.log(
@@ -82,8 +96,8 @@ function ensureTunnelForPort(devtunnelPath, port, allState) {
 	// Add the single port to this tunnel
 	try {
 		execSync(
-			`"${devtunnelPath}" port create ${tunnelId} -p ${port} --allow-anonymous`,
-			{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
+				`"${devtunnelPath}" port create ${tunnelId} -p ${port}`,
+				{ stdio: "pipe", encoding: "utf8", timeout: 10000 },
 		);
 		console.log(`[Tunnel] Port ${port} added to tunnel`);
 	} catch (err) {

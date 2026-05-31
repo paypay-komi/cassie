@@ -17,11 +17,6 @@ module.exports = {
 	execute(client) {
 		this.cleanup();
 
-		if (!client.dbl) {
-			console.warn("[DBL] No DBL client — skipping vote listener");
-			return;
-		}
-
 		const app = express();
 		this.app = app;
 
@@ -40,27 +35,32 @@ module.exports = {
 			next();
 		});
 
-		app.post("/dbl", client.dbl.webhook(process.env.DBL_WEBHOOK_SECRET));
+		// Only register the DBL webhook endpoint if we have a DBL client
+		if (client.dbl) {
+			app.post("/dbl", client.dbl.webhook(process.env.DBL_WEBHOOK_SECRET));
+
+			client.dbl.on("vote", (vote) => {
+				voteEmitter.emit("vote", {
+					userId: vote.id,
+					site: "discordbotlist",
+				});
+			});
+		} else {
+			console.warn("[DBL] No DBL client — vote webhook endpoint not registered");
+		}
 
 		app.get("/", (req, res) => {
 			res.send(`
 				<!DOCTYPE html>
 				<html>
 					<head><title>Cassie's Backend</title></head>
-					<body><h1>DBL Vote Listener Running</h1></body>
+					<body><h1>Cassie's Vote Listener Running</h1></body>
 				</html>
 			`);
 		});
 
-		client.dbl.on("vote", (vote) => {
-			voteEmitter.emit("vote", {
-				userId: vote.id,
-				site: "discordbotlist",
-			});
-		});
-
 		this.server = app.listen(3001, () => {
-			console.log("DBL vote listener running on port 3001");
+			console.log("Vote webhook server running on port 3001");
 		});
 	},
 

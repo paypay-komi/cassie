@@ -7,7 +7,7 @@ const {
 const fs = require("fs");
 const path = require("path");
 require("dotenv/config");
-const { waitUntil } = require("async-wait-until");
+const { waitUntil, WAIT_FOREVER } = require("async-wait-until");
 // --------------------------------------------------
 // Client Setup
 // --------------------------------------------------
@@ -99,7 +99,7 @@ async function doStartupTasks() {
 
 			// Wait for client if required
 			if (task.needsReadyClient) {
-				await waitUntil(() => client.isReady());
+				await waitUntil(() => client.isReady(), { timeout: WAIT_FOREVER });
 			}
 
 			console.log(`⏳ Running startup task: ${task.name}`);
