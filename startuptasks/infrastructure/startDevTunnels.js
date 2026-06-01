@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn, execSync } = require("child_process");
 
-const TUNNEL_STATE_FILE = path.join(__dirname, "..", ".tunnel-state.json");
+const TUNNEL_STATE_FILE = path.join(__dirname, "..", "..", ".tunnel-state.json");
 const PORTS = [3000, 3001, 3002, 3003];
 
 function findDevTunnel() {

@@ -31,7 +31,7 @@ module.exports = {
 	};
 			`;
 				fs.writeFileSync(
-					`${path.join(__dirname, "..", "github-events", `${eventName}.js`)}`,
+					`${path.join(__dirname, "..", "..", "github-events", `${eventName}.js`)}`,
 					template,
 				);
 				console.log(
@@ -58,7 +58,7 @@ module.exports = {
 	reloadEvents: async function (client) {
 		// Reload event handlers
 		eventHandlers.clear();
-		const eventsPath = path.join(__dirname, "..", "github-events");
+		const eventsPath = path.join(__dirname, "..", "..", "github-events");
 		for (const file of fs.readdirSync(eventsPath)) {
 			if (!file.endsWith(".js")) continue;
 			delete require.cache[require.resolve(path.join(eventsPath, file))];

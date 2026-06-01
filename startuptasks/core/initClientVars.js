@@ -1,5 +1,5 @@
 const { Collection } = require("discord.js");
-const config = require("../config.json");
+const config = require("../../config.json");
 module.exports = {
 	name: "initClientVars",
 	description: "Initialize client variables on startup",

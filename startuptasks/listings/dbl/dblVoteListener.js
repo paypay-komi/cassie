@@ -1,5 +1,5 @@
 const express = require("express");
-const voteEmitter = require("../utils/voteEmitter");
+const voteEmitter = require("../../../utils/voteEmitter");
 require("dotenv/config");
 
 module.exports = {

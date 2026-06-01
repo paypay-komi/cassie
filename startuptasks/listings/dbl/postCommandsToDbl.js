@@ -1,4 +1,4 @@
-const { postCommandsToDbl } = require("../utils/postCommandsToDbl");
+const { postCommandsToDbl } = require("../../../utils/postCommandsToDbl");
 
 module.exports = {
   name: "post commands to dbl",

@@ -1,4 +1,4 @@
-const { postCommandsToTopgg } = require("../utils/postCommandsToTopgg");
+const { postCommandsToTopgg } = require("../../../utils/postCommandsToTopgg");
 
 module.exports = {
   name: "post commands to top.gg",

@@ -9,8 +9,8 @@ const {
 	ButtonStyle,
 	MessageFlags,
 } = require("discord.js");
-const db = require("../db");
-const voteEmitter = require("../utils/voteEmitter");
+const db = require("../../db");
+const voteEmitter = require("../../utils/voteEmitter");
 
 const STREAK_TIMEOUT = 24 * 60 * 60 * 1000;
 let nextTimeout = null;

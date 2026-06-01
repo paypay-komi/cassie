@@ -1,6 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const voteEmitter = require("../utils/voteEmitter");
+const voteEmitter = require("../../../utils/voteEmitter");
 require("dotenv/config");
 
 module.exports = {
