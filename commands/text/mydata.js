@@ -38,8 +38,6 @@ module.exports = {
 				)
 				.map((c) => c.name);
 
-			// Always search all columns too — IDs might be stored as numeric strings
-			const allCols = cols.map((c) => c.name);
 
 			if (textCols.length === 0) continue;
 
