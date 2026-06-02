@@ -700,8 +700,6 @@ army
 aroma
 arose
 around
-arouse
-aroused
 arraignment
 arrange
 arranged
@@ -767,7 +765,6 @@ asphyxiation
 aspirations
 aspire
 aspirin
-ass
 assailant
 assassin
 assassinate
@@ -961,8 +958,6 @@ axel
 axis
 axle
 aye
-baa
-baba
 babble
 babbling
 babe
@@ -1012,7 +1007,6 @@ bagged
 baggy
 bagpipes
 bags
-bah
 bail
 bailed
 bailey
@@ -1273,7 +1267,6 @@ behold
 beige
 being
 beings
-bel
 belief
 beliefs
 believable
@@ -1615,9 +1608,6 @@ bonus
 bonuses
 bony
 boo
-boob
-boobies
-boobs
 booby
 booger
 boogie
@@ -2529,7 +2519,6 @@ chimpanzee
 chimps
 chin
 china
-chink
 chino
 chip
 chipmunk
@@ -2789,8 +2778,6 @@ cobbler
 cobra
 cobwebs
 coca
-cocaine
-cock
 cockpit
 cockroach
 cockroaches
@@ -3684,7 +3671,6 @@ cultural
 culture
 cultured
 cultures
-cum
 cunning
 cunt
 cunts
@@ -4227,11 +4213,6 @@ diarrhea
 diary
 dibs
 dice
-dick
-dickens
-dickie
-dicks
-dicky
 dictate
 dictated
 dictates
@@ -4289,7 +4270,6 @@ ding
 dingo
 dings
 dining
-dink
 dinky
 dinner
 dinners
@@ -5449,10 +5429,6 @@ fade
 faded
 fades
 fading
-fag
-faggot
-faggots
-fags
 fail
 failed
 failing
@@ -9867,8 +9843,6 @@ navigator
 navy
 naw
 nay
-nazi
-nazis
 near
 nearby
 nearest
@@ -9975,8 +9949,6 @@ nicotine
 niece
 nieces
 nifty
-nigger
-niggers
 nigh
 night
 nightcap
@@ -11789,8 +11761,6 @@ pushing
 pushover
 pushy
 puss
-pussies
-pussy
 pussycat
 put
 puts
@@ -16385,9 +16355,6 @@ violinist
 violins
 viper
 viral
-virgin
-virginity
-virgins
 virtual
 virtually
 virtue
