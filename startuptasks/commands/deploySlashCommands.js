@@ -1,4 +1,4 @@
-const { glob } = require("fs");
+
 
 module.exports = {
 	name: "deploySlashCommands",
