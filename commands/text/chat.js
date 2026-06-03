@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { pingSafeMesage } = require("../../utils/safeMsg");
 const conversations = new Map();
 
 const SYSTEM_PROMPT = {
@@ -13,7 +14,10 @@ const DISCORD_LIMIT = 2000;
 module.exports = {
 	name: "chat",
 	description: "Chat with AI (streaming, formatted)",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 	aliases: ["talk", "gpt", "ai"],
 
 	async execute(message, args) {
@@ -59,7 +63,7 @@ module.exports = {
 			let fullResponse = "";
 			let lastEdit = 0;
 
-			let replyMessage = await message.reply("‎"); // invisible starter
+			let replyMessage = await message.reply(pingSafeMesage("‎")); // invisible starter
 
 			while (true) {
 				const { done, value } = await reader.read();
@@ -112,11 +116,13 @@ module.exports = {
 				const displayText = fixCodeBlocks(fullResponse);
 
 				if (displayText.length <= DISCORD_LIMIT) {
-					await replyMessage.edit(displayText.trim() || "‎");
+					await replyMessage.edit(
+						pingSafeMesage(displayText.trim() || "‎"),
+					);
 				} else {
 					// Handle overflow
 					await replyMessage.edit(
-						displayText.slice(0, DISCORD_LIMIT),
+						pingSafeMesage(displayText.slice(0, DISCORD_LIMIT)),
 					);
 
 					let remaining = displayText.slice(DISCORD_LIMIT);
@@ -124,13 +130,17 @@ module.exports = {
 					while (remaining.length > 0) {
 						const chunk = remaining.slice(0, DISCORD_LIMIT);
 						remaining = remaining.slice(DISCORD_LIMIT);
-						replyMessage = await message.channel.send(chunk);
+						replyMessage = await message.channel.send(
+							pingSafeMesage(chunk),
+						);
 					}
 				}
 			}
 		} catch (err) {
 			console.error("Streaming error:", err);
-			message.reply("Streaming failed. Check Ollama and try again.");
+			message.reply(
+				pingSafeMesage("Streaming failed. Check Ollama and try again."),
+			);
 		}
 	},
 };
