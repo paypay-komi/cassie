@@ -244,3 +244,50 @@ model DblVote {
     lastClaimedReward DateTime?
     updatedAt         DateTime  @updatedAt
 }
+model CourtCase {
+  id            String      @id @default(cuid())
+
+  guildId       String
+  defendantId   String
+  prosecutorId  String
+
+  channelId     String
+  messageId     String?     @unique
+  threadId      String?
+
+  reason        String      
+
+  status        CourtStatus @default(VOTING)
+
+  voteDeadline  DateTime?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  closedAt      DateTime?
+
+  votes         CourtVote[]
+}
+
+model CourtVote {
+  id         String    @id @default(cuid())
+
+  caseId     String
+  voterId    String
+
+  /// 1 = guilty, -1 = not guilty
+  value      Int
+
+  votedAt    DateTime  @default(now())
+
+  courtCase  CourtCase @relation( fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, voterId])
+  @@index([voterId])
+}
+
+enum CourtStatus {
+  VOTING
+  GUILTY
+  NOT_GUILTY
+  DISMISSED
+}
