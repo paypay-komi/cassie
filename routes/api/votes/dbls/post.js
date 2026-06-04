@@ -1,3 +1,4 @@
+const { getLogger } = require("../../../../lib/logger");
 const voteEmitter = require("../../../../utils/voteEmitter");
 
 module.exports = {
@@ -18,11 +19,12 @@ module.exports = {
 	],
 
 	handler: (req, res) => {
+		const log = getLogger("Votes:DBL");
 		const t = Date.now();
 
 		try {
 			if (!req.body) {
-				console.warn("[dbl] empty body");
+				log.warn("Empty body");
 				return res.sendStatus(400);
 			}
 
@@ -34,32 +36,32 @@ module.exports = {
 						? JSON.parse(req.body)
 						: req.body;
 			} catch {
-				console.warn("[dbl] bad payload");
+				log.warn("Bad payload");
 				return res.sendStatus(400);
 			}
 
 			if (!data?.user) {
-				console.warn("[dbl] missing user");
+				log.warn("Missing user");
 				return res.sendStatus(400);
 			}
 
 			if (!data?.isVote) {
-				console.warn(`[dbl] ignored ${data.user}`);
+				log.warn(`Ignored non-vote from ${data.user}`);
 				return res.sendStatus(400);
 			}
 
-			console.log(`[dbl] vote ${data.user}`);
+			log.info(`Vote from ${data.user}`);
 
 			voteEmitter.emit("vote", {
 				userId: data.user,
 				site: "discordlistgg",
 			});
 
-			console.log(`[dbl] ok ${Date.now() - t}ms`);
+			log.info(`OK (${Date.now() - t}ms)`);
 
 			return res.sendStatus(200);
 		} catch (err) {
-			console.error("[dbl] crash:", err);
+			log.error("Crash:", err);
 			return res.sendStatus(500);
 		}
 	},

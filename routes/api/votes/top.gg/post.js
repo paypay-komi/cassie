@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { getLogger } = require("../../../../lib/logger");
 const voteEmitter = require("../../../../utils/voteEmitter");
 
 function verifyV1Signature(rawBody, signatureHeader, secret) {
@@ -34,6 +35,7 @@ module.exports = {
 	middleware: [require("express").text({ type: "*/*" })],
 
 	handler: (req, res) => {
+		const log = getLogger("Votes:TopGG");
 		const secret = process.env.TOPGG_WEBHOOK_SECRET;
 
 		const rawBody = req.body;
@@ -42,7 +44,7 @@ module.exports = {
 
 		try {
 			if (!rawBody) {
-				console.warn("[topgg] empty body");
+				log.warn("Empty body");
 				return res.sendStatus(400);
 			}
 
@@ -62,18 +64,18 @@ module.exports = {
 			}
 
 			if (!userId) {
-				console.warn("[topgg] bad signature");
+				log.warn("Bad signature");
 				return res.sendStatus(403);
 			}
 
 			const type = payload?.type || payload?.data?.type;
 
 			if (type === "test" || type === "webhook.test") {
-				console.log("[topgg] test");
+				log.info("Test webhook");
 				return res.sendStatus(200);
 			}
 
-			console.log(`[topgg] vote ${userId}`);
+			log.info(`Vote from ${userId}`);
 
 			voteEmitter.emit("vote", {
 				userId,
@@ -82,7 +84,7 @@ module.exports = {
 
 			return res.sendStatus(200);
 		} catch (err) {
-			console.error("[topgg] crash:", err);
+			log.error("Crash:", err);
 			return res.sendStatus(500);
 		}
 	},

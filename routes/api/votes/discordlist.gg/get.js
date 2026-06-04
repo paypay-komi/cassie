@@ -1,3 +1,5 @@
+const { getLogger } = require("../../../../lib/logger");
+
 module.exports = {
 	path: "/api/votes/dlistgg",
 	method: "get",
@@ -7,7 +9,7 @@ module.exports = {
 			req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
 			req.socket.remoteAddress;
 
-		console.log(`[dlistgg] ping ${ip}`);
+		getLogger("Votes:DListGG").info(`Ping from ${ip}`);
 
 		res.json({
 			ok: true,

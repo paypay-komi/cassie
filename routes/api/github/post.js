@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { getLogger } = require("../../../lib/logger");
 const { getGitHubEvent } = require("../../../utils/githubEvents");
 
 module.exports = {
@@ -11,23 +12,25 @@ module.exports = {
 	],
 
 	handler: async (req, res) => {
+		const log = getLogger("GitHubWebhook");
 		const eventName = req.headers["x-github-event"];
 		const payload = req.body;
 
 		res.sendStatus(200);
 
-		console.log(`[github] event ${eventName}`);
+		log.info(`Event: ${eventName}`);
 
 		const handler = getGitHubEvent(eventName);
 
 		if (!handler) {
-			console.warn(`[github] missing handler ${eventName}`);
+			log.warn(`Missing handler for ${eventName}`);
 
 			const template = `
 module.exports = {
 	name: "${eventName}",
 	async execute(payload, client) {
-		console.log("github ${eventName}", payload);
+		const { getLogger } = require("../lib/logger");
+		getLogger("GitHub").info("Received ${eventName} event:", payload);
 	},
 };
 			`;
@@ -40,14 +43,14 @@ module.exports = {
 
 			fs.writeFileSync(filePath, template);
 
-			console.log(`[github] created handler ${eventName}`);
+			log.info(`Created handler for ${eventName}`);
 			return;
 		}
 
 		try {
 			await handler.execute(payload, req.client);
 		} catch (err) {
-			console.error(`[github] handler crash ${eventName}`, err);
+			log.error(`Handler crash for ${eventName}:`, err);
 		}
 	},
 };

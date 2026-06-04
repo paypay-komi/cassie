@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { getLogger } = require("../../../../lib/logger");
 const voteEmitter = require("../../../../utils/voteEmitter");
 require("dotenv/config");
 
@@ -9,15 +10,16 @@ module.exports = {
 	middleware: [require("express").text({ type: "*/*" })],
 
 	handler: (req, res) => {
+		const log = getLogger("Votes:DListGG");
 		const secret = process.env.DLISTGG_WEBHOOK_AUTH;
 
 		if (!secret) {
-			console.warn("[dlistgg] missing secret");
+			log.warn("Missing webhook secret");
 			return res.sendStatus(500);
 		}
 
 		if (!req.body) {
-			console.warn("[dlistgg] empty body");
+			log.warn("Empty body");
 			return res.sendStatus(400);
 		}
 
@@ -26,21 +28,21 @@ module.exports = {
 		try {
 			decoded = jwt.verify(req.body, secret);
 		} catch (err) {
-			console.warn("[dlistgg] bad jwt");
+			log.warn("Bad JWT");
 			return res.sendStatus(401);
 		}
 
 		if (decoded.is_test) {
-			console.log("[dlistgg] test");
+			log.info("Test webhook");
 			return res.sendStatus(200);
 		}
 
 		if (!decoded.user_id) {
-			console.warn("[dlistgg] missing user");
+			log.warn("Missing user in payload");
 			return res.sendStatus(400);
 		}
 
-		console.log(`[dlistgg] vote ${decoded.user_id}`);
+		log.info(`Vote from ${decoded.user_id}`);
 
 		voteEmitter.emit("vote", {
 			userId: decoded.user_id,
