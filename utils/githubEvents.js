@@ -1,7 +1,9 @@
 const fs = require("fs");
 const path = require("path");
+const { getLogger } = require("../lib/logger");
 
 const eventHandlers = new Map();
+const log = getLogger("GitHubEvents");
 
 function reloadGitHubEvents() {
 	eventHandlers.clear();
@@ -19,7 +21,7 @@ function reloadGitHubEvents() {
 		eventHandlers.set(event.name, event);
 	}
 
-	console.log("[github] events loaded");
+	log.info("[github] events loaded");
 }
 
 function getGitHubEvent(name) {

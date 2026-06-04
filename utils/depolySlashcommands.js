@@ -2,8 +2,10 @@ const { REST, Routes } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const config = require("../config.json");
+const { getLogger } = require("../lib/logger");
 require("dotenv/config");
 module.exports = async function deploySlashCommands(client, options = {}) {
+	const log = getLogger("DeploySlash");
 	const commands = [];
 
 	const commandsPath =
@@ -26,7 +28,7 @@ module.exports = async function deploySlashCommands(client, options = {}) {
 	const rest = new REST({ version: "10" }).setToken(token);
 
 	try {
-		console.log(`🚀 Deploying ${commands.length} slash commands...`);
+		log.info(`🚀 Deploying ${commands.length} slash commands...`);
 
 		await rest.put(
 			deployGlobal
@@ -35,9 +37,9 @@ module.exports = async function deploySlashCommands(client, options = {}) {
 			{ body: commands },
 		);
 
-		console.log("✅ Slash commands deployed!");
+		log.info("✅ Slash commands deployed!");
 	} catch (err) {
-		console.error("❌ Slash deploy failed:", err);
+		log.error("❌ Slash deploy failed:", err);
 		throw err;
 	}
 };

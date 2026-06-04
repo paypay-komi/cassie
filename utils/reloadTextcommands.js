@@ -1,5 +1,8 @@
 const fs = require("fs");
 const path = require("path");
+const { getLogger } = require("../lib/logger");
+
+const log = getLogger("ReloadTextCmds");
 
 /**
  * Recursively walk directories to collect .js files
@@ -58,7 +61,7 @@ module.exports = function reloadTextCommands(client, targetName) {
 	const failed = [];
 
 	const files = walk(textPath);
-	console.log("🔹 Files found for loading:", files);
+	log.debug("🔹 Files found for loading:", files);
 
 	// clear all project modules from cache so any changed files get picked up
 	const root = path.resolve(__dirname, "..");
@@ -79,7 +82,7 @@ module.exports = function reloadTextCommands(client, targetName) {
 			const cmd = require(filePath);
 
 			if (!cmd?.name) {
-				console.log(`⚠️ Skipping ${filePath}: no name found`);
+				log.warn(`⚠️ Skipping ${filePath}: no name found`);
 				continue;
 			}
 
@@ -102,22 +105,22 @@ module.exports = function reloadTextCommands(client, targetName) {
 			const key = `${cmd.parent ?? "root"}:${cmd.name}`;
 
 			if (allCommands.has(key)) {
-				console.warn(
+				log.warn(
 					`⚠️ Duplicate command "${cmd.name}" under parent "${cmd.parent ?? "root"}"`,
 				);
 				continue;
 			}
 
 			allCommands.set(key, cmd);
-			console.log(`✅ Loaded command: ${key} from ${filePath}`);
+			log.info(`✅ Loaded command: ${key} from ${filePath}`);
 		} catch (err) {
-			console.error(`❌ Failed loading ${filePath}`);
-			console.error(err);
+			log.error(`❌ Failed loading ${filePath}`);
+			log.error(err);
 			failed.push(path.basename(filePath));
 		}
 	}
 
-	console.log("🔹 All commands after first pass:", [...allCommands.keys()]);
+	log.debug("🔹 All commands after first pass:", [...allCommands.keys()]);
 
 	if (!targetName) {
 		client.textCommands.clear();
@@ -137,7 +140,7 @@ module.exports = function reloadTextCommands(client, targetName) {
 			);
 
 			if (!parent) {
-				console.warn(
+				log.warn(
 					`⚠️ Parent "${cmd.parent}" not found for "${cmd.name}"`,
 				);
 				continue;
@@ -148,7 +151,7 @@ module.exports = function reloadTextCommands(client, targetName) {
 			cmd.parentRef = parent;
 
 			subcommands++;
-			console.log(
+			log.info(
 				`🔹 Linked ${cmd.name} as subcommand of ${parent.name}`,
 			);
 			continue;
@@ -164,21 +167,21 @@ module.exports = function reloadTextCommands(client, targetName) {
 		}
 
 		reloaded++;
-		console.log(`🔹 Registered top-level command: ${cmd.name}`);
+		log.info(`🔹 Registered top-level command: ${cmd.name}`);
 	}
 
-	console.log("🔹 Final client.textCommands:", [
+	log.debug("🔹 Final client.textCommands:", [
 		...client.textCommands.keys(),
 	]);
-	console.log("🔹 Final client.textAliases:", [...client.textAliases.keys()]);
+	log.debug("🔹 Final client.textAliases:", [...client.textAliases.keys()]);
 
 	// --------------------------------------------------
 	// 🔹 Print all valid invocation paths (including aliases)
 	// --------------------------------------------------
-	console.log("\n📋 All valid command invocations:");
+	log.info("\n📋 All valid command invocations:");
 	for (const rootCmd of client.textCommands.values()) {
 		const paths = collectAllPaths(rootCmd);
-		paths.forEach((p) => console.log(`!${p}`));
+		paths.forEach((p) => log.info(`!${p}`));
 	}
 
 	return { reloaded, subcommands, failed };

@@ -1,6 +1,9 @@
 const { Client } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
+const { getLogger } = require("../lib/logger");
+
+const log = getLogger("ReloadEvents");
 
 /**
  * @param {Client} client
@@ -14,7 +17,7 @@ module.exports = function reloadEvents(client) {
 	// Remove old listeners safely (WITH LOGS)
 	for (const { event, listener } of client.__eventListeners) {
 		client.removeListener(event, listener);
-		console.log(`🧹 Unloaded event: ${event}`);
+		log.info(`🧹 Unloaded event: ${event}`);
 	}
 
 	client.__eventListeners = [];
@@ -29,7 +32,7 @@ module.exports = function reloadEvents(client) {
 			const event = require(filePath);
 
 			if (!event?.name || typeof event.execute !== "function") {
-				console.warn(`⚠️ Invalid event file: ${file}`);
+				log.warn(`⚠️ Invalid event file: ${file}`);
 				continue;
 			}
 
@@ -46,11 +49,11 @@ module.exports = function reloadEvents(client) {
 				listener,
 			});
 
-			console.log(`✓ Loaded event: ${event.name} (${file})`);
+			log.info(`✓ Loaded event: ${event.name} (${file})`);
 		} catch (err) {
-			console.error(`❌ Failed loading event ${file}:`, err);
+			log.error(`❌ Failed loading event ${file}:`, err);
 		}
 	}
 
-	console.log(`\n📦 Reloaded ${files.length} events\n`);
+	log.info(`\n📦 Reloaded ${files.length} events\n`);
 };

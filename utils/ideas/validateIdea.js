@@ -1,4 +1,6 @@
 const db = require("../../db");
+const { getLogger } = require("../../lib/logger");
+const log = getLogger("ValidateIdea");
 
 // cache
 let ideaCache = [];
@@ -77,7 +79,7 @@ async function checkOpenAIModeration(idea) {
 	const data = await response.json();
 
 	if (!data.results?.[0]) {
-		console.error("Unexpected OpenAI response:", data);
+		log.error("Unexpected OpenAI response:", data);
 		return { result: "pass" };
 	}
 	const result = data.results[0];
@@ -229,7 +231,7 @@ RESPONSE RULES:
 	});
 
 	const data = await response.json();
-	console.log(data.message.content);
+	log.info(data.message.content);
 
 	const parsed = JSON.parse(data.message.content);
 	// normalize any "null" strings the model snuck in
@@ -254,14 +256,14 @@ async function validateIdea(idea) {
 		if (moderation.result === "rejected") return moderation;
 		if (moderation.result === "pending") return moderation;
 	} catch (err) {
-		console.error("OpenAI moderation failed, skipping:", err);
+		log.error("OpenAI moderation failed, skipping:", err);
 	}
 
 	// layer 2: ollama — handles quality + semantic duplicate check in one call
 	try {
 		return await checkOllama(idea);
 	} catch (err) {
-		console.error("Ollama check failed, skipping:", err);
+		log.error("Ollama check failed, skipping:", err);
 		return { result: "pending", reason: "could not verify idea quality" };
 	}
 }
