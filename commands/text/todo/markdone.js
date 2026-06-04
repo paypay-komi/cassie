@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList");
 
 module.exports = {
@@ -8,6 +9,7 @@ module.exports = {
 	parent: "todo",
 	aliases: ["done", "markdone", "finish"],
 	async execute(message, args) {
+		const log = getLogger("TodoDone");
 		const itemIndex = parseInt(args[0], 10) - 1;
 		if (isNaN(itemIndex)) {
 			return message.reply(
@@ -42,7 +44,7 @@ module.exports = {
 				);
 			})
 			.catch((error) => {
-				console.error("Error marking todo item as done:", error);
+				log.error("Error marking todo item as done:", error);
 				message.reply(
 					"Failed to mark the item as done. Please try again later.",
 				);

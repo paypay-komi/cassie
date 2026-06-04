@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 module.exports = {
 	name: "create",
 	description: "Create a new todo item",
@@ -6,6 +7,7 @@ module.exports = {
 	aliases: ["c", "add", "a"],
 	parent: "todo",
 	async execute(message, args) {
+		const log = getLogger("TodoCreate");
 		message.client.db.prisma.todolist
 			.create({
 				data: {
@@ -19,7 +21,7 @@ module.exports = {
 				message.reply(`Created todo item: ${todo.content}`);
 			})
 			.catch((error) => {
-				console.error("Error creating todo item:", error);
+				log.error("Error creating todo item:", error);
 				message.reply("Failed to create todo item.");
 			});
 	},

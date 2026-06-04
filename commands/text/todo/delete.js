@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList.js");
 module.exports = {
 	name: "delete",
@@ -7,6 +8,7 @@ module.exports = {
 	aliases: ["d", "del", "remove", "r"],
 	parent: "todo",
 	async execute(message, args) {
+		const log = getLogger("TodoDelete");
 		const itemIndex = parseInt(args[0], 10) - 1;
 		if (isNaN(itemIndex)) {
 			return message.reply(
@@ -34,7 +36,7 @@ module.exports = {
 				message.reply(`Deleted item ${itemIndex + 1}: ${todo.content}`);
 			})
 			.catch((error) => {
-				console.error("Error deleting todo item:", error);
+				log.error("Error deleting todo item:", error);
 				message.reply(
 					"Failed to delete the item. Please try again later.",
 				);
