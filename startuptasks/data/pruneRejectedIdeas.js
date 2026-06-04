@@ -1,3 +1,5 @@
+const { getLogger } = require("../../lib/logger");
+
 module.exports = {
 	name: "pruneRejectedIdeas",
 	description: "Deletes rejected ideas older than 7 days (every hour)",
@@ -5,6 +7,7 @@ module.exports = {
 	timer: null,
 	prerequisites: ["startPrisma"],
 	async execute() {
+		const log = getLogger("PruneIdeas");
 		const runTask = async () => {
 			const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -18,7 +21,7 @@ module.exports = {
 			});
 
 			if (count > 0) {
-				console.log(
+				log.info(
 					`🧹 Pruned ${count} rejected idea(s) older than 7 days`,
 				);
 			}
@@ -27,7 +30,7 @@ module.exports = {
 		};
 
 		runTask();
-		console.log("✅ Rejected idea pruning task started (every hour)");
+		log.info("✅ Rejected idea pruning task started (every hour)");
 	},
 	cleanUp() {
 		if (this.timer) clearTimeout(this.timer);

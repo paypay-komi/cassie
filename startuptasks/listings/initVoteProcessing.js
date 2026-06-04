@@ -11,6 +11,7 @@ const {
 } = require("discord.js");
 const db = require("../../db");
 const voteEmitter = require("../../utils/voteEmitter");
+const { getLogger } = require("../../lib/logger");
 
 const STREAK_TIMEOUT = 24 * 60 * 60 * 1000;
 let nextTimeout = null;
@@ -92,9 +93,10 @@ module.exports = {
 	client: null,
 
 	execute(client) {
+		const log = getLogger("VoteProcessing");
 		this.client = client;
 		this.cleanup();
-		scheduleNextExpiry().catch(console.error);
+		scheduleNextExpiry().catch(err => log.error(err));
 
 		this.handler = async ({ userId, site }) => {
 			try {
@@ -134,7 +136,7 @@ module.exports = {
 					},
 				});
 
-				console.log(
+				log.info(
 					`[Vote] Processed vote for ${user.tag} via ${site}`,
 				);
 
@@ -145,7 +147,7 @@ module.exports = {
 				);
 
 				if (!voteChannel?.isTextBased()) {
-					return console.error("Vote channel does not exist.");
+					return log.error("Vote channel does not exist.");
 				}
 
 			const siteLabel = SITE_DISPLAY_NAMES[site] || site;
@@ -173,7 +175,7 @@ module.exports = {
 					where: { userId: user.id },
 				});
 				if (prefs?.voteDmOptOut) {
-					console.log(
+					log.info(
 						`Skipping vote DM for ${user.id} (opted out)`,
 					);
 					return;
@@ -203,18 +205,18 @@ module.exports = {
 						flags: MessageFlags.IsComponentsV2,
 					});
 				} catch (error) {
-					console.error(
+					log.error(
 						"Failed to send vote thank-you DM:",
 						error,
 					);
 				}
 			} catch (error) {
-				console.error("Vote processing failed:", error);
+				log.error("Vote processing failed:", error);
 			}
 		};
 
 		voteEmitter.on("vote", this.handler);
-		console.log("✅ Vote processing initialized (listening on voteEmitter)");
+		log.info("✅ Vote processing initialized (listening on voteEmitter)");
 	},
 
 	cleanup() {

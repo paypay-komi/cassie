@@ -1,3 +1,4 @@
+const { getLogger } = require("../../../lib/logger");
 const { postCommandsToTopgg } = require("../../../utils/postCommandsToTopgg");
 
 module.exports = {
@@ -7,16 +8,17 @@ module.exports = {
   needsReadyClient: true,
 
   async execute(client) {
+    const log = getLogger("TopGG");
     if (!process.env.TOPGG_TOKEN) {
-      console.warn("[Top.gg] No TOPGG_TOKEN set — skipping command posting");
+      log.warn("[Top.gg] No TOPGG_TOKEN set — skipping command posting");
       return;
     }
 
     try {
       const count = await postCommandsToTopgg(client);
-      console.log(`[Top.gg] Posted ${count} commands to top.gg`);
+      log.info(`[Top.gg] Posted ${count} commands to top.gg`);
     } catch (err) {
-      console.error("[Top.gg] Failed to post commands:", err.message);
+      log.error("[Top.gg] Failed to post commands:", err.message);
     }
   },
 };

@@ -1,3 +1,4 @@
+const { getLogger } = require("../../../lib/logger");
 const { createDjsClient } = require("discordbotlist");
 require("dotenv/config");
 module.exports = {
@@ -5,8 +6,9 @@ module.exports = {
 	description: "starts up the dbl posting stats",
 	needsReadyClient: true,
 	execute(client) {
+		const log = getLogger("DBL");
 			if (!process.env.DBL_API_TOKEN) {
-			console.warn("[DBL] No DBL_API_TOKEN set — skipping discordbotlist.com integration");
+			log.warn("[DBL] No DBL_API_TOKEN set — skipping discordbotlist.com integration");
 			return;
 		}
 		const dbl = createDjsClient(process.env.DBL_API_TOKEN, client);

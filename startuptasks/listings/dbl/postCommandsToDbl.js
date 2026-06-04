@@ -1,3 +1,4 @@
+const { getLogger } = require("../../../lib/logger");
 const { postCommandsToDbl } = require("../../../utils/postCommandsToDbl");
 
 module.exports = {
@@ -7,11 +8,12 @@ module.exports = {
   needsReadyClient: true,
 
   async execute(client) {
+    const log = getLogger("DBL");
     try {
       const count = await postCommandsToDbl(client);
-      console.log(`Posted ${count} commands to DBL`);
+      log.info(`Posted ${count} commands to DBL`);
     } catch (err) {
-      console.error("Failed to post commands to DBL:", err.message);
+      log.error("Failed to post commands to DBL:", err.message);
     }
   },
 };

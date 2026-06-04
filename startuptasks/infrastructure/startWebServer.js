@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const { getLogger } = require("../../lib/logger");
 function walk(dir) {
 	const files = fs.readdirSync(dir);
 	let out = [];
@@ -26,6 +27,7 @@ module.exports = {
 	server: null,
 
 	async execute(client) {
+		const log = getLogger("WebServer");
 		const app = express();
 		this.app = app;
 		app.use(cors());
@@ -53,12 +55,12 @@ module.exports = {
 
 			const fullUrl = new URL(route.path, baseUrl).href;
 
-			console.log(`[route] ${method.toUpperCase()} ${fullUrl}`);
+			log.info(`[route] ${method.toUpperCase()} ${fullUrl}`);
 		}
 
 		// 404 handler
 		app.use((req, res) => {
-			console.log(`[404] ${req.method} ${req.path}`);
+			log.info(`[404] ${req.method} ${req.path}`);
 			res.status(404).json({
 				ok: false,
 				error: "not found",
@@ -66,7 +68,7 @@ module.exports = {
 		});
 
 		this.server = app.listen(3000, () => {
-			console.log("webserver running on 3000");
+			log.info("webserver running on 3000");
 		});
 
 		client.app = app;

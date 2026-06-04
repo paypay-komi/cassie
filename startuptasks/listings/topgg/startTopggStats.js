@@ -1,3 +1,4 @@
+const { getLogger } = require("../../../lib/logger");
 const { AutoPoster } = require("topgg-autoposter");
 require("dotenv/config");
 
@@ -6,22 +7,23 @@ module.exports = {
   description: "Starts auto-posting guild stats to top.gg",
   needsReadyClient: true,
   execute(client) {
+    const log = getLogger("TopGGStats");
     if (!process.env.TOPGG_TOKEN) {
-      console.warn("[Top.gg] No TOPGG_TOKEN set — skipping stats posting");
+      log.warn("[Top.gg] No TOPGG_TOKEN set — skipping stats posting");
       return;
     }
 
     const ap = AutoPoster(process.env.TOPGG_TOKEN, client);
 
     ap.on("posted", () => {
-      console.log("[Top.gg] Stats posted successfully");
+      log.info("[Top.gg] Stats posted successfully");
     });
 
     ap.on("error", (err) => {
-      console.error("[Top.gg] Stats posting error:", err.message);
+      log.error("[Top.gg] Stats posting error:", err.message);
     });
 
     client.topggAutoposter = ap;
-    console.log("[Top.gg] Auto-poster started");
+    log.info("[Top.gg] Auto-poster started");
   },
 };

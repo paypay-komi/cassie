@@ -1,3 +1,4 @@
+const { getLogger } = require("../../lib/logger");
 const { priority } = require("./initClientVars.js");
 
 module.exports = {
@@ -5,7 +6,8 @@ module.exports = {
 	description: "Start Prisma client on startup",
 	reloadAble: false,
 	execute(client) {
+		const log = getLogger("StartPrisma");
 		client.db = require("../../db"); // Prisma client instance
-		console.log("✅ Prisma client started on startup");
+		log.info("✅ Prisma client started on startup");
 	},
 };

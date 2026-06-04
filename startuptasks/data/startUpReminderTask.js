@@ -1,3 +1,4 @@
+const { getLogger } = require("../../lib/logger");
 const db = require("../../db");
 module.exports = {
 	name: "startUpReminderTask",
@@ -5,6 +6,7 @@ module.exports = {
 	reloadAble: true,
 	timer: null,
 	async execute(client) {
+		const log = getLogger("ReminderTask");
 		const runTask = async () => {
 			const now = new Date();
 			const reminders = await db.prisma.reminder.findMany({
@@ -23,7 +25,7 @@ module.exports = {
 									`⏰ Reminder for <@${reminder.userId}>: ${reminder.content}`,
 								);
 							} else {
-								console.warn(
+								log.warn(
 									`Could not find channel ${reminder.channelId} to send reminder for user ${reminder.userId}.`,
 								);
 							}
@@ -34,7 +36,7 @@ module.exports = {
 							await user.send(`⏰ Reminder: ${reminder.content}`);
 						}
 					} catch (err) {
-						console.error(
+						log.error(
 							`Failed to send reminder to ${reminder.userId}:`,
 							err,
 						);
@@ -70,7 +72,7 @@ module.exports = {
 		};
 
 		runTask();
-		console.log("✅ Reminder task started on startup");
+		log.info("✅ Reminder task started on startup");
 	},
 	cleanUp(client) {
 		if (this.timer) clearTimeout(this.timer);
