@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 const db = require("../../../db");
 const ct = require("countries-and-timezones");
 
@@ -13,6 +14,7 @@ module.exports = {
 	 * @param {String[]} args
 	 */
 	async execute(message, args) {
+		const log = getLogger("TimeSet");
 		if (args.length === 0) {
 			return message.reply(
 				"please include your current time either in 24H time or 12H time",
@@ -132,15 +134,10 @@ module.exports = {
 				pages.push(current_page_array);
 				current_page_array = [];
 			}
-			console.log(pages);
-			const option_collector = question.createMessageComponentCollector({
-				idle: 60_000,
-			});
-			function create_selection_menu_row() {
-				const select_menu = new Discord.StringSelectMenuBuilder();
-				console.log(current_page);
-				const this_pages_options = pages[current_page];
-				console.log(this_pages_options);
+			log.debug(pages);
+				const current_page = collector.responses.first();
+				log.debug(current_page);
+				log.debug(this_pages_options);
 				for (let i = 0; i < this_pages_options.length; i++) {
 					const this_option = this_pages_options[i];
 					select_menu.addOptions(

@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../lib/logger");
 const { pingSafeMesage } = require("../../utils/safeMsg");
 const conversations = new Map();
 
@@ -137,7 +138,7 @@ module.exports = {
 				}
 			}
 		} catch (err) {
-			console.error("Streaming error:", err);
+			getLogger("Chat").error("Streaming error:", err);
 			message.reply(
 				pingSafeMesage("Streaming failed. Check Ollama and try again."),
 			);

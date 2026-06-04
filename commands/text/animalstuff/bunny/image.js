@@ -1,4 +1,5 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
+const { getLogger } = require("../../../../lib/logger");
 
 module.exports = {
 	name: "image",
@@ -6,6 +7,7 @@ module.exports = {
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	parent: "bunny",
 	async execute(message, args) {
+		const log = getLogger("BunnyImg");
 		let jsonData;
 
 		try {
@@ -14,7 +16,7 @@ module.exports = {
 			);
 			jsonData = await res.json();
 		} catch (err) {
-			console.error("Error fetching bunny image:", err);
+			log.error("Error fetching bunny image:", err);
 			return message.reply(
 				"Sorry, I could not fetch a bunny image at this time.",
 			);

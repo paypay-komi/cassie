@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../../../lib/logger");
 const fs = require("fs");
 const path = require("path");
 
@@ -9,6 +10,7 @@ module.exports = {
 	parent: "reload",
 
 	async execute(message) {
+		const log = getLogger("ReloadEvents");
 		const tasksPath = path.join(process.cwd(), "startuptasks");
 
 		const results = await message.client.shard.broadcastEval(
@@ -54,10 +56,7 @@ const fs = require("fs");
 							reloaded++;
 						}
 					} catch (err) {
-						console.error(
-							`Shard ${client.shard.ids[0]} failed:`,
-							err,
-						);
+						log.error(`Shard ${client.shard.ids[0]} failed:`, err);
 					}
 				}
 
