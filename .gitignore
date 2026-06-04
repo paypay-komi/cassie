@@ -20,3 +20,17 @@ config.json
 
 # Dev tunnel state
 .tunnel-state.json
+public/index.html
+public/css/cyberpunk.css
+public/js/app.js
+public/js/feed.js
+public/js/charts.js
+public/js/map.js
+public/js/network.js
+server/demo.js
+routes/api/votes/dbls/post.js
+server/detector.js
+server/index.js
+.gitignore
+server/geo.js
+server/middleware.js
