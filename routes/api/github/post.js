@@ -45,8 +45,6 @@ module.exports = {
 		const eventName = req.headers["x-github-event"] || "unknown";
 		const rawBody = req.body;
 
-		res.sendStatus(200);
-
 		log.info(`Event: ${eventName}`);
 
 		// Sanitize: only allow GitHub-standard event names
@@ -54,7 +52,7 @@ module.exports = {
 		const safeEvent = eventName.replace(/[^a-z0-9_]/g, "");
 		if (safeEvent !== eventName) {
 			log.warn(`Suspicious event name rejected: "${eventName}"`);
-			return;
+			return res.sendStatus(400);
 		}
 
 		// Verify HMAC-SHA256 signature
@@ -63,7 +61,7 @@ module.exports = {
 
 		if (valid === false) {
 			log.warn(`Bad signature for ${eventName}`);
-			return;
+			return res.sendStatus(401);
 		}
 
 		if (valid === null) {
@@ -76,8 +74,11 @@ module.exports = {
 			payload = JSON.parse(rawBody);
 		} catch {
 			log.warn("Invalid JSON body");
-			return;
+			return res.sendStatus(400);
 		}
+
+		// Ack before processing (GitHub expects 200 quickly)
+		res.sendStatus(200);
 
 		const handler = getGitHubEvent(eventName);
 
