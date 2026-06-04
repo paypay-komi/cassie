@@ -1,6 +1,9 @@
 const EventEmitter = require("events");
 
-class VoteEmitter extends EventEmitter {}
-const voteEmitter = new VoteEmitter();
+const globalKey = Symbol.for("voteEmitter.singleton");
 
-module.exports = voteEmitter;
+if (!globalThis[globalKey]) {
+	globalThis[globalKey] = new EventEmitter();
+}
+
+module.exports = globalThis[globalKey];

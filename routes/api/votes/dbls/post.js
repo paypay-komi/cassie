@@ -1,67 +1,47 @@
 const { getLogger } = require("../../../../lib/logger");
 const voteEmitter = require("../../../../utils/voteEmitter");
+const express = require("express");
+
+const DBL_SECRET = process.env.DBL_WEBHOOK_SECRET;
+
+function verifyAuth(req) {
+	const auth = req.headers["auth"] || req.headers["authorization"];
+	if (!auth) return false;
+
+	const token = auth.startsWith("Bearer ") ? auth.slice(7) : auth;
+
+	return token === DBL_SECRET;
+}
 
 module.exports = {
 	path: "/api/votes/dbl",
 	method: "post",
 
-	middleware: [
-		require("express").text({ type: "*/*" }),
-
-		(req, res, next) => {
-			res.header("Access-Control-Allow-Origin", "*");
-			res.header("Access-Control-Allow-Headers", "Content-Type");
-			res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
-
-			if (req.method === "OPTIONS") return res.status(204).end();
-			next();
-		},
-	],
+	middleware: [express.json()],
 
 	handler: (req, res) => {
 		const log = getLogger("Votes:DBL");
-		const t = Date.now();
 
 		try {
-			if (!req.body) {
-				log.warn("Empty body");
-				return res.sendStatus(400);
+			if (!verifyAuth(req)) {
+				log.warn("Invalid auth token");
+				return res.sendStatus(401);
 			}
 
-			let data;
+			const data = req.body;
 
-			try {
-				data =
-					typeof req.body === "string"
-						? JSON.parse(req.body)
-						: req.body;
-			} catch {
-				log.warn("Bad payload");
-				return res.sendStatus(400);
-			}
+			if (!data?.id) return res.sendStatus(400);
 
-			if (!data?.user) {
-				log.warn("Missing user");
-				return res.sendStatus(400);
-			}
-
-			if (!data?.isVote) {
-				log.warn(`Ignored non-vote from ${data.user}`);
-				return res.sendStatus(400);
-			}
-
-			log.info(`Vote from ${data.user}`);
+			log.info(`Vote from ${data.id}`);
 
 			voteEmitter.emit("vote", {
-				userId: data.user,
-				site: "discordlistgg",
+				userId: data.id,
+				site: "Discord Bot List",
 			});
-
-			log.info(`OK (${Date.now() - t}ms)`);
 
 			return res.sendStatus(200);
 		} catch (err) {
-			log.error("Crash:", err);
+			log.error(err);
 			return res.sendStatus(500);
 		}
 	},

@@ -30,7 +30,17 @@ module.exports = {
 		const log = getLogger("WebServer");
 		const app = express();
 		this.app = app;
-		app.use(cors());
+		app.use((req, res, next) => {
+			res.setHeader("Access-Control-Allow-Origin", "*");
+			res.setHeader("Access-Control-Allow-Methods", "*");
+			res.setHeader("Access-Control-Allow-Headers", "*");
+
+			if (req.method === "OPTIONS") {
+				return res.sendStatus(204);
+			}
+
+			next();
+		});
 		app.get("/", (req, res) => {
 			res.send("bot online");
 		});
