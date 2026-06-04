@@ -8,7 +8,7 @@ const manager = new ShardingManager(path.join(__dirname, "bot.js"), {
 });
 
 manager.on("shardCreate", (shard) => {
-	console.log(`[Main] Launched shard ${shard.id}`);
+	process.stdout.write(`[Shard ${shard.id}] Launched\n`);
 
 	const attachLogs = () => {
 		if (!shard.process) {
@@ -17,13 +17,11 @@ manager.on("shardCreate", (shard) => {
 		}
 
 		shard.process.stdout?.on("data", (data) => {
-			console.log(`[Shard ${shard.id}] ${data.toString().trim()}`);
+			process.stdout.write(`[Shard ${shard.id}] ${data}`);
 		});
 
 		shard.process.stderr?.on("data", (data) => {
-			console.error(
-				`[Shard ${shard.id} ERROR] ${data.toString().trim()}`,
-			);
+			process.stderr.write(`[Shard ${shard.id} ERROR] ${data}`);
 		});
 	};
 

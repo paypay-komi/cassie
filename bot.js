@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 require("dotenv/config");
 const { waitUntil, WAIT_FOREVER } = require("async-wait-until");
+const { getLogger } = require("./lib/logger");
 // --------------------------------------------------
 // Client Setup
 // --------------------------------------------------
@@ -102,11 +103,12 @@ async function doStartupTasks() {
 				await waitUntil(() => client.isReady(), { timeout: WAIT_FOREVER });
 			}
 
-			console.log(`⏳ Running startup task: ${task.name}`);
+			const log = getLogger("Startup");
+			log.info(`Running startup task: ${task.name}`);
 
 			await task.execute(client);
 
-			console.log(`✅ Startup task completed: ${task.name}`);
+			log.info(`Startup task completed: ${task.name}`);
 		})();
 
 		return task.promise;
@@ -121,9 +123,10 @@ async function doStartupTasks() {
 	);
 
 	// Log failures
+	const log = getLogger("Startup");
 	for (const result of results) {
 		if (result.status === "rejected") {
-			console.error("❌ Startup task failed:", result.reason);
+			log.error("Startup task failed:", result.reason);
 		}
 	}
 
