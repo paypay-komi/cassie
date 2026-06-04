@@ -1,3 +1,6 @@
+const { getLogger } = require("../../../lib/logger");
+const log = getLogger("Checkers");
+
 const {
 	PermissionsBitField,
 	ActionRowBuilder,
@@ -44,21 +47,21 @@ class checkersGame {
 		this.board = this.BuildBoard();
 
 		// Only render after everything is initialized
-		console.log(
-			"[DEBUG] Initial board built (render safe):\n" + this.renderBoard(),
+		log.debug(
+			"Initial board built (render safe):\n" + this.renderBoard(),
 		);
 	}
 
 	isPlayableSquare(row, col) {
 		const playable = (row + col) % 2 === 1;
-		console.log(
-			`[DEBUG] Checking if square is playable at (${row}, ${col}): ${playable}`,
+		log.debug(
+			`Checking if square is playable at (${row}, ${col}): ${playable}`,
 		);
 		return playable;
 	}
 
 	BuildBoard() {
-		console.log("[DEBUG] Building initial board...");
+		log.debug("Building initial board...");
 		const board = [];
 		const BLACK_ROWS = 3;
 		const RED_ROWS = 3;
@@ -69,24 +72,24 @@ class checkersGame {
 				if (this.isPlayableSquare(row, col)) {
 					if (row < BLACK_ROWS) {
 						currentRow.push(this.BLACK);
-						console.log(
-							`[DEBUG] Placing BLACK piece at (${row}, ${col})`,
+						log.debug(
+							`Placing BLACK piece at (${row}, ${col})`,
 						);
 					} else if (row >= 8 - RED_ROWS) {
 						currentRow.push(this.RED);
-						console.log(
-							`[DEBUG] Placing RED piece at (${row}, ${col})`,
+						log.debug(
+							`Placing RED piece at (${row}, ${col})`,
 						);
 					} else {
 						currentRow.push(this.EMPTY);
-						console.log(
-							`[DEBUG] Empty playable square at (${row}, ${col})`,
+						log.debug(
+							`Empty playable square at (${row}, ${col})`,
 						);
 					}
 				} else {
 					currentRow.push(this.EMPTY);
-					console.log(
-						`[DEBUG] Dark square (non-playable) at (${row}, ${col})`,
+					log.debug(
+						`Dark square (non-playable) at (${row}, ${col})`,
 					);
 				}
 			}
@@ -127,22 +130,22 @@ class checkersGame {
 			boardString += "\n";
 		}
 
-		console.log(
-			`[DEBUG] Board rendered for ${this.currentPlayer.tag}:\n${boardString}`,
+		log.debug(
+			`Board rendered for ${this.currentPlayer.tag}:\n${boardString}`,
 		);
 		return boardString;
 	}
 
 	makeMoveButtons(piece) {
-		console.log(
-			`[DEBUG] Generating move buttons for piece at ${this.convertNumberRowColToReadableRowCol(piece.row, piece.col)}`,
+		log.debug(
+			`Generating move buttons for piece at ${this.convertNumberRowColToReadableRowCol(piece.row, piece.col)}`,
 		);
 
 		const buttons = [];
 		const validMoves = this.getValidMovesFromPiece(piece);
 
-		console.log(
-			`[DEBUG] Valid moves found: ${validMoves.map((m) => this.convertNumberRowColToReadableRowCol(m.to.row, m.to.col)).join(", ")}`,
+		log.debug(
+			`Valid moves found: ${validMoves.map((m) => this.convertNumberRowColToReadableRowCol(m.to.row, m.to.col)).join(", ")}`,
 		);
 
 		for (const move of validMoves) {
@@ -165,40 +168,40 @@ class checkersGame {
 
 		buttons.push(cancelButton);
 
-		console.log(`[DEBUG] Total buttons created: ${buttons.length}`);
+		log.debug(`Total buttons created: ${buttons.length}`);
 		return this.makeactionRows(buttons);
 	}
 	checkWin() {
 		const player1Pieces = this.getplayerPiecesOnBoard(this.player1);
 		const player2Pieces = this.getplayerPiecesOnBoard(this.player2);
 
-		console.log(
-			`[DEBUG] Player1 pieces count: ${player1Pieces.length}, Player2 pieces count: ${player2Pieces.length}`,
+		log.debug(
+			`Player1 pieces count: ${player1Pieces.length}, Player2 pieces count: ${player2Pieces.length}`,
 		);
 
 		if (player1Pieces.length === 0) {
-			console.log("[DEBUG] Player1 has no pieces left. Player2 wins!");
+			log.debug("Player1 has no pieces left. Player2 wins!");
 			return this.player2;
 		} else if (player2Pieces.length === 0) {
-			console.log("[DEBUG] Player2 has no pieces left. Player1 wins!");
+			log.debug("Player2 has no pieces left. Player1 wins!");
 			return this.player1;
 		}
 
 		const player1Moves = this.getAllValidMoves(this.player1);
 		const player2Moves = this.getAllValidMoves(this.player2);
 
-		console.log(
-			`[DEBUG] Player1 valid moves: ${player1Moves.length}, Player2 valid moves: ${player2Moves.length}`,
+		log.debug(
+			`Player1 valid moves: ${player1Moves.length}, Player2 valid moves: ${player2Moves.length}`,
 		);
 
 		if (player1Moves.length === 0) {
-			console.log(
-				"[DEBUG] Player1 has no valid moves left. Player2 wins!",
+			log.debug(
+				"Player1 has no valid moves left. Player2 wins!",
 			);
 			return this.player2;
 		} else if (player2Moves.length === 0) {
-			console.log(
-				"[DEBUG] Player2 has no valid moves left. Player1 wins!",
+			log.debug(
+				"Player2 has no valid moves left. Player1 wins!",
 			);
 			return this.player1;
 		}
@@ -209,8 +212,8 @@ class checkersGame {
 		const piece = this.board[row][col];
 		const directions = this.getDirectionForPiece({ piece });
 
-		console.log(
-			`[DEBUG] Checking capture for piece at ${row},${col} (value: ${piece})`,
+		log.debug(
+			`Checking capture for piece at ${row},${col} (value: ${piece})`,
 		);
 
 		for (const dir of directions) {
@@ -223,21 +226,21 @@ class checkersGame {
 				const targetPiece = this.board[newRow][newCol];
 				const landingSpot = this.board[jumpRow][jumpCol];
 
-				console.log(
-					`[DEBUG] Direction row:${dir.row}, col:${dir.col} -> target at ${newRow},${newCol} (${targetPiece}), landing at ${jumpRow},${jumpCol} (${landingSpot})`,
+				log.debug(
+					`Direction row:${dir.row}, col:${dir.col} -> target at ${newRow},${newCol} (${targetPiece}), landing at ${jumpRow},${jumpCol} (${landingSpot})`,
 				);
 
 				if (
 					this.isOpponentPiece(targetPiece, piece) &&
 					landingSpot === this.EMPTY
 				) {
-					console.log("[DEBUG] Capture possible!");
+					log.debug("Capture possible!");
 					return true;
 				}
 			}
 		}
 
-		console.log("[DEBUG] No captures available for this piece.");
+		log.debug("No captures available for this piece.");
 		return false;
 	}
 
@@ -245,8 +248,8 @@ class checkersGame {
 		const winner = this.checkWin();
 		if (winner) {
 			const resultScore = winner.id === player.id ? 1000 : -1000;
-			console.log(
-				`[DEBUG] Winner detected: ${winner.tag}, score for player ${player.tag}: ${resultScore}`,
+			log.debug(
+				`Winner detected: ${winner.tag}, score for player ${player.tag}: ${resultScore}`,
 			);
 			return resultScore;
 		}
@@ -277,8 +280,8 @@ class checkersGame {
 
 			if (this.canCapture(piece.row, piece.col)) score += 1;
 
-			console.log(
-				`[DEBUG] Piece at ${row},${col} (${piece.piece}) owner ${owner} score: ${score}`,
+			log.debug(
+				`Piece at ${row},${col} (${piece.piece}) owner ${owner} score: ${score}`,
 			);
 			return score;
 		};
@@ -296,8 +299,8 @@ class checkersGame {
 			player.id === this.player1.id
 				? player1Score - player2Score
 				: player2Score - player1Score;
-		console.log(
-			`[DEBUG] Game score for player ${player.tag}: ${finalScore} (P1: ${player1Score}, P2: ${player2Score})`,
+		log.debug(
+			`Game score for player ${player.tag}: ${finalScore} (P1: ${player1Score}, P2: ${player2Score})`,
 		);
 
 		return finalScore;
@@ -314,16 +317,16 @@ class checkersGame {
 		const winner = this.checkWin();
 		if (winner) {
 			const resultScore = winner.id === aiPlayer.id ? 1000 : -1000;
-			console.log(
-				`[DEBUG] Depth ${depth}: Winner detected: ${winner.tag}, score: ${resultScore}`,
+			log.debug(
+				`Depth ${depth}: Winner detected: ${winner.tag}, score: ${resultScore}`,
 			);
 			return resultScore;
 		}
 
 		if (depth === 0) {
 			const score = this.evaluateGameScore(aiPlayer);
-			console.log(
-				`[DEBUG] Depth 0: Evaluated score for ${aiPlayer.tag}: ${score}`,
+			log.debug(
+				`Depth 0: Evaluated score for ${aiPlayer.tag}: ${score}`,
 			);
 			return score;
 		}
@@ -340,8 +343,8 @@ class checkersGame {
 
 		if (moves.length === 0) {
 			const score = this.evaluateGameScore(aiPlayer);
-			console.log(
-				`[DEBUG] Depth ${depth}: No moves for ${currentPlayer.tag}, score: ${score}`,
+			log.debug(
+				`Depth ${depth}: No moves for ${currentPlayer.tag}, score: ${score}`,
 			);
 			return score;
 		}
@@ -380,15 +383,15 @@ class checkersGame {
 					nextActivePiece,
 				);
 
-				console.log(
-					`[DEBUG] Depth ${depth}: Move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} eval: ${evalScore}`,
+				log.debug(
+					`Depth ${depth}: Move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} eval: ${evalScore}`,
 				);
 
 				maxEval = Math.max(maxEval, evalScore);
 				alpha = Math.max(alpha, evalScore);
 				if (beta <= alpha) {
-					console.log(
-						`[DEBUG] Depth ${depth}: Pruning remaining moves (alpha >= beta)`,
+					log.debug(
+						`Depth ${depth}: Pruning remaining moves (alpha >= beta)`,
 					);
 					break;
 				}
@@ -428,15 +431,15 @@ class checkersGame {
 					nextActivePiece,
 				);
 
-				console.log(
-					`[DEBUG] Depth ${depth}: Opponent move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} eval: ${evalScore}`,
+				log.debug(
+					`Depth ${depth}: Opponent move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} eval: ${evalScore}`,
 				);
 
 				minEval = Math.min(minEval, evalScore);
 				beta = Math.min(beta, evalScore);
 				if (beta <= alpha) {
-					console.log(
-						`[DEBUG] Depth ${depth}: Pruning remaining moves (beta <= alpha)`,
+					log.debug(
+						`Depth ${depth}: Pruning remaining moves (beta <= alpha)`,
 					);
 					break;
 				}
@@ -450,8 +453,8 @@ class checkersGame {
 		let bestMove = null;
 
 		const moves = this.getAllValidMoves(aiPlayer);
-		console.log(
-			`[DEBUG] Evaluating ${moves.length} possible moves for ${aiPlayer.tag}`,
+		log.debug(
+			`Evaluating ${moves.length} possible moves for ${aiPlayer.tag}`,
 		);
 
 		for (const move of moves) {
@@ -486,27 +489,27 @@ class checkersGame {
 				nextActivePiece,
 			);
 
-			console.log(
-				`[DEBUG] Move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} scored ${score}`,
+			log.debug(
+				`Move ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} scored ${score}`,
 			);
 
 			if (score > bestScore) {
-				console.log(
-					`[DEBUG] New best move found: ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} with score ${score}`,
+				log.debug(
+					`New best move found: ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)} with score ${score}`,
 				);
 				bestScore = score;
 				bestMove = move;
 			}
 		}
 
-		console.log(
-			`[DEBUG] Best move selected: ${bestMove ? this.convertNumberRowColToReadableRowCol(bestMove.from.row, bestMove.from.col) + " → " + this.convertNumberRowColToReadableRowCol(bestMove.to.row, bestMove.to.col) : "None"}`,
+		log.debug(
+			`Best move selected: ${bestMove ? this.convertNumberRowColToReadableRowCol(bestMove.from.row, bestMove.from.col) + " → " + this.convertNumberRowColToReadableRowCol(bestMove.to.row, bestMove.to.col) : "None"}`,
 		);
 		return bestMove;
 	}
 
 	aimove() {
-		console.log(`[DEBUG] AI (${this.player2.tag}) is starting its turn.`);
+		log.debug(`AI (${this.player2.tag}) is starting its turn.`);
 
 		let continueJump = true;
 		let activePiece = null;
@@ -516,12 +519,12 @@ class checkersGame {
 			const move = this.getBestMove(2, this.player2);
 
 			if (!move) {
-				console.log("[DEBUG] AI has no moves left.");
+				log.debug("AI has no moves left.");
 				break; // No moves left
 			}
 
-			console.log(
-				`[DEBUG] AI chooses move: ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)}${move.capture ? " (capture)" : ""}`,
+			log.debug(
+				`AI chooses move: ${this.convertNumberRowColToReadableRowCol(move.from.row, move.from.col)} → ${this.convertNumberRowColToReadableRowCol(move.to.row, move.to.col)}${move.capture ? " (capture)" : ""}`,
 			);
 			this.makeMove(move);
 
@@ -550,30 +553,30 @@ class checkersGame {
 					simulatedGame.makeMove(nextMove);
 
 					const score = simulatedGame.evaluateGameScore(this.player2);
-					console.log(
-						`[DEBUG] AI considers continuing jump to ${this.convertNumberRowColToReadableRowCol(nextMove.to.row, nextMove.to.col)} with score ${score}`,
+					log.debug(
+						`AI considers continuing jump to ${this.convertNumberRowColToReadableRowCol(nextMove.to.row, nextMove.to.col)} with score ${score}`,
 					);
 					if (score > bestContinueScore) bestContinueScore = score;
 				}
 
 				if (bestContinueScore > currentScore) {
-					console.log("[DEBUG] AI decides to continue the jump.");
+					log.debug("AI decides to continue the jump.");
 					activePiece = pieceAfterMove;
 					continueJump = true;
 				} else {
-					console.log("[DEBUG] AI decides to stop jumping.");
+					log.debug("AI decides to stop jumping.");
 					continueJump = false; // AI stops optional jump
 				}
 			} else {
 				continueJump = false; // No more captures available
-				console.log("[DEBUG] No more captures available for AI.");
+				log.debug("No more captures available for AI.");
 			}
 		}
 
 		// Switch turn to the player
 		this.currentPlayer = this.player1;
-		console.log(
-			`[DEBUG] AI turn ended. Now it's ${this.currentPlayer.tag}'s turn.`,
+		log.debug(
+			`AI turn ended. Now it's ${this.currentPlayer.tag}'s turn.`,
 		);
 		this.gameMesage.edit({
 			content: `Pick which piece ${this.currentPlayer}\n${this.renderBoard()}`,
@@ -582,8 +585,8 @@ class checkersGame {
 	}
 
 	async startGame() {
-		console.log(
-			`[DEBUG] Starting game between ${this.player1.tag} and ${this.player2.tag}`,
+		log.debug(
+			`Starting game between ${this.player1.tag} and ${this.player2.tag}`,
 		);
 
 		this.gameMesage = await this.channel.send({
@@ -600,8 +603,8 @@ class checkersGame {
 
 		collector.on("collect", async (interaction) => {
 			if (interaction.user.id !== this.currentPlayer.id) {
-				console.log(
-					`[DEBUG] User ${interaction.user.tag} tried to act out of turn.`,
+				log.debug(
+					`User ${interaction.user.tag} tried to act out of turn.`,
 				);
 				return interaction.reply({
 					content: "🚫 It's not your turn!",
@@ -611,8 +614,8 @@ class checkersGame {
 
 			const [gameId, action, fr, fc, tr, tc] =
 				interaction.customId.split("-");
-			console.log(
-				`[DEBUG] Interaction received: action=${action} from=${fr},${fc} to=${tr},${tc}`,
+			log.debug(
+				`Interaction received: action=${action} from=${fr},${fc} to=${tr},${tc}`,
 			);
 			const pieceValue = this.board[parseInt(fr)][parseInt(fc)];
 			// --- 1️⃣ Player selects a piece ---
@@ -623,8 +626,8 @@ class checkersGame {
 					piece: pieceValue,
 				};
 				const validMoves = this.getValidMovesFromPiece(selectedPiece);
-				console.log(
-					`[DEBUG] Player selected piece at ${fr},${fc} with ${validMoves.length} valid moves`,
+				log.debug(
+					`Player selected piece at ${fr},${fc} with ${validMoves.length} valid moves`,
 				);
 
 				if (validMoves.length === 0) {
@@ -658,8 +661,8 @@ class checkersGame {
 				);
 
 				if (!selectedMove) {
-					console.log(
-						`[DEBUG] Invalid move attempted from ${fromRow},${fromCol} to ${toRow},${toCol}`,
+					log.debug(
+						`Invalid move attempted from ${fromRow},${fromCol} to ${toRow},${toCol}`,
 					);
 					return interaction.reply({
 						content: "🚫 Invalid move!",
@@ -667,8 +670,8 @@ class checkersGame {
 					});
 				}
 
-				console.log(
-					`[DEBUG] Player ${this.currentPlayer.tag} makes move: ${fromRow},${fromCol} → ${toRow},${toCol}${selectedMove.capture ? " (capture)" : ""}`,
+				log.debug(
+					`Player ${this.currentPlayer.tag} makes move: ${fromRow},${fromCol} → ${toRow},${toCol}${selectedMove.capture ? " (capture)" : ""}`,
 				);
 				this.makeMove(selectedMove);
 
@@ -683,8 +686,8 @@ class checkersGame {
 						this.getcamptureMovesFromPiece(pieceAfterMove);
 
 					if (additionalCaptures.length > 0) {
-						console.log(
-							`[DEBUG] Player can optionally jump again with ${toRow},${toCol}`,
+						log.debug(
+							`Player can optionally jump again with ${toRow},${toCol}`,
 						);
 						this.activeCapturePiece = pieceAfterMove;
 						return interaction.update({
@@ -703,8 +706,8 @@ class checkersGame {
 					this.currentPlayer.id === this.player1.id
 						? this.player2
 						: this.player1;
-				console.log(
-					`[DEBUG] Turn switched. Current player: ${this.currentPlayer.tag}`,
+				log.debug(
+					`Turn switched. Current player: ${this.currentPlayer.tag}`,
 				);
 
 				await interaction.update({
@@ -714,18 +717,18 @@ class checkersGame {
 
 				// --- AI turn ---
 				if (this.ai && this.currentPlayer.bot) {
-					console.log(
-						`[DEBUG] AI (${this.player2.tag}) starting its turn...`,
+					log.debug(
+						`AI (${this.player2.tag}) starting its turn...`,
 					);
 					await this.aimove();
-					console.log("[DEBUG] AI turn completed.");
+					log.debug("AI turn completed.");
 				}
 			}
 
 			// --- Cancel selection ---
 			if (action === "cancel") {
 				this.activeCapturePiece = null;
-				console.log("[DEBUG] Player canceled selection.");
+				log.debug("Player canceled selection.");
 				await interaction.update({
 					content: `Pick which piece ${this.currentPlayer}\n${this.renderBoard()}`,
 					components: this.createPieceButtons(this.currentPlayer),
@@ -739,8 +742,8 @@ class checkersGame {
 					this.currentPlayer.id === this.player1.id
 						? this.player2
 						: this.player1;
-				console.log(
-					`[DEBUG] Player chose to stop jumping. Current player: ${this.currentPlayer.tag}`,
+				log.debug(
+					`Player chose to stop jumping. Current player: ${this.currentPlayer.tag}`,
 				);
 				await interaction.update({
 					content: `Pick which piece ${this.currentPlayer}\n${this.renderBoard()}`,
@@ -748,9 +751,9 @@ class checkersGame {
 				});
 
 				if (this.ai && this.currentPlayer.bot) {
-					console.log("[DEBUG] AI starting optional jump turn...");
+					log.debug("AI starting optional jump turn...");
 					await this.aimove();
-					console.log("[DEBUG] AI optional jump completed.");
+					log.debug("AI optional jump completed.");
 				}
 			}
 
@@ -759,13 +762,13 @@ class checkersGame {
 			if (winner) {
 				this.gameOver = true;
 				collector.stop("gameOver");
-				console.log(`[DEBUG] Game over! Winner: ${winner.tag}`);
+				log.debug(`Game over! Winner: ${winner.tag}`);
 				return this.gameMesage.reply(`Game over! ${winner} wins!`);
 			}
 		});
 
 		collector.on("end", async () => {
-			console.log("[DEBUG] Collector ended, disabling buttons.");
+			log.debug("Collector ended, disabling buttons.");
 			const disabledComponents = this.gameMesage.components.map((row) => {
 				const newRow = new ActionRowBuilder();
 				row.components.forEach((component) => {
@@ -782,7 +785,7 @@ class checkersGame {
 			await this.gameMesage.edit({ components: disabledComponents });
 
 			if (!this.gameOver) {
-				console.log("[DEBUG] Game ended due to inactivity.");
+				log.debug("Game ended due to inactivity.");
 				this.gameMesage.reply("Game ended due to inactivity.");
 			}
 		});
@@ -790,8 +793,8 @@ class checkersGame {
 
 	makeMove(move) {
 		const piece = this.board[move.from.row][move.from.col];
-		console.log(
-			`[DEBUG] Moving piece ${piece} from (${move.from.row},${move.from.col}) to (${move.to.row},${move.to.col})`,
+		log.debug(
+			`Moving piece ${piece} from (${move.from.row},${move.from.col}) to (${move.to.row},${move.to.col})`,
 		);
 
 		// Move the piece
@@ -801,22 +804,22 @@ class checkersGame {
 		// Handle capture
 		if (move.capture) {
 			this.board[move.capture.row][move.capture.col] = this.EMPTY;
-			console.log(
-				`[DEBUG] Captured piece at (${move.capture.row},${move.capture.col})`,
+			log.debug(
+				`Captured piece at (${move.capture.row},${move.capture.col})`,
 			);
 		}
 
 		// Handle promotion to king
 		if (piece === this.RED && move.to.row === 0) {
 			this.board[move.to.row][move.to.col] = this.RED_KING;
-			console.log(
-				`[DEBUG] RED piece promoted to RED_KING at (${move.to.row},${move.to.col})`,
+			log.debug(
+				`RED piece promoted to RED_KING at (${move.to.row},${move.to.col})`,
 			);
 		}
 		if (piece === this.BLACK && move.to.row === 7) {
 			this.board[move.to.row][move.to.col] = this.BLACK_KING;
-			console.log(
-				`[DEBUG] BLACK piece promoted to BLACK_KING at (${move.to.row},${move.to.col})`,
+			log.debug(
+				`BLACK piece promoted to BLACK_KING at (${move.to.row},${move.to.col})`,
 			);
 		}
 	}
