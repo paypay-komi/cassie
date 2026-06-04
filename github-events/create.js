@@ -1,6 +1,8 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "create",
 	async execute(payload, client) {
-		console.log("Received create event:", payload);
+		getLogger("GitHub").info("Received create event:", payload);
 	},
 };

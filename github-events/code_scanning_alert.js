@@ -1,6 +1,8 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "code_scanning_alert",
 	async execute(payload, client) {
-		console.log("Received code_scanning_alert event:", payload);
+		getLogger("GitHub").info("Received code_scanning_alert event:", payload);
 	},
 };

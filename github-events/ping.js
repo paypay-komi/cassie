@@ -1,6 +1,9 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "ping",
 	async execute(payload, client) {
+		const log = getLogger("GitHub");
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
 			if (owner) {
@@ -9,6 +12,6 @@ module.exports = {
 				);
 			}
 		});
-		console.log("Received ping event:", payload);
+		log.info("Received ping event:", payload);
 	},
 };

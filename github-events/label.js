@@ -1,8 +1,8 @@
+const { getLogger } = require("../lib/logger");
 
-	module.exports = {
-		name: "label",
-		async execute(payload, client) {
-			console.log("Received label event:", payload);
-		},
-	};
-			
+module.exports = {
+	name: "label",
+	async execute(payload, client) {
+		getLogger("GitHub").info("Received label event:", payload);
+	},
+};

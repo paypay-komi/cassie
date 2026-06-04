@@ -1,6 +1,9 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "star",
 	async execute(payload, client) {
+		const log = getLogger("GitHub");
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
 			if (owner) {
@@ -11,11 +14,9 @@ module.exports = {
 						payload.starred_at
 					}\nWas deleted: ${was_deleted}`,
 				);
-				console.log(
-					`Sent star event notification to owner ${owner.tag}`,
-				);
+				log.info(`Sent star event notification to owner ${owner.tag}`);
 			}
 		});
-		console.log("Received star event:", payload);
+		log.info("Received star event:", payload);
 	},
 };

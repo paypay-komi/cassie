@@ -1,6 +1,8 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "check_run",
 	async execute(payload, client) {
-		console.log("Received check_run event:", payload);
+		getLogger("GitHub").info("Received check_run event:", payload);
 	},
 };

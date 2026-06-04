@@ -1,8 +1,9 @@
-const { CLIENT_RENEG_LIMIT } = require("tls");
+const { getLogger } = require("../lib/logger");
 
 module.exports = {
 	name: "push",
 	async execute(payload, client) {
+		const log = getLogger("GitHub");
 		client.owners.forEach((ownerId) => {
 			const owner = client.users.cache.get(ownerId);
 			if (owner) {
@@ -22,16 +23,12 @@ module.exports = {
 					.send(
 						`Received push event from GitHub:\nPusher: ${pusher}\nRepository: ${repo}\nCommits: ${commits}\nCompare URL: ${compareUrl}\nCommit Messages:\n${commitMessages}`,
 					)
-					.catch(
-						console.log(
-							`failed to send to ${JSON.stringify(owner, null, 2)}`,
-						),
+					.catch((err) =>
+						log.error("Failed to send push notification:", err),
 					);
-				console.log(
-					`Sent push event notification to owner ${owner.tag}`,
-				);
+				log.info(`Sent push event notification to owner ${owner.tag}`);
 			}
 		});
-		console.log("Received push event:", payload);
+		log.info("Received push event:", payload);
 	},
 };
