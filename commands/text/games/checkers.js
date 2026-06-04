@@ -6,7 +6,6 @@ const {
 	Component,
 	TextChannel,
 } = require("discord.js");
-const { act } = require("react");
 
 class checkersGame {
 	constructor(player1, player2, channel) {
