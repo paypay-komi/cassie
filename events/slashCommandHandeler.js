@@ -1,3 +1,5 @@
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 	name: "interactionCreate",
 	async execute(client, interaction) {
@@ -7,7 +9,8 @@ module.exports = {
 		try {
 			await cmd.execute(interaction);
 		} catch (e) {
-			console.error(e);
+			const log = getLogger("SlashCmd");
+			log.error(`Error executing /${interaction.commandName}:`, e);
 			interaction.reply("Error executing command.");
 		}
 	},

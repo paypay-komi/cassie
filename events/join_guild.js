@@ -1,8 +1,11 @@
 const { Events } = require("discord.js")
+const { getLogger } = require("../lib/logger");
+
 module.exports = {
 
 	name: Events.GuildCreate,
 	execute(client, guild) {
-		console.log(`new guild ${JSON.stringify(guild,null,2)}`)
+		const log = getLogger("GuildJoin");
+		log.info(`Joined guild: ${guild.name} (${guild.id})`);
 	}
 }

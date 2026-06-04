@@ -1,4 +1,5 @@
 const { Events, PermissionsBitField, Message, Client } = require("discord.js");
+const { getLogger } = require("../lib/logger");
 const didYouMean = require("../utils/didyoumean.js");
 /**
  * Show available subcommands when parent is called
@@ -199,7 +200,8 @@ module.exports = {
 			);
 			await client.db.stats.incrementGlobalCommand(statName);
 		} catch (err) {
-			console.error(err);
+			const log = getLogger("TextCmd");
+			log.error(`Error executing ${path.join(".")}:`, err);
 			message.reply("There was an error executing that command.");
 		}
 	},
