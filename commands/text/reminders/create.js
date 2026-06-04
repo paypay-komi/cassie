@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 const parseTime = require("../../../utils/parseTime.js");
-const setupReminderTask = require("../../../startuptasks/startUpReminderTask.js");
+const setupReminderTask = require("../../../startuptasks/data/startUpReminderTask.js");
 const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
