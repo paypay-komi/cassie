@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 const parseTime = require("../../../utils/parseTime.js");
 const setupReminderTask = require("../../../startuptasks/data/startUpReminderTask.js");
 const {
@@ -12,6 +13,7 @@ module.exports = {
 	aliases: ["add", "new", "set", "make"],
 	parent: "reminders",
 	async execute(message, args) {
+		const log = getLogger("Reminders");
 		const userId = message.author.id;
 		const content = args.slice(0, -1).join(" ");
 		const time = args[args.length - 1];
@@ -40,10 +42,7 @@ module.exports = {
 				`You set a reminder for "${content}" at ${discordTimestamp}. I will remind you in DMs!`,
 			);
 		} catch (error) {
-			console.warn(
-				`Could not send DM to user ${message.author.tag} (${message.author.id}). They might have DMs closed.`,
-				error,
-			);
+			log.warn(`Could not DM user ${message.author.tag} (${message.author.id}) — DMs may be closed:`, error);
 			dmSuccess = false;
 			await message.reply(
 				`You tried to set a reminder for "${content}" at ${time}. I would love to remind you in DMs, but it seems like I can't DM you. Please check your DM settings! instead, I'll reply here when it's time to remind you.`,
@@ -67,7 +66,7 @@ module.exports = {
 				setupReminderTask.recheck(message.client); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
 			})
 			.catch((error) => {
-				console.error("Error creating reminder:", error);
+				log.error("Error creating reminder:", error);
 				message.reply(
 					"Failed to create the reminder. Please try again later.",
 				);

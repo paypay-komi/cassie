@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { getLogger } = require("../../../lib/logger");
 const db = require("../../../db");
 const {
 	validateIdea,
@@ -16,6 +17,7 @@ module.exports = {
 	 * @param {string[]} args
 	 */
 	async execute(message, args) {
+		const log = getLogger("AddIdea");
 		const idea = args.join(" ").trim();
 		if (!idea)
 			return message.reply(
@@ -28,7 +30,7 @@ module.exports = {
 		try {
 			validation = await validateIdea(idea);
 		} catch (err) {
-			console.error(err);
+			log.error("Idea validation error:", err);
 			return thinking.edit("❌ error validating idea, try again later");
 		}
 
@@ -57,7 +59,7 @@ module.exports = {
 					},
 				})
 				.catch((err) =>
-					console.error("failed to save rejected idea:", err),
+					log.error("failed to save rejected idea:", err),
 				);
 
 			let replyMsg = `❌ idea rejected: ${validation.reason}`;
@@ -96,8 +98,8 @@ module.exports = {
 
 			bustIdeaCache();
 		} catch (err) {
-			console.error(err);
+			log.error("Error submitting idea:", err);
 			thinking.edit("failed to submit idea, try again later");
-		}
+		}	
 	},
 };
