@@ -116,44 +116,38 @@ module.exports = {
 		 */
 		function paganateMenu(options) {
 			let current_page = 0;
-			// used for inteelesn4e
 			/** @type {ct.Timezone[][]} */
 			const pages = [];
 			const max_page_length = 25;
-			const left_over_options = options;
+			const left_over_options = [...options];
 
 			let current_page_array = [];
 			while (left_over_options.length > 0) {
-				current_page_array.push(left_over_options.pop());
-				if (current_page_array.length == max_page_length) {
+				current_page_array.push(left_over_options.shift());
+				if (current_page_array.length === max_page_length) {
 					pages.push(current_page_array);
 					current_page_array = [];
 				}
 			}
 			if (current_page_array.length > 0) {
 				pages.push(current_page_array);
-				current_page_array = [];
 			}
-			log.debug(pages);
-				const current_page = collector.responses.first();
-				log.debug(current_page);
-				log.debug(this_pages_options);
-				for (let i = 0; i < this_pages_options.length; i++) {
-					const this_option = this_pages_options[i];
+
+			function create_selection_menu_row() {
+				const this_pages_options = pages[current_page];
+				const select_menu = new Discord.StringSelectMenuBuilder()
+					.setCustomId("timezone_menu")
+					.setPlaceholder("select timezone or use the arrows below if not found");
+				for (const option of this_pages_options) {
 					select_menu.addOptions(
 						new Discord.StringSelectMenuOptionBuilder()
-							.setLabel(this_option.name)
-							.setValue(this_option.name),
+							.setLabel(option.name)
+							.setValue(option.name),
 					);
 				}
-				return new Discord.ActionRowBuilder().addComponents(
-					select_menu
-						.setPlaceholder(
-							"select timezone or use the arrows below if not found",
-						)
-						.setCustomId("timezone_menu"),
-				);
+				return new Discord.ActionRowBuilder().addComponents(select_menu);
 			}
+
 			const button_row = new Discord.ActionRowBuilder().addComponents(
 				new Discord.ButtonBuilder()
 					.setCustomId("last")
@@ -165,7 +159,6 @@ module.exports = {
 					.setStyle(Discord.ButtonStyle.Secondary),
 			);
 			function update_message() {
-				// remove the old page line if it exists
 				const contentWithoutPage = question.content.replace(
 					/\npage: \d+$/,
 					"",
@@ -173,15 +166,17 @@ module.exports = {
 
 				return question.edit({
 					components: [create_selection_menu_row(), button_row],
-					content: `${contentWithoutPage}\npage: ${current_page}`,
+					content: `${contentWithoutPage}\npage: ${current_page + 1}`,
 				});
 			}
 			update_message();
+			const option_collector = question.createMessageComponentCollector({
+				time: 120000,
+			});
 			option_collector.on("collect", async (i) => {
 				if (i.user.id !== message.author.id)
 					return i.reply({ content: "this is not your message!!!" });
-				// always ackloage it
-				i.deferUpdate();
+				await i.deferUpdate();
 				if (i.isButton()) {
 					let direction = NaN;
 					if (i.customId == "next") {
@@ -197,7 +192,6 @@ module.exports = {
 					}
 					current_page = current_page + direction;
 					if (current_page < 0) current_page = pages.length - 1;
-					// wraps around
 					current_page = current_page % pages.length;
 				}
 				if (i.isStringSelectMenu()) {
