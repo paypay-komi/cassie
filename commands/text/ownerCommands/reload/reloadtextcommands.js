@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 const path = require("path");
-const { postCommandsToDbl } = require("../../../../utils/postCommandsToDbl");
+const { postCommandsToDbl } = require("../../../../startuptasks/listings/dbl/postCommandsToDbl");
 
 module.exports = {
 	name: "text",
@@ -12,7 +12,7 @@ module.exports = {
 	async execute(message) {
 		const filePath = path.join(
 			process.cwd(),
-			"utils",
+			"startup-lib",
 			"reloadTextcommands.js",
 		);
 

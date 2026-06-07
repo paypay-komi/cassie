@@ -11,7 +11,7 @@ module.exports = {
 	async execute(message) {
 		const filePath = path.join(
 			process.cwd(),
-			"utils",
+			"startup-lib",
 			"reloadSlashcommands.js",
 		);
 

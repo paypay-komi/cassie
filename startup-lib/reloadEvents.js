@@ -9,7 +9,7 @@ const log = getLogger("ReloadEvents");
  * @param {Client} client
  */
 module.exports = function reloadEvents(client) {
-	const eventsPath = path.join(__dirname, "../events");
+	const eventsPath = path.join(__dirname, "..", "events");
 	const files = fs.readdirSync(eventsPath).filter((f) => f.endsWith(".js"));
 
 	client.__eventListeners = client.__eventListeners || [];

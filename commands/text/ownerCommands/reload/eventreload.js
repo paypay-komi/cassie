@@ -9,7 +9,7 @@ module.exports = {
 	parent: "reload",
 
 	async execute(message) {
-		const filePath = path.join(process.cwd(), "utils", "reloadEvents.js");
+		const filePath = path.join(process.cwd(), "startup-lib", "reloadEvents.js");
 
 		await message.client.shard.broadcastEval(
 			(client, { file }) => {

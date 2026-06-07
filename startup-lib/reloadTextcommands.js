@@ -51,7 +51,7 @@ function collectAllPaths(cmd, parents = []) {
  * Reload text commands and build nested subcommands
  */
 module.exports = function reloadTextCommands(client, targetName) {
-	const textPath = path.join(__dirname, "../commands/text");
+	const textPath = path.join(__dirname, "..", "commands", "text");
 
 	client.textCommands ??= new Map();
 	client.textAliases ??= new Map();

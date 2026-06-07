@@ -5,7 +5,7 @@ module.exports = {
 	description: "Load events on startup",
 	execute(client) {
 		const log = getLogger("LoadEvents");
-		const reloadEvents = require("../../utils/reloadEvents");
+		const reloadEvents = require("../../startup-lib/reloadEvents");
 		const eventsLoaded = reloadEvents(client);
 		log.info(`✅ Events loaded on startup: ${eventsLoaded}`);
 	},

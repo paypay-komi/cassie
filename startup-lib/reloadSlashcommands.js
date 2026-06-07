@@ -7,7 +7,7 @@ const path = require("path");
  * @param {string} [name] specific command name
  */
 module.exports = function reloadSlashCommands(client, name) {
-	const slashPath = path.join(__dirname, "../commands/slash");
+	const slashPath = path.join(__dirname, "..", "commands", "slash");
 
 	let reloaded = 0;
 	const failed = [];

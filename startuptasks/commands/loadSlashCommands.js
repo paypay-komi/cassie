@@ -5,7 +5,7 @@ module.exports = {
 	description: 'Load slash commands on startup',
 	execute(client) {
 		const log = getLogger("LoadSlashCmds");
-		const reloadSlashcommands = require('../../utils/reloadSlashcommands');
+		const reloadSlashcommands = require('../../startup-lib/reloadSlashcommands');
 		const slashCommandsReloaded = reloadSlashcommands(client);
 		log.info(
 			`✅ Slash commands loaded on startup: ${slashCommandsReloaded}`,
