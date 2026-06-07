@@ -58,21 +58,30 @@ function resolveNested(command, args) {
  */
 async function checkPermissions(command, client, message) {
 	let node = command;
-	const clientMember = await message.guild.members.fetchMe();
+
+	const isGuild = message.inGuild();
+
+	// SAFE: only fetch member in guilds
+	const clientMember = isGuild ? await message.guild.members.fetchMe() : null;
+
 	while (node) {
 		// Discord permissions
 		if (node.requiredDiscordPermissions?.length) {
-			if (!message.inGuild()) return true; // always has perms in dms
+			if (!isGuild) return true; // DMs bypass permissions safely
+
 			const missing = [];
+
 			for (const perm of node.requiredBotPermissions) {
 				if (!message.channel.permissionsFor(clientMember).has(perm)) {
 					const name =
 						new PermissionsBitField(perm)
 							.toArray()[0]
 							?.replace(/([a-z])([A-Z])/g, "$1 $2") ?? perm;
+
 					missing.push(name);
 				}
 			}
+
 			if (missing.length) {
 				message.reply(
 					`I lack the required permissions: ${missing.join(", ")} to run this command`,
