@@ -3,13 +3,10 @@ module.exports = {
 	parent: "tag",
 	description: "List all tags in this guild.",
 	aliases: ["all"],
+	dmUse: false,
 
 	async execute(message, args) {
 		const db = require("../../../db");
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		const tags = await db.prisma.guildTag.findMany({
 			where: { guildId: message.guildId },

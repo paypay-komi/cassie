@@ -4,13 +4,10 @@ module.exports = {
 	name: "edit",
 	parent: "tag",
 	description: "Edit a tag's content. Only the creator or members with Manage Messages can edit tags.",
+	dmUse: false,
 
 	async execute(message, args) {
 		const db = require("../../../db");
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		if (args.length < 2) {
 			return message.reply("Usage: `c.tag edit <name> <new content>`");

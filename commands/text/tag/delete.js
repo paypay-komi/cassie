@@ -5,13 +5,10 @@ module.exports = {
 	parent: "tag",
 	description: "Delete a tag. Only the creator or members with Manage Messages can delete tags.",
 	aliases: ["del", "remove", "rm"],
+	dmUse: false,
 
 	async execute(message, args) {
 		const db = require("../../../db");
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		if (!args.length) {
 			return message.reply("Usage: `c.tag delete <name>`");

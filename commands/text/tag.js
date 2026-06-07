@@ -4,6 +4,7 @@ module.exports = {
 	name: "tag",
 	description: "View a tag or manage tags for this guild.",
 	aliases: ["tags"],
+	dmUse: false,
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 	],
@@ -18,10 +19,6 @@ module.exports = {
 		}
 
 		const name = args[0].toLowerCase();
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		const tag = await db.prisma.guildTag.findUnique({
 			where: {

@@ -2,13 +2,10 @@ module.exports = {
 	name: "info",
 	parent: "tag",
 	description: "Show metadata about a tag.",
+	dmUse: false,
 
 	async execute(message, args) {
 		const db = require("../../../db");
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		if (!args.length) {
 			return message.reply("Usage: `c.tag info <name>`");

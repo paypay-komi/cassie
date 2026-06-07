@@ -2,13 +2,10 @@ module.exports = {
 	name: "add",
 	parent: "tag",
 	description: "Create a new tag.",
+	dmUse: false,
 
 	async execute(message, args) {
 		const db = require("../../../db");
-
-		if (!message.guildId) {
-			return message.reply("Tags are only available in servers.");
-		}
 
 		if (!args.length) {
 			return message.reply(
@@ -18,12 +15,6 @@ module.exports = {
 
 		const name = args[0].toLowerCase();
 		const content = args.slice(1).join(" ");
-
-		if (!/^[\w-]+$/.test(name)) {
-			return message.reply(
-				"Tag name can only contain letters, numbers, hyphens, and underscores.",
-			);
-		}
 
 		if (!content) {
 			return message.reply(
