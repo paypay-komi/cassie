@@ -3,9 +3,6 @@ const {
 	TextDisplayBuilder,
 	SeparatorBuilder,
 	SeparatorSpacingSize,
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
 	MessageFlags,
 } = require("discord.js");
 const { getLogger } = require("../../lib/logger");
@@ -23,6 +20,7 @@ module.exports = {
 			try {
 				const db = require("../../db");
 
+				// ─── Close expired cases ──────────────────────
 				const expired = await db.prisma.courtCase.findMany({
 					where: {
 						status: "VOTING",
@@ -42,9 +40,7 @@ module.exports = {
 						}
 
 						const newStatus =
-							guilty > notGuilty
-								? "GUILTY"
-								: "NOT_GUILTY";
+							guilty > notGuilty ? "GUILTY" : "NOT_GUILTY";
 
 						await db.prisma.courtCase.update({
 							where: { id: courtCase.id },
@@ -54,7 +50,7 @@ module.exports = {
 							},
 						});
 
-						// Try to edit the original message with the verdict
+						// Edit the original message with the verdict
 						if (courtCase.messageId && courtCase.channelId) {
 							try {
 								const channel = await client.channels.fetch(
@@ -70,7 +66,6 @@ module.exports = {
 											.toUpperCase();
 										const totalVotes =
 											guilty + notGuilty;
-
 										const verdictColor =
 											newStatus === "GUILTY"
 												? 0xe74c3c
@@ -136,15 +131,35 @@ module.exports = {
 						);
 					}
 				}
+
+				// ─── Schedule next check at the next deadline ──
+				const nextCase = await db.prisma.courtCase.findFirst({
+					where: {
+						status: "VOTING",
+						voteDeadline: { gte: new Date() },
+					},
+					orderBy: { voteDeadline: "asc" },
+				});
+
+				if (nextCase) {
+					const delay =
+						new Date(nextCase.voteDeadline) - new Date();
+					this.timer = setTimeout(runTask, delay);
+					log.info(
+						`Next case deadline in ${Math.round(delay / 1000)}s`,
+					);
+				} else {
+					this.timer = setTimeout(runTask, 60 * 1000);
+					log.info("No active cases, next check in 60s");
+				}
 			} catch (err) {
 				log.error("Court resolver error:", err);
+				this.timer = setTimeout(runTask, 60 * 1000);
 			}
-
-			this.timer = setTimeout(runTask, 30_000);
 		};
 
 		runTask();
-		log.info("✅ Court case resolver started (every 30s)");
+		log.info("✅ Court case resolver started");
 	},
 	cleanUp() {
 		if (this.timer) clearTimeout(this.timer);
