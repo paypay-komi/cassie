@@ -6,6 +6,6 @@ CREATE TABLE "userTimezone" (
     "location" TEXT,
     "timeFormat" TEXT,
     "notifyEnabled" BOOLEAN DEFAULT false,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );

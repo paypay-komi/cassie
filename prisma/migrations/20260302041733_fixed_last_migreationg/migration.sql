@@ -6,25 +6,21 @@
 
 */
 -- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "AfkMention";
-PRAGMA foreign_keys=on;
+DROP TABLE IF EXISTS "AfkMention";
 
 -- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "AfkUser";
-PRAGMA foreign_keys=on;
+DROP TABLE IF EXISTS "AfkUser";
 
 -- CreateTable
 CREATE TABLE "GlobalAfkUser" (
     "userId" TEXT NOT NULL PRIMARY KEY,
     "reason" TEXT,
-    "since" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "since" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "autoReply" BOOLEAN NOT NULL DEFAULT true,
     "ignoreBots" BOOLEAN NOT NULL DEFAULT true,
     "notifyOnPing" BOOLEAN NOT NULL DEFAULT true,
     "mentionCount" INTEGER NOT NULL DEFAULT 0,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" TIMESTAMP NOT NULL
 );
 
 -- CreateTable
@@ -35,7 +31,7 @@ CREATE TABLE "GlobalAfkMention" (
     "channelId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
     "mentionedBy" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "GlobalAfkMention_userId_fkey" FOREIGN KEY ("userId") REFERENCES "GlobalAfkUser" ("userId") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

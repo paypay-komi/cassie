@@ -5,12 +5,12 @@ CREATE TABLE "Idea" (
     "content" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "rejectedBy" TEXT,
-    "rejectedAt" DATETIME,
+    "rejectedAt" TIMESTAMP,
     "rejectReason" TEXT,
     "approvedBy" TEXT,
-    "approvedAt" DATETIME,
+    "approvedAt" TIMESTAMP,
     "spamScore" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -19,7 +19,7 @@ CREATE TABLE "IdeaVote" (
     "ideaId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "value" INTEGER NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "IdeaVote_ideaId_fkey" FOREIGN KEY ("ideaId") REFERENCES "Idea" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

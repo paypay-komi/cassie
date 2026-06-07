@@ -9,10 +9,10 @@ CREATE TABLE "CourtCase" (
     "threadId" TEXT,
     "reason" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'VOTING',
-    "voteDeadline" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "closedAt" DATETIME
+    "voteDeadline" TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL,
+    "closedAt" TIMESTAMP
 );
 
 -- CreateTable
@@ -21,7 +21,7 @@ CREATE TABLE "CourtVote" (
     "caseId" TEXT NOT NULL,
     "voterId" TEXT NOT NULL,
     "value" INTEGER NOT NULL,
-    "votedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "votedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "CourtVote_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "CourtCase" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

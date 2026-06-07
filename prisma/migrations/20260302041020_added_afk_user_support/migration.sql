@@ -4,7 +4,7 @@ CREATE TABLE "AfkUser" (
     "guildId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "reason" TEXT,
-    "since" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "since" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isGlobal" BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -15,7 +15,7 @@ CREATE TABLE "AfkMention" (
     "mentionedBy" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
     "channelId" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "AfkMention_afkUserId_fkey" FOREIGN KEY ("afkUserId") REFERENCES "AfkUser" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

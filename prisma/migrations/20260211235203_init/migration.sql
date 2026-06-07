@@ -4,7 +4,7 @@ CREATE TABLE "UserGlobalCommandStats" (
     "userId" TEXT NOT NULL,
     "commandName" TEXT NOT NULL,
     "count" INTEGER NOT NULL DEFAULT 0,
-    "lastUsed" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "lastUsed" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -24,7 +24,7 @@ CREATE TABLE "todolist" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "completed" BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE "GuildSettings" (
 
 -- CreateTable
 CREATE TABLE "ChannelSettings" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL PRIMARY KEY,
     "channelId" TEXT NOT NULL,
     "disabledCommands" JSONB NOT NULL,
     "guildId" TEXT NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE "ChannelSettings" (
 
 -- CreateTable
 CREATE TABLE "GuildUserSettings" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL PRIMARY KEY,
     "guildId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "disabledCommands" JSONB NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE "UserCommandStats" (
     "guildId" TEXT NOT NULL,
     "commandName" TEXT NOT NULL,
     "count" INTEGER NOT NULL DEFAULT 0,
-    "lastUsed" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "lastUsed" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -77,7 +77,7 @@ CREATE TABLE "GlobalCommandStats" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "commandName" TEXT NOT NULL,
     "count" INTEGER NOT NULL DEFAULT 0,
-    "lastUsed" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastUsed" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "globalStatsId" TEXT NOT NULL,
     CONSTRAINT "GlobalCommandStats_globalStatsId_fkey" FOREIGN KEY ("globalStatsId") REFERENCES "GlobalStats" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
