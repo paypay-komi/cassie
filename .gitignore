@@ -39,3 +39,4 @@ server/index.js
 server/geo.js
 server/middleware.js
 pgdata/
+start-bot.ps1
