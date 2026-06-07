@@ -78,6 +78,20 @@ model UserPrefix {
 	prefix String
 }
 
+model GuildTag {
+	id        String   @id @default(cuid())
+	guildId   String
+	name      String
+	content   String
+	creatorId String
+	uses      Int      @default(0)
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	@@unique([guildId, name])
+	@@index([guildId])
+}
+
 model ChatMessage {
 	id        String   @id @default(cuid())
 	userId    String
