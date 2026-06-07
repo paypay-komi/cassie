@@ -1,7 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../lib/logger");
 const { pingSafeMesage } = require("../../utils/safeMsg");
-const conversations = new Map();
 
 const SYSTEM_PROMPT = {
 	role: "system",
@@ -9,6 +8,7 @@ const SYSTEM_PROMPT = {
 		"You are a helpful, intelligent Discord assistant. Be concise but informative.",
 };
 
+const MAX_HISTORY = 20; // how many past messages to include as context
 const EDIT_INTERVAL = 300; // throttle edits (ms)
 const DISCORD_LIMIT = 2000;
 
@@ -30,17 +30,35 @@ module.exports = {
 		}
 
 		const userId = message.author.id;
+		const guildId = message.guild?.id || null;
+		const channelId = message.channel.id;
 
-		if (!conversations.has(userId)) {
-			conversations.set(userId, [SYSTEM_PROMPT]);
+		// Load conversation history from DB
+		const history = await message.client.db.chatHistory.getRecent(
+			userId,
+			MAX_HISTORY,
+		);
+
+		// Build context: system prompt + past messages (chronological) + new user message
+		const convo = [SYSTEM_PROMPT];
+
+		// history comes back newest-first, reverse for chronological order
+		for (const msg of history.reverse()) {
+			if (msg.role === "user" || msg.role === "assistant") {
+				convo.push({ role: msg.role, content: msg.content });
+			}
 		}
 
-		const convo = conversations.get(userId);
+		convo.push({ role: "user", content: userInput });
 
-		convo.push({
-			role: "user",
-			content: userInput,
-		});
+		// Save user message to DB immediately
+		await message.client.db.chatHistory.add(
+			userId,
+			"user",
+			userInput,
+			guildId,
+			channelId,
+		);
 
 		try {
 			await message.channel.sendTyping();
@@ -64,7 +82,7 @@ module.exports = {
 			let fullResponse = "";
 			let lastEdit = 0;
 
-			let replyMessage = await message.reply(pingSafeMesage("‎")); // invisible starter
+			let replyMessage = await message.reply(pingSafeMesage("‎"));
 
 			while (true) {
 				const { done, value } = await reader.read();
@@ -91,7 +109,6 @@ module.exports = {
 						const now = Date.now();
 						if (now - lastEdit > EDIT_INTERVAL) {
 							lastEdit = now;
-
 							await updateMessage();
 						}
 					}
@@ -101,16 +118,14 @@ module.exports = {
 			// Final edit
 			await updateMessage(true);
 
-			// Save clean assistant response
-			convo.push({
-				role: "assistant",
-				content: fullResponse,
-			});
-
-			// Trim memory (system + last 20 messages)
-			if (convo.length > 21) {
-				conversations.set(userId, [SYSTEM_PROMPT, ...convo.slice(-20)]);
-			}
+			// Persist assistant response to DB
+			await message.client.db.chatHistory.add(
+				userId,
+				"assistant",
+				fullResponse,
+				guildId,
+				channelId,
+			);
 
 			// ===== Helper to update message safely =====
 			async function updateMessage(final = false) {
@@ -121,7 +136,6 @@ module.exports = {
 						pingSafeMesage(displayText.trim() || "‎"),
 					);
 				} else {
-					// Handle overflow
 					await replyMessage.edit(
 						pingSafeMesage(displayText.slice(0, DISCORD_LIMIT)),
 					);

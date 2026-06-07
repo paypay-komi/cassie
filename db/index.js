@@ -299,6 +299,25 @@ const userPrefix = {
 };
 
 // ------------------------------------------------------
+// NAMESPACE: chatHistory (AI conversation memory)
+// ------------------------------------------------------
+const chatHistory = {
+	async getRecent(userId, limit = 20) {
+		return prisma.chatMessage.findMany({
+			where: { userId },
+			orderBy: { createdAt: "desc" },
+			take: limit,
+		});
+	},
+
+	async add(userId, role, content, guildId = null, channelId = null) {
+		return prisma.chatMessage.create({
+			data: { userId, role, content, guildId, channelId },
+		});
+	},
+};
+
+// ------------------------------------------------------
 // NAMESPACE: global (JSON objects)
 // ------------------------------------------------------
 const global = {
@@ -407,6 +426,7 @@ const db = {
 	ideas,
 	settings,
 	userPrefix,
+	chatHistory,
 };
 
 module.exports = db;

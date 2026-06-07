@@ -78,6 +78,18 @@ model UserPrefix {
 	prefix String
 }
 
+model ChatMessage {
+	id        String   @id @default(cuid())
+	userId    String
+	guildId   String?
+	channelId String?
+	role      String
+	content   String
+	createdAt DateTime @default(now())
+
+	@@index([userId, createdAt])
+}
+
 model GlobalAfkUser {
     userId String   @id
     reason String?

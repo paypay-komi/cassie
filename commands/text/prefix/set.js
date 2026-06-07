@@ -11,11 +11,6 @@ module.exports = {
 		}
 
 		const newPrefix = args.join(" ").trim();
-
-		if (newPrefix.length > 10) {
-			return message.reply("Prefix must be 10 characters or less.");
-		}
-
 		if (newPrefix === "c.") {
 			return message.reply("`c.` is already the universal prefix.");
 		}
