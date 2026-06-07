@@ -10,6 +10,7 @@ const {
 	MessageFlags,
 } = require("discord.js");
 const parseTime = require("../../../utils/parseTime");
+const courtCaseResolver = require("../../../startuptasks/schedulers/courtCaseResolver.js");
 
 module.exports = {
 	name: "create",
@@ -140,5 +141,7 @@ module.exports = {
 			where: { id: courtCase.id },
 			data: { messageId: caseMessage.id },
 		});
+
+		courtCaseResolver.recheck(message.client);
 	},
 };

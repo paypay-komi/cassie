@@ -148,13 +148,9 @@ module.exports = {
 					log.info(
 						`Next case deadline in ${Math.round(delay / 1000)}s`,
 					);
-				} else {
-					this.timer = setTimeout(runTask, 60 * 1000);
-					log.info("No active cases, next check in 60s");
 				}
 			} catch (err) {
 				log.error("Court resolver error:", err);
-				this.timer = setTimeout(runTask, 60 * 1000);
 			}
 		};
 
