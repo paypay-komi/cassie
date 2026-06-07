@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getLogger } = require("../lib/logger");
+const { getLogger } = require("../../../lib/logger");
 
 const eventHandlers = new Map();
 const log = getLogger("GitHubEvents");

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { getLogger } = require("../../../lib/logger");
-const { getGitHubEvent } = require("../../../utils/githubEvents");
+const { getGitHubEvent } = require("./githubEvents");
 
 function verifySignature(rawBody, signature) {
 	const secret = process.env.GITHUB_WEBHOOK_SECRET;
