@@ -137,13 +137,24 @@ function handleUseLocation(command, client, message) {
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(client, message) {
-		const prefix = client.prefix;
-
 		if (message.author.bot) return;
-		if (!message.content.toLowerCase().startsWith(prefix)) return;
 
-		const args = message.content.slice(prefix.length).trim().split(/ +/);
+		const content = message.content;
+		const startsWithC = content.toLowerCase().startsWith("c.");
 
+		// Look up user's custom prefix from DB
+		let customPrefix = null;
+		try {
+			const data = await client.db.userPrefix.get(message.author.id);
+			if (data?.prefix) customPrefix = data.prefix;
+		} catch { /* DB error, stick with c. */ }
+
+		const matchesCustom = customPrefix && content.startsWith(customPrefix);
+
+		if (!startsWithC && !matchesCustom) return;
+
+		const matchedPrefix = matchesCustom ? customPrefix : "c.";
+		const args = content.slice(matchedPrefix.length).trim().split(/ +/);
 		const input = args.shift().toLowerCase();
 
 		const { textCommands, textAliases } = client;

@@ -278,6 +278,27 @@ const stats = {
 };
 
 // ------------------------------------------------------
+// NAMESPACE: userPrefix (global per-user custom prefix)
+// ------------------------------------------------------
+const userPrefix = {
+	async get(userId) {
+		return prisma.userPrefix.findUnique({ where: { userId } });
+	},
+
+	async set(userId, prefix) {
+		return prisma.userPrefix.upsert({
+			where: { userId },
+			update: { prefix },
+			create: { userId, prefix },
+		});
+	},
+
+	async reset(userId) {
+		return prisma.userPrefix.delete({ where: { userId } }).catch(() => {});
+	},
+};
+
+// ------------------------------------------------------
 // NAMESPACE: global (JSON objects)
 // ------------------------------------------------------
 const global = {
@@ -358,13 +379,11 @@ const settings = {
 			...userMapDisabled,
 		]);
 
-		const prefix = u.customPrefix || g.prefix || "c.";
-
 		return {
 			guildId,
 			channelId,
 			userId,
-			prefix,
+			prefix: "c.",
 			disabledCommands: Array.from(disabledSet),
 			raw: {
 				guild: g,
@@ -387,6 +406,7 @@ const db = {
 	global,
 	ideas,
 	settings,
+	userPrefix,
 };
 
 module.exports = db;

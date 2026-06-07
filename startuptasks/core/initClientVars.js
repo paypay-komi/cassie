@@ -1,5 +1,5 @@
-const { Collection } = require("discord.js");
 const config = require("../../config.json");
+const { Collection } = require("discord.js");
 const { getLogger } = require("../../lib/logger");
 module.exports = {
 	name: "initClientVars",
@@ -13,7 +13,6 @@ module.exports = {
 		client.textCommands = new Collection();
 		client.subcommandMap = {}; // parent → { subName → command }
 		client.commandSettings = {}; // future per-channel/role/user overrides
-		client.prefix = config.prefix;
 		client.afk = new Map();
 		log.info("✅ Client variables initialized on startup");
 	},

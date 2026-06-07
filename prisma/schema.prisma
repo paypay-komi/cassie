@@ -64,14 +64,18 @@ model reminder {
 // Guild-Level Settings
 // ------------------------------------------------------
 model GuildSettings {
-    guildId              String  @id
-    prefix               String? @default("c.")
-    disabledCommands     Json
-    roleDisabledCommands Json
-    userDisabledCommands Json
+	guildId              String  @id
+	disabledCommands     Json
+	roleDisabledCommands Json
+	userDisabledCommands Json
 
     channels     ChannelSettings[]
     userSettings GuildUserSettings[]
+}
+
+model UserPrefix {
+	userId String @id
+	prefix String
 }
 
 model GlobalAfkUser {
@@ -130,13 +134,12 @@ model ChannelSettings {
 // Per-User Settings (per guild)
 // ------------------------------------------------------
 model GuildUserSettings {
-    id      Int    @id @default(autoincrement())
-    guildId String
-    userId  String
+	id      Int    @id @default(autoincrement())
+	guildId String
+	userId  String
 
-    disabledCommands Json
-    customPrefix     String?
-    statTracking     Boolean @default(true)
+	disabledCommands Json
+	statTracking     Boolean @default(true)
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId])
 

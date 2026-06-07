@@ -14,7 +14,8 @@ module.exports = {
 	aliases: ["h"],
 
 	async execute(message, args) {
-		const { textCommands, prefix } = message.client;
+		const { textCommands } = message.client;
+		const prefix = "c.";
 
 		function renderCommand(cmd, depth = 0, isLast = true, prefixStr = "") {
 			const aliasText = cmd.aliases?.length
