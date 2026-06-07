@@ -11,6 +11,10 @@ bot.db
 # History or temp files
 .history/*
 
+# Data exports
+data-export.json
+data-export.json.sha256
+
 # Generated Prisma client
 /generated/prisma
 
@@ -34,3 +38,4 @@ server/index.js
 .gitignore
 server/geo.js
 server/middleware.js
+pgdata/
