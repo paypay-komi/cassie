@@ -11,17 +11,11 @@ module.exports = {
 	name: "courtCaseResolver",
 	description: "Closes expired court cases and announces results",
 	reloadAble: true,
+	shard0Only: true,
 	timer: null,
 	needsReadyClient: true,
 	async execute(client) {
 		const log = getLogger("CourtCase");
-
-		// Only run on shard 0 to prevent duplicate case resolution
-		if (client.shard && client.shard.ids[0] !== 0) {
-			log.info("Not shard 0, skipping court case resolver");
-			return;
-		}
-
 		const runTask = async () => {
 			try {
 				const db = require("../../db");

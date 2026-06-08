@@ -46,6 +46,13 @@ const fs = require("fs");
 						const task = require(file);
 
 						if (!task?.reloadAble) continue;
+						if (
+							task.shard0Only &&
+							client.shard &&
+							client.shard.ids[0] !== 0
+						) {
+							continue;
+						}
 
 						if (typeof task.cleanup === "function") {
 							await task.cleanup(client);

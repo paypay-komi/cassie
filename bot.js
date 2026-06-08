@@ -104,6 +104,17 @@ async function doStartupTasks() {
 			}
 
 			const log = getLogger("Startup");
+			if (
+				task.shard0Only &&
+				client.shard &&
+				client.shard.ids[0] !== 0
+			) {
+				log.info(
+					`Skipping "${task.name}" (shard 0 only, on shard ${client.shard.ids[0]})`,
+				);
+				return;
+			}
+
 			log.info(`Running startup task: ${task.name}`);
 
 			await task.execute(client);
