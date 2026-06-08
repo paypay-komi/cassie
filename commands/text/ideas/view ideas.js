@@ -11,7 +11,6 @@ const {
 	SectionBuilder,
 	ContainerBuilder,
 } = require("discord.js");
-const { getLogger } = require("../../../lib/logger");
 const db = require("../../../db");
 /**
  * @param {number} page
@@ -20,7 +19,6 @@ const db = require("../../../db");
  */
 
 async function makeIdeaStuff(page, source) {
-	const log = getLogger("ViewIdeas");
 	const userId = source.user?.id ?? source.author?.id;
 
 const {
@@ -54,7 +52,6 @@ const {
 		const userUpvoted = userVote?.value === 1;
 		const userDownvoted = userVote?.value === -1;
 
-		log.debug("ButtonStyle:", ButtonStyle);
 		return new ContainerBuilder()
 			.addTextDisplayComponents(
 				new TextDisplayBuilder().setContent(
@@ -123,7 +120,6 @@ module.exports = {
 		}
 
 		const components = [...ideastuff.ideaContainers, ideastuff.navButtons];
-		log.debug("total components:", countComponents(components));
 		const botMessage = await message.reply({
 			flags: MessageFlags.IsComponentsV2,
 			components: [...ideastuff.ideaContainers, ideastuff.navButtons],

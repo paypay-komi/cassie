@@ -11,8 +11,6 @@ const SYSTEM_PROMPT = {
 const MAX_HISTORY = 20;
 const EDIT_INTERVAL = 1000; // throttle edits (ms) — Discord is ~1/sec per message
 const DISCORD_LIMIT = 2000;
-const MAX_RESPONSE_LENGTH = 10000; // safety cutoff: chars before we force-stop
-const MAX_DURATION = 60_000;        // safety cutoff: ms before we force-stop
 
 module.exports = {
 
@@ -91,6 +89,39 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 			 * When the active message fills up (2000 chars), finalize it
 			 * and start a new one — so overflow appears in real-time.
 			 */
+			/**
+			 * Find the best split point within `limit` chars.
+			 * Priority: newline → sentence end → punctuation → word → hard limit.
+			 */
+			function splitPoint(text, limit) {
+				// Newline — keeps paragraphs intact
+				let idx = text.lastIndexOf("\n", limit);
+				if (idx > limit * 0.4) return idx + 1;
+
+				// Sentence end — split after . ! ?
+				idx = Math.max(
+					text.lastIndexOf(".", limit),
+					text.lastIndexOf("!", limit),
+					text.lastIndexOf("?", limit),
+				);
+				if (idx > limit * 0.4) return idx + 1;
+
+				// Punctuation — mid-sentence commas, semicolons, colons
+				idx = Math.max(
+					text.lastIndexOf(",", limit),
+					text.lastIndexOf(";", limit),
+					text.lastIndexOf(":", limit),
+				);
+				if (idx > limit * 0.4) return idx + 1;
+
+				// Word boundary — last space
+				idx = text.lastIndexOf(" ", limit);
+				if (idx > limit * 0.4) return idx + 1;
+
+				// Hard fallback
+				return limit;
+			}
+
 			async function updateStream() {
 				const displayText = fixCodeBlocks(fullResponse);
 				const trimmed = displayText.trim();
@@ -104,14 +135,12 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 				if (activeContent.length <= DISCORD_LIMIT) {
 					await activeMsg.edit(pingSafeMesage(activeContent || "‎"));
 				} else {
-					// Active message is full — finalize it with the first 2000
-					await activeMsg.edit(
-						pingSafeMesage(activeContent.slice(0, DISCORD_LIMIT)),
-					);
-					lastFinalized += DISCORD_LIMIT;
+					const split = splitPoint(activeContent, DISCORD_LIMIT);
 
-					// Start a new active message with what's left
-					const rest = activeContent.slice(DISCORD_LIMIT);
+					await activeMsg.edit(pingSafeMesage(activeContent.slice(0, split)));
+					lastFinalized += split;
+
+					const rest = activeContent.slice(split).trimStart();
 					activeMsg = await message.channel.send(
 						pingSafeMesage(rest || "‎"),
 					);
@@ -121,21 +150,12 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 			// ---------- stream loop ----------
 
 			let lastEdit = 0;
-			const startTime = Date.now();
-			let cutOff = false;
+			let loopDetected = false;
+			let lastLoopCheck = 0; // char count at last loop detection run
 
 			while (true) {
 				const { done, value } = await reader.read();
 				if (done) break;
-
-				// Safety cutoffs — prevent infinite generation
-				const overLength = fullResponse.length >= MAX_RESPONSE_LENGTH;
-				const overTime = Date.now() - startTime >= MAX_DURATION;
-				if (overLength || overTime) {
-					reader.cancel().catch(() => {});
-					cutOff = true;
-					break;
-				}
 
 				buffer += decoder.decode(value, { stream: true });
 
@@ -155,6 +175,17 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 					if (parsed.message?.content) {
 						fullResponse += parsed.message.content;
 
+						// Check for infinite loop patterns
+						// Only run every ~200 chars of growth to avoid O(n) spam
+						if (fullResponse.length - lastLoopCheck >= 200) {
+							lastLoopCheck = fullResponse.length;
+							if (detectLoop(fullResponse)) {
+								reader.cancel().catch(() => {});
+								loopDetected = true;
+								break;
+							}
+						}
+
 						const now = Date.now();
 						if (now - lastEdit > EDIT_INTERVAL) {
 							lastEdit = now;
@@ -162,14 +193,16 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 						}
 					}
 				}
+
+				if (loopDetected) break;
 			}
 
 			// Final update — makes sure the last message is complete
 			await updateStream();
 
-			if (cutOff) {
+			if (loopDetected) {
 				await message.channel.send(
-					"⚠️ Response was cut off (hit length or time limit). Try asking in shorter messages.",
+					"⚠️ The model seemed to get stuck in a loop, so I stopped it. Try rephrasing your question.",
 				);
 			}
 
@@ -186,6 +219,43 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 		}
 	},
 };
+
+// ==========================
+// Loop detection — catch infinite counting/repeating
+// ==========================
+function detectLoop(text) {
+	if (text.length < 800) return false;
+
+	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+	if (lines.length < 12) return false;
+
+	// 1. Same short line repeated 12+ times — clearly stuck
+	const counts = {};
+	for (const line of lines) {
+		if (line.length >= 4 && line.length <= 80) {
+			counts[line] = (counts[line] || 0) + 1;
+		}
+	}
+	for (const count of Object.values(counts)) {
+		if (count >= 12) return true;
+	}
+
+	// 2. Sequential numbering — like "1. ... 2. ... 3. ..."
+	// Needs 25+ numbered lines dominating 50%+ of output to fire
+	const numbered = lines.filter((l) => /^\d+[\.\)]/.test(l));
+	if (numbered.length >= 25 && numbered.length > lines.length * 0.5) {
+		return true;
+	}
+
+	// 3. Very low variety in recent output — last 25 lines
+	const recent = lines.slice(-25);
+	if (recent.length >= 15) {
+		const unique = new Set(recent);
+		if (unique.size <= 4) return true;
+	}
+
+	return false;
+}
 
 // ==========================
 // Code Block Auto Fixer

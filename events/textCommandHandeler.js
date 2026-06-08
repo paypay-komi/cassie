@@ -128,7 +128,7 @@ async function checkPermissions(command, client, message) {
  * @param {Message} message
  * @returns
  */
-function handleUseLocation(command, client, message) {
+async function handleUseLocation(command, client, message) {
 	let node = command;
 
 	while (node) {
@@ -141,7 +141,16 @@ function handleUseLocation(command, client, message) {
 			!node.guildUse &&
 			message.inGuild()
 		) {
-			message.reply("this command must be used in dms");
+			try {
+				await message.author.send(
+					`This command (\`${command.name}\`) only works in DMs. Use it here instead!`,
+				);
+				message.reply("Sent you a DM!");
+			} catch {
+				message.reply(
+					"This command only works in DMs. I couldn't DM you — check your privacy settings so server members can DM you.",
+				);
+			}
 			return false;
 		}
 		node = node.parentRef;
@@ -202,7 +211,7 @@ module.exports = {
 	// ---------------------------
 	// Use location (dm vs guild) — cheapest check first
 	// ---------------------------
-	if (!handleUseLocation(finalCommand, client, message)) return;
+	if (!(await handleUseLocation(finalCommand, client, message))) return;
 
 	// ---------------------------
 	// Permissions
