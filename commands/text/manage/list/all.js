@@ -1,6 +1,8 @@
 const { idToName } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "4cdde65a-2ac5-4fd6-933c-b79b91e14749",
 	name: "all",
 	parent: "list",
 	description: "List all command overrides in one view.",

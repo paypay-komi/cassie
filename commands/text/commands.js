@@ -2,6 +2,7 @@
  * List all available text commands and their descriptions.
  */
 module.exports = {
+ commandId: "4af8173c-42ab-49a4-bde1-95777c9e09be",
 	name: "commands",
 	description: "List all available commands.",
 

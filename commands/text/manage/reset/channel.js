@@ -1,6 +1,8 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "8e054c48-7a8c-4bed-b38f-9a2bcebe83d7",
 	name: "channel",
 	parent: "reset",
 	description:
