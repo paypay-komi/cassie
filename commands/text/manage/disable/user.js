@@ -1,4 +1,4 @@
-const { resolveRequired } = require("../../../../lib/commandResolver");
+const { resolveRequired, getAllCommandIds } = require("../../../../lib/commandResolver");
 
 module.exports = {
 
@@ -6,12 +6,12 @@ commandId: "24ca7e3c-5898-4358-8952-d507602764c2",
 	name: "user",
 	parent: "disable",
 	description:
-		"Deny a user from using a command. Usage: `c.manage disable user @user <command>`",
+		"Deny a user from using commands. Usage: `c.manage disable user @user <command>` or `c.manage disable user @user all`",
 
 	async execute(message, args) {
 		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage disable user @user <command>`",
+				"❌ Usage: `c.manage disable user @user <command>` or `c.manage disable user @user all`",
 			);
 		}
 
@@ -26,6 +26,28 @@ commandId: "24ca7e3c-5898-4358-8952-d507602764c2",
 		}
 
 		const input = args.join(" ").toLowerCase();
+
+		if (input === "all") {
+			const { prisma } = message.client.db;
+			const allIds = getAllCommandIds(message.client);
+			await prisma.$transaction([
+				prisma.guildUserCommandAccess.deleteMany({
+					where: { guildId: message.guildId, userId },
+				}),
+				prisma.guildUserCommandAccess.createMany({
+					data: allIds.map((id) => ({
+						guildId: message.guildId,
+						userId,
+						commandId: id,
+						allowed: false,
+					})),
+				}),
+			]);
+			return message.reply(
+				`🚫 **${userName}** is now denied from using all commands.`,
+			);
+		}
+
 		let commandId;
 		try {
 			commandId = resolveRequired(message.client, input);

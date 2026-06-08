@@ -1,4 +1,4 @@
-const { resolveRequired } = require("../../../../lib/commandResolver");
+const { resolveRequired, getAllCommandIds } = require("../../../../lib/commandResolver");
 
 module.exports = {
 
@@ -6,12 +6,12 @@ commandId: "c62f1a19-b3cd-40f0-880f-702716c3b7c7",
 	name: "channel",
 	parent: "disable",
 	description:
-		"Disable a command in a specific channel. Usage: `c.manage disable channel #channel <command>`",
+		"Deny a command in a specific channel. Usage: `c.manage disable channel #channel <command>` or `c.manage disable channel #channel all`",
 
 	async execute(message, args) {
 		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage disable channel #channel <command>`",
+				"❌ Usage: `c.manage disable channel #channel <command>` or `c.manage disable channel #channel all`",
 			);
 		}
 
@@ -21,6 +21,28 @@ commandId: "c62f1a19-b3cd-40f0-880f-702716c3b7c7",
 		if (!ch) return message.reply("❌ Channel not found.");
 
 		const input = args.join(" ").toLowerCase();
+
+		if (input === "all") {
+			const { prisma } = message.client.db;
+			const allIds = getAllCommandIds(message.client);
+			await prisma.$transaction([
+				prisma.guildChannelCommandAccess.deleteMany({
+					where: { guildId: message.guildId, channelId },
+				}),
+				prisma.guildChannelCommandAccess.createMany({
+					data: allIds.map((id) => ({
+						guildId: message.guildId,
+						channelId,
+						commandId: id,
+						allowed: false,
+					})),
+				}),
+			]);
+			return message.reply(
+				`🚫 All commands are now denied in ${ch.toString()}.`,
+			);
+		}
+
 		let commandId;
 		try {
 			commandId = resolveRequired(message.client, input);
