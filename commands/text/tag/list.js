@@ -1,4 +1,5 @@
 module.exports = {
+	commandId: "37c4bb25-3d1d-414c-9032-e924543ea6c9",
 	name: "list",
 	parent: "tag",
 	description: "List all tags in this guild.",

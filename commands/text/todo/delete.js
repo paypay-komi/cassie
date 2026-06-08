@@ -2,6 +2,7 @@ const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../../lib/logger");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList.js");
 module.exports = {
+	commandId: "a2dd3826-9a5b-41b0-bedd-ef4dbce1afd0",
 	name: "delete",
 	description: "Delete a todo item by its ID",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

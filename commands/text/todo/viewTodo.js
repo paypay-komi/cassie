@@ -30,6 +30,7 @@ function createEmbed(currentPage, items) {
 	return embed;
 }
 module.exports = {
+	commandId: "4a4927cc-f85a-4184-90bf-771f591094e7",
 	name: "view",
 	description: "View your todo list",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

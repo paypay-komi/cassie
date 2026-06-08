@@ -5,6 +5,8 @@ const MAX_SIDES = 1000000;
 const SHOW_ROLLS_LIMIT = 50;
 
 module.exports = {
+
+commandId: "efa5f934-c486-4a5a-8606-775349acda31",
 	name: "roll",
 	description: "Roll dice. Usage: c.roll [NdN] e.g. c.roll 2d6",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.AttachFiles],

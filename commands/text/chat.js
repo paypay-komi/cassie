@@ -13,6 +13,8 @@ const EDIT_INTERVAL = 300; // throttle edits (ms)
 const DISCORD_LIMIT = 2000;
 
 module.exports = {
+
+commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 	name: "chat",
 	description: "Chat with AI (streaming, formatted)",
 	requiredBotPermissions: [

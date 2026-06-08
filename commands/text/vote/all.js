@@ -9,6 +9,7 @@ const {
 const db = require("../../../db");
 
 module.exports = {
+	commandId: "b22b8b49-3d19-416e-a504-054e5fd820ab",
 	name: "all",
 	description: "Shows all vote leaderboards at once",
 	requiredBotPermissions: [

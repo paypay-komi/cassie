@@ -2,6 +2,8 @@ const { PermissionsBitField } = require("discord.js");
 const path = require("path");
 
 module.exports = {
+
+commandId: "024a6d03-dde0-4323-89ab-db00b20f08d7",
 	name: "event",
 	description: "Reload event handlers",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

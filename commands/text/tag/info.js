@@ -1,4 +1,5 @@
 module.exports = {
+	commandId: "2c6dfa53-2bde-4503-b6c1-12f8b016c70b",
 	name: "info",
 	parent: "tag",
 	description: "Show metadata about a tag.",

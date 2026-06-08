@@ -1,12 +1,13 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../../lib/logger");
 const parseTime = require("../../../utils/parseTime.js");
-const setupReminderTask = require("../../../startuptasks/data/startUpReminderTask.js");
+const setupReminderTask = require("../../../startuptasks/data/startUpReminderTask");
 const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
 } = require("../../../utils/parseDateIntoDiscordTimeStamp.js");
 module.exports = {
+	commandId: "f3ba4e0a-7bb4-4557-85f2-6ce987589af3",
 	name: "create",
 	description: "Create a reminder",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

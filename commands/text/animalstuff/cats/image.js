@@ -1,5 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 module.exports = {
+	commandId: "2156612e-4b68-4205-b575-6034923625dd",
 	name: "image",
 	description: "Sends a random cat image",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

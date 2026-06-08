@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 
 module.exports = {
+
+commandId: "0c24f948-dfea-4896-b65a-337d4d4476e9",
 	data: new SlashCommandBuilder()
 		.setName("help")
 		.setDescription("Learn how to use this bot"),

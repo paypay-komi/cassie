@@ -1018,6 +1018,8 @@ class checkersGame {
 }
 
 module.exports = {
+
+commandId: "c9580f04-8e71-4709-9f1f-00a39d2493ff",
 	name: "checkers",
 	description: "Play a game of checkers against another user or me!",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.UseExternalEmoji],

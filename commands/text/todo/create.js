@@ -1,6 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../../lib/logger");
 module.exports = {
+	commandId: "4e443a56-fac3-436a-a9b0-d6806ac2bdea",
 	name: "create",
 	description: "Create a new todo item",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

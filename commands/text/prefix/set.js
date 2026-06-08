@@ -1,4 +1,5 @@
 module.exports = {
+	commandId: "55d4379a-e6af-4c69-bf9f-15d2a91056f8",
 	name: "set",
 	parent: "prefix",
 	description: "Set your own custom command prefix.",

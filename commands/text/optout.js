@@ -2,6 +2,8 @@ const { PermissionsBitField } = require("discord.js");
 const db = require("../../db");
 
 module.exports = {
+
+commandId: "b4e435d8-d26e-4afe-b73b-2dc0b46c8abb",
 	name: "optout",
 	description: "Opt out of vote thank-you DMs",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

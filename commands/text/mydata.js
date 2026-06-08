@@ -3,6 +3,8 @@ const db = require("../../db");
 const { parseSchema } = require("../../lib/userDataMapper");
 
 module.exports = {
+
+commandId: "44cb174d-20ee-48e4-90d8-3adad8a91a9a",
 	name: "mydata",
 	description: "Export all user data from Postgres as JSON.",
 	requiredBotPermissions: [

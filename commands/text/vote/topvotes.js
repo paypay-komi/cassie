@@ -7,6 +7,7 @@ const {
 const db = require("../../../db");
 
 module.exports = {
+	commandId: "4d92c12c-fb1f-46b8-8d1f-530e17191429",
 	name: "topvotes",
 	aliases: ["votes", "mostvotes", "total"],
 	description: "Shows the users with the most total votes",

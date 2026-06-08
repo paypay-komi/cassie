@@ -1,6 +1,8 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 module.exports = {
+
+commandId: "0bfd59dd-e035-49f6-a928-f980b61f59e3",
 	name: "ping",
 	description: "Check the bot's latency.",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

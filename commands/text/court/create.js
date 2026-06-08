@@ -13,6 +13,7 @@ const parseTime = require("../../../utils/parseTime");
 const courtCaseResolver = require("../../../startuptasks/schedulers/courtCaseResolver.js");
 
 module.exports = {
+	commandId: "be57b099-b3bb-4d09-b0a9-af84295d7778",
 	name: "create",
 	description: "create a court case",
 	requiredBotPermissions: [

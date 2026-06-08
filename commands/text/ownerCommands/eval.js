@@ -29,6 +29,7 @@ function createSandbox(message) {
 	};
 }
 module.exports = {
+	commandId: "5d9cda2c-31e5-4af5-9e93-7dc817af7582",
 	name: "eval",
 	aliases: ["ev"],
 	description: "Owner-only eval (safe VM REPL)",

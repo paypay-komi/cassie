@@ -2,6 +2,8 @@ const { PermissionsBitField } = require("discord.js");
 const path = require("path");
 
 module.exports = {
+
+commandId: "d74c45a0-f716-49cf-adba-e74da57e5929",
 	name: "slash",
 	description: "Reload slash commands",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

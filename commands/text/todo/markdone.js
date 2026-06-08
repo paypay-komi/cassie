@@ -3,6 +3,8 @@ const { getLogger } = require("../../../lib/logger");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList");
 
 module.exports = {
+
+commandId: "e542ce2e-4f18-4185-9d4b-7cb167b7d447",
 	name: "complete",
 	description: "Mark a todo item as done",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

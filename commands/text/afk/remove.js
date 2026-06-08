@@ -1,6 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const db = require("../../../db");
 module.exports = {
+	commandId: "e0712c98-e91c-4b4c-a873-1bf5e3cff84e",
 	name: "remove",
 	description: "removes your current afk if you have one",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

@@ -1,6 +1,8 @@
 const { PermissionsBitField } = require("discord.js");
 
 module.exports = {
+
+commandId: "b9c83c22-006c-418f-bf37-8bbfd278e43c",
 	name: "delete",
 	parent: "tag",
 	description: "Delete a tag. Only the creator or members with Manage Messages can delete tags.",

@@ -7,6 +7,7 @@ const {
 } = require("../../../utils/ideas/validateIdea.js");
 
 module.exports = {
+	commandId: "5426e56e-0f41-4f5f-bf9c-c8bde8bb58be",
 	name: "add",
 	description: "adds an idea to the idea board",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

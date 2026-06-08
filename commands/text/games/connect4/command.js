@@ -231,6 +231,7 @@ class Connect4 {
 }
 
 module.exports = {
+    commandId: "b34f5070-fcad-457c-8e13-5bd7d47a71c2",
     name: "connect4",
     description: "Play a game of Connect 4 against another user or the bot!",
     requiredBotPermissions: [

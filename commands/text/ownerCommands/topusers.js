@@ -1,6 +1,8 @@
 const { PermissionsBitField } = require("discord.js");
 
 module.exports = {
+
+commandId: "476758aa-746b-4d16-a3a6-8dd274980a8e",
 	name: "topusers",
 	aliases: ["activetop", "mostactive"],
 	description: "Show the most active users by total command count.",

@@ -22,6 +22,8 @@ const answers = [
 ];
 
 module.exports = {
+
+commandId: "6075ee09-4a02-4bb3-9d4c-358e8b391fec",
 	name: "8ball",
 	description: "Ask the magic 8-ball a question",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

@@ -10,6 +10,7 @@ const {
 const db = require("../../../db");
 const { DateTime } = require("luxon");
 module.exports = {
+	commandId: "7310a1d5-97fe-4e1b-8b4a-b2cc077fa31c",
 	name: "get",
 	parent: "time",
 	description: "gets the time from a mentioned user",

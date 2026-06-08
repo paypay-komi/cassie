@@ -1,4 +1,5 @@
 module.exports = {
+	commandId: "b3975091-61d1-481a-bdcd-d83171fbf55d",
 	name: "reset",
 	parent: "prefix",
 	description: "Remove your custom prefix and go back to just `c.`.",

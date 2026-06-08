@@ -1,6 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const db = require("../../../db");
 module.exports = {
+	commandId: "11f5a84f-03cb-4c50-b90f-effb9d3580fa",
 	name: "set",
 	description: "sets your afk optional message arg",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

@@ -1,6 +1,8 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 
 module.exports = {
+
+commandId: "803d476b-c564-46f8-824a-7d983dd5ba9d",
 	name: "gif",
 	description: "Sends a random bunny gif",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

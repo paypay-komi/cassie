@@ -401,6 +401,7 @@ class TicTacToe {
 	}
 }
 module.exports = {
+	commandId: "7b5a5d8e-581c-446b-970b-a036cadc44aa",
 	name: "tic-tac-toe",
 	description: "Play a game of tic-tac-toe against another user or me!",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

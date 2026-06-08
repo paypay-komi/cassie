@@ -18,6 +18,8 @@ function findAnagrams(word) {
 }
 
 module.exports = {
+
+commandId: "83bbbe59-6e58-4a4f-ba76-2e908a8630be",
   name: "anagram",
   description: "Unscramble the word! Type your guess in chat.",
   requiredBotPermissions: [

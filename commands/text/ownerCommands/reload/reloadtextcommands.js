@@ -3,6 +3,8 @@ const path = require("path");
 const { postCommandsToDbl } = require("../../../../startuptasks/listings/dbl/postCommandsToDbl");
 
 module.exports = {
+
+commandId: "fb3f0eea-3ea7-4cf1-b269-994152953a1c",
 	name: "text",
 	description: "Reload text commands and repost to DBL",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

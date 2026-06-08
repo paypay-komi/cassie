@@ -7,6 +7,7 @@ const {
 const db = require("../../../db");
 
 module.exports = {
+	commandId: "b7e06f3e-7d6c-490f-b05c-10af52b284c7",
 	name: "topstreak",
 	aliases: ["streak", "beststreak"],
 	description: "Shows the users with the highest best streak",

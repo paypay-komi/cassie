@@ -8,6 +8,7 @@ const {
 } = require("discord.js");
 
 module.exports = {
+	commandId: "b0f7624f-a39e-49b2-b653-e0c61c15b2e5",
 	name: "help",
 	description: "List all commands or get info about a specific command.",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

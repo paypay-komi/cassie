@@ -7,6 +7,7 @@ const {
 	ComponentType,
 } = require("discord.js");
 module.exports = {
+	commandId: "4db15f25-6026-49b1-b170-3d8a3acd0853",
 	name: "rockPaperScissors",
 	description: "Play rock paper scissors against the bot or another user",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

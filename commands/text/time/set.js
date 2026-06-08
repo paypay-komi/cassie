@@ -4,6 +4,8 @@ const db = require("../../../db");
 const ct = require("countries-and-timezones");
 
 module.exports = {
+
+commandId: "21567e33-4c20-4f84-b05a-e8a6c22a980e",
 	name: "set",
 	description: "sets your time zone following a simple flow",
 	requiredBotPermissions: [Discord.PermissionsBitField.Flags.SendMessages, Discord.PermissionsBitField.Flags.ReadMessageHistory],

@@ -105,6 +105,7 @@ const {
 }
 
 module.exports = {
+	commandId: "f200ef06-ef2c-4124-bbb6-17703f3da8fa",
 	name: "view",
 	description: "Browse and vote on submitted ideas",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],

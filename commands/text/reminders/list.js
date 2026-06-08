@@ -6,6 +6,7 @@ const {
 	ActionRowBuilder,
 } = require("discord.js");
 module.exports = {
+	commandId: "7d6f0525-339e-4576-82d5-401bdc5ac0ea",
 	name: "list",
 	description: "List all your reminders",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
