@@ -79,49 +79,40 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 			let buffer = "";
 			let fullResponse = "";
 
-			let replyMessage = await message.reply(pingSafeMesage("‎"));
-
 			// ---------- streaming helpers ----------
 
+			let lastFinalized = 0;   // chars already written to complete messages
+			let activeMsg = null;   // message currently being edited
+
 			/**
-			 * Edit the reply message with whatever we have so far.
-			 * NEVER sends new messages — keeps us under Discord rate limits.
-			 * If content exceeds 2000 chars, trim and append "…".
+			 * Edit the active message with whatever we have so far.
+			 * When the active message fills up (2000 chars), finalize it
+			 * and start a new one — so overflow appears in real-time.
 			 */
 			async function updateStream() {
 				const displayText = fixCodeBlocks(fullResponse);
-				const trimmed = displayText.trim() || "‎";
-				const content = trimmed.length > DISCORD_LIMIT
-					? trimmed.slice(0, DISCORD_LIMIT - 3) + "…"
-					: trimmed;
+				const trimmed = displayText.trim();
 
-				await replyMessage.edit(pingSafeMesage(content));
-			}
-
-			/**
-			 * Finalize: split across multiple messages if needed.
-			 * First chunk edits the original reply; remainder are new messages.
-			 */
-			async function finalizeMessage() {
-				const displayText = fixCodeBlocks(fullResponse);
-				const trimmed = displayText.trim() || "‎";
-
-				if (trimmed.length <= DISCORD_LIMIT) {
-					await replyMessage.edit(pingSafeMesage(trimmed));
-					return;
+				if (!activeMsg) {
+					activeMsg = await message.reply(pingSafeMesage("‎"));
 				}
 
-				// First chunk in the reply
-				await replyMessage.edit(
-					pingSafeMesage(trimmed.slice(0, DISCORD_LIMIT)),
-				);
+				const activeContent = trimmed.slice(lastFinalized);
 
-				// Remainder as new messages
-				let remaining = trimmed.slice(DISCORD_LIMIT);
-				while (remaining.length > 0) {
-					const chunk = remaining.slice(0, DISCORD_LIMIT);
-					remaining = remaining.slice(DISCORD_LIMIT);
-					await message.channel.send(pingSafeMesage(chunk));
+				if (activeContent.length <= DISCORD_LIMIT) {
+					await activeMsg.edit(pingSafeMesage(activeContent || "‎"));
+				} else {
+					// Active message is full — finalize it with the first 2000
+					await activeMsg.edit(
+						pingSafeMesage(activeContent.slice(0, DISCORD_LIMIT)),
+					);
+					lastFinalized += DISCORD_LIMIT;
+
+					// Start a new active message with what's left
+					const rest = activeContent.slice(DISCORD_LIMIT);
+					activeMsg = await message.channel.send(
+						pingSafeMesage(rest || "‎"),
+					);
 				}
 			}
 
@@ -160,8 +151,8 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 				}
 			}
 
-			// Finalize (split into multiple messages if over 2000 chars)
-			await finalizeMessage();
+			// Final update — makes sure the last message is complete
+			await updateStream();
 
 			// Persist assistant response to DB
 			await message.client.db.chatHistory.add(
@@ -176,20 +167,6 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 		}
 	},
 };
-
-// ==========================
-// Code Block Auto Fixer
-// ==========================
-function fixCodeBlocks(text) {
-	const matches = text.match(/```/g);
-	const count = matches ? matches.length : 0;
-
-	if (count % 2 !== 0) {
-		return text + "\n```";
-	}
-
-	return text;
-}
 
 // ==========================
 // Code Block Auto Fixer
