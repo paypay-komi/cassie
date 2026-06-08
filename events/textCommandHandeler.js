@@ -203,10 +203,14 @@ module.exports = {
 		}
 
 	// ---------------------------
+	// Use location (dm vs guild) — cheapest check first
+	// ---------------------------
+	if (!handleUseLocation(finalCommand, client, message)) return;
+
+	// ---------------------------
 	// Permissions
 	// ---------------------------
 	if (!(await checkPermissions(finalCommand, client, message))) return;
-	if (!handleUseLocation(finalCommand, client, message)) return;
 
 	// ---------------------------
 	// Restrictions (disabled/deny overrides)
