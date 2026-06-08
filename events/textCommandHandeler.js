@@ -26,13 +26,25 @@ function showSubcommandHelp(command, message) {
 }
 
 /**
- * Resolve nested subcommands (supports aliases)
+ * Resolve nested subcommands (supports aliases and middle args).
+ *
+ * Middle args are args that don't match any subcommand at a given level.
+ * They are collected and stored on the final leaf command as `_middleArgs[]`.
+ *
+ * Example: `c.manage channel #general disable tag`
+ *   manage → channel (next) → #general (middle) → disable (next) → tag (none)
+ *   Result: command=disable, args=["tag"], disable._middleArgs=["#general"]
  */
 function resolveNested(command, args) {
 	let current = command;
 	const path = [current.name];
+	const middleArgs = [];
 
-	while (args.length && current.subcommands) {
+	while (
+		args.length &&
+		current.subcommands &&
+		Object.keys(current.subcommands).length > 0
+	) {
 		const input = args[0].toLowerCase();
 
 		// Check name first, then aliases
@@ -42,12 +54,19 @@ function resolveNested(command, args) {
 				sc.aliases?.includes(input),
 			);
 
-		if (!next) break;
+		if (!next) {
+			// Not a subcommand — stash as a middle arg for the leaf
+			middleArgs.push(args.shift());
+			continue;
+		}
 
 		args.shift();
 		current = next;
 		path.push(current.name);
 	}
+
+	// Attach middle args so leaf commands can get their target
+	current._middleArgs = middleArgs;
 
 	return { command: current, path };
 }
