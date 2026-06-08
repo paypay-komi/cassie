@@ -218,29 +218,35 @@ module.exports = {
 		if (!isGuildOwner) {
 			try {
 				const roleIds = [...message.member.roles.cache.keys()];
-				const effective = await client.db.settings.getEffective(
-					message.guildId,
-					message.channelId,
-					message.author.id,
-					roleIds,
-				);
+				const reasonLabels = {
+					server: "That command is disabled in this server.",
+					channel: "That command is disabled in this channel.",
+					role: "That command is disabled for your role.",
+					user: "That command is disabled for you.",
+				};
 
-				// Walk parent chain — disabling a parent blocks all its subcommands
+				// Walk parent chain — check each ancestor for the source
 				let restrictNode = finalCommand;
-				let isRestricted = false;
+				let reason = null;
 				while (restrictNode) {
-					if (
-						restrictNode.commandId &&
-						effective.disabledCommands.includes(restrictNode.commandId)
-					) {
-						isRestricted = true;
-						break;
+					if (restrictNode.commandId) {
+						const src = await client.db.settings.getDisableSource(
+							message.guildId,
+							message.channelId,
+							message.author.id,
+							roleIds,
+							restrictNode.commandId,
+						);
+						if (src) {
+							reason = src;
+							break;
+						}
 					}
 					restrictNode = restrictNode.parentRef;
 				}
 
-				if (isRestricted) {
-					return message.reply("That command is disabled in this server.");
+				if (reason) {
+					return message.reply(reasonLabels[reason]);
 				}
 			} catch (err) {
 				const log = getLogger("TextCmd");

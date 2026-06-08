@@ -479,20 +479,73 @@ const settings = {
 			if (r.allowed) disabledSet.delete(r.commandId);
 		}
 
-		return {
-			guildId,
-			channelId,
-			userId,
-			prefix: "c.",
-			disabledCommands: Array.from(disabledSet),
-			raw: {
-				guild: g,
-				channel: ch,
-				user: u,
-			},
-		};
-	},
-};
+	return {
+		guildId,
+		channelId,
+		userId,
+		prefix: "c.",
+		disabledCommands: Array.from(disabledSet),
+		raw: {
+			guild: g,
+			channel: ch,
+			user: u,
+		},
+	};
+},
+
+/**
+ * Determine the source of a restriction for a single commandId.
+ *
+ * Returns one of: "server", "channel", "role", "user", or null if not restricted.
+ *
+ * Priority (highest to lowest):
+ *   user allow → not restricted
+ *   role allow → not restricted
+ *   user deny  → "user"
+ *   role deny  → "role"
+ *   channel    → "channel"
+ *   guild      → "server"
+ */
+async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
+	// User allow — overrides everything
+	const userAccess = userId
+		? await prisma.guildUserCommandAccess.findUnique({
+				where: {
+					guildId_userId_commandId: { guildId, userId, commandId },
+				},
+			})
+		: null;
+	if (userAccess?.allowed) return null;
+
+	// Role allow — overrides denies and channel/guild
+	let roleEntries = [];
+	if (roleIds.length > 0) {
+		roleEntries = await prisma.guildRoleCommandAccess.findMany({
+			where: { guildId, roleId: { in: roleIds }, commandId },
+		});
+	}
+	if (roleEntries.some((r) => r.allowed)) return null;
+
+	// User deny
+	if (userAccess && !userAccess.allowed) return "user";
+
+	// Role deny
+	if (roleEntries.some((r) => !r.allowed)) return "role";
+
+	// Channel disable
+	const channelDisabled = await prisma.guildChannelDisabledCommand.findUnique({
+		where: { channelId_commandId: { channelId, commandId } },
+	});
+	if (channelDisabled) return "channel";
+
+	// Guild disable
+	const guildDisabled = await prisma.guildDisabledCommand.findUnique({
+		where: { guildId_commandId: { guildId, commandId } },
+	});
+	if (guildDisabled) return "server";
+
+	return null;
+},
 
 // ------------------------------------------------------
 // EXPORT NAMESPACED DB

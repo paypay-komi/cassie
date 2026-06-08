@@ -43,29 +43,35 @@ async function checkRestrictions(cmd, interaction) {
 	try {
 		const member = interaction.member;
 		const roleIds = member ? [...member.roles.cache.keys()] : [];
-		const effective = await interaction.client.db.settings.getEffective(
-			interaction.guildId,
-			interaction.channelId,
-			interaction.user.id,
-			roleIds,
-		);
+		const reasonLabels = {
+			server: "That command is disabled in this server.",
+			channel: "That command is disabled in this channel.",
+			role: "That command is disabled for your role.",
+			user: "That command is disabled for you.",
+		};
 
-		// Walk parent chain — disabling a parent blocks all its subcommands
+		// Walk parent chain — check each ancestor for the source
 		let restrictNode = cmd;
-		let isRestricted = false;
+		let reason = null;
 		while (restrictNode) {
-			if (
-				restrictNode.commandId &&
-				effective.disabledCommands.includes(restrictNode.commandId)
-			) {
-				isRestricted = true;
-				break;
+			if (restrictNode.commandId) {
+				const src = await interaction.client.db.settings.getDisableSource(
+					interaction.guildId,
+					interaction.channelId,
+					interaction.user.id,
+					roleIds,
+					restrictNode.commandId,
+				);
+				if (src) {
+					reason = src;
+					break;
+				}
 			}
 			restrictNode = restrictNode.parentRef;
 		}
 
-		if (isRestricted) {
-			await interaction.reply("That command is disabled in this server.");
+		if (reason) {
+			await interaction.reply(reasonLabels[reason]);
 			return false;
 		}
 	} catch (err) {
