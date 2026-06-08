@@ -1,5 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 const db = require("../../db");
+const { parseSchema } = require("../../lib/userDataMapper");
 
 module.exports = {
 	name: "mydata",
@@ -20,39 +21,32 @@ module.exports = {
 
 		const prisma = db.prisma;
 
-		// STATIC MAP (replaces table introspection)
-		const tableMap = {
-			userGlobalCommandStats: { field: "userId" },
-			userCommandStats: { field: "userId" },
-			todolist: { field: "userId" },
-			reminder: { field: "userId" },
-			globalAfkUser: { field: "userId" },
-			globalAfkMention: { field: "userId" },
-			userTimezone: { field: "userId" },
-			guildUserSettings: { field: "userId" },
-			userVoteStats: { field: "userId" },
-			dblVote: { field: "userId" },
-			idea: { field: "authorId" },
-			ideaVote: { field: "userId" },
-			courtCase: { field: "defendantId" },
-			courtVote: { field: "voterId" },
-		};
+		// AUTO-DISCOVERED from // @userid annotations in schema.prisma
+		const schemaMap = parseSchema();
 
 		const result = {};
 
-		for (const [table, cfg] of Object.entries(tableMap)) {
+		for (const [model, fields] of Object.entries(schemaMap)) {
 			try {
-				const rows = await prisma[table].findMany({
-					where: {
-						[cfg.field]: uid,
-					},
-				});
+				let rows;
+				if (fields.length === 1) {
+					rows = await prisma[model].findMany({
+						where: { [fields[0].field]: uid },
+					});
+				} else {
+					// Model has multiple @userid fields — OR them together
+					rows = await prisma[model].findMany({
+						where: {
+							OR: fields.map((f) => ({ [f.field]: uid })),
+						},
+					});
+				}
 
 				if (rows?.length) {
-					result[table] = rows;
+					result[model] = rows;
 				}
 			} catch (err) {
-				console.log(`Skipping ${table}:`, err.message);
+				console.log(`Skipping ${model}:`, err.message);
 				continue;
 			}
 		}

@@ -12,6 +12,7 @@ datasource db {
 
 model UserGlobalCommandStats {
     id          String   @id @default(cuid())
+    // @userid
     userId      String
     commandName String
     count       Int      @default(0)
@@ -39,6 +40,7 @@ model UserDataObject {
 
 model todolist {
     id        String   @id @default(cuid())
+    // @userid
     userId    String
     content   String
     createdAt DateTime @default(now())
@@ -49,6 +51,7 @@ model todolist {
 
 model reminder {
     id              String   @id @default(cuid())
+    // @userid
     userId          String
     content         String
     remindAt        DateTime
@@ -74,6 +77,7 @@ model GuildSettings {
 }
 
 model UserPrefix {
+	// @userid
 	userId String @id
 	prefix String
 }
@@ -83,6 +87,7 @@ model GuildTag {
 	guildId   String
 	name      String
 	content   String
+	// @userid
 	creatorId String
 	uses      Int      @default(0)
 	createdAt DateTime @default(now())
@@ -94,6 +99,7 @@ model GuildTag {
 
 model ChatMessage {
 	id        String   @id @default(cuid())
+	// @userid
 	userId    String
 	guildId   String?
 	channelId String?
@@ -105,6 +111,7 @@ model ChatMessage {
 }
 
 model GlobalAfkUser {
+    // @userid
     userId String   @id
     reason String?
     since  DateTime @default(now())
@@ -122,6 +129,7 @@ model GlobalAfkUser {
 }
 
 model userTimezone {
+    // @userid
     userId         String   @id
     minsOffset     Int      @default(0)
     timeZoneString String?  @default("NONE")
@@ -132,10 +140,12 @@ model userTimezone {
 
 model GlobalAfkMention {
     id          String   @id @default(cuid())
+    // @userid
     userId      String
     guildId     String
     channelId   String
     messageId   String
+    // @userid
     mentionedBy String
     createdAt   DateTime @default(now())
 
@@ -162,6 +172,7 @@ model ChannelSettings {
 model GuildUserSettings {
 	id      Int    @id @default(autoincrement())
 	guildId String
+	// @userid
 	userId  String
 
 	disabledCommands Json
@@ -179,6 +190,7 @@ model GuildUserSettings {
 // ------------------------------------------------------
 model UserCommandStats {
     id          String   @id @default(cuid())
+    // @userid
     userId      String
     guildId     String // use "dm" for direct messages
     commandName String
@@ -215,14 +227,17 @@ model GlobalCommandStats {
 
 model Idea {
     id       String @id @default(cuid())
+    // @userid
     authorId String
     content  String
     status   String @default("pending") // "pending" | "approved" | "rejected"
 
     // moderation
+    // @userid
     rejectedBy   String?
     rejectedAt   DateTime?
     rejectReason String?
+    // @userid
     approvedBy   String?
     approvedAt   DateTime?
 
@@ -241,6 +256,7 @@ model Idea {
 }
 
 model UserVoteStats {
+    // @userid
     userId            String    @id
     lastVote          DateTime?
     totalVotes        Int       @default(0)
@@ -254,6 +270,7 @@ model UserVoteStats {
 model IdeaVote {
     id        String   @id @default(cuid())
     ideaId    String
+    // @userid
     userId    String
     value     Int // 1 = upvote, -1 = downvote
     createdAt DateTime @default(now())
@@ -265,6 +282,7 @@ model IdeaVote {
 }
 
 model DblVote {
+    // @userid
     userId            String    @id
     lastVote          DateTime?
     totalVotes        Int       @default(0)
@@ -278,7 +296,9 @@ model CourtCase {
     id String @id @default(cuid())
 
     guildId      String
+    // @userid
     defendantId  String
+    // @userid
     prosecutorId String
 
     channelId String
@@ -302,6 +322,7 @@ model CourtVote {
     id String @id @default(cuid())
 
     caseId  String
+    // @userid
     voterId String
 
     /// 1 = guilty, -1 = not guilty
