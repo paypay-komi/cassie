@@ -22,6 +22,34 @@ function walk(dir, files = []) {
 }
 
 /**
+ * Inject a commandId into a command JS file if it doesn't already have one.
+ * Inserts `commandId: "<uuid>",` right after `module.exports = {`.
+ */
+function injectCommandId(filePath) {
+	const raw = fs.readFileSync(filePath, "utf-8");
+	const uuid = crypto.randomUUID();
+
+	// Detect indentation style from the file (tabs or spaces)
+	const indentMatch = raw.match(/\n(\s+)/);
+	const indent = indentMatch ? indentMatch[1] : "\t";
+
+	// Insert commandId after `module.exports = {`
+	const replaced = raw.replace(
+		/(module\.exports\s*=\s*\{)/,
+		`$1\n${indent}commandId: "${uuid}",`,
+	);
+
+	if (replaced === raw) {
+		log.warn(`⚠️ Could not inject commandId into ${filePath}`);
+		return null;
+	}
+
+	fs.writeFileSync(filePath, replaced, "utf-8");
+	log.info(`🔖 Injected commandId ${uuid} into ${filePath}`);
+	return uuid;
+}
+
+/**
  * Recursively collect all possible invocation paths including aliases
  */
 function collectAllPaths(cmd, parents = []) {
@@ -91,14 +119,11 @@ module.exports = function reloadTextCommands(client, targetName) {
 			cmd.parent = cmd.parent?.toLowerCase() ?? null;
 			cmd.aliases = (cmd.aliases || []).map((a) => a.toLowerCase());
 
-			// Generate stable commandId from file path if not already set
+			// Generate + persist commandId if not already set on the module
 			if (!cmd.commandId) {
-				const relPath = path.relative(path.join(__dirname, ".."), filePath);
-				cmd.commandId = crypto
-					.createHash("sha256")
-					.update(relPath)
-					.digest("hex")
-					.slice(0, 16);
+				const uuid = injectCommandId(filePath);
+				if (!uuid) continue; // injection failed
+				cmd.commandId = uuid;
 			}
 
 			// ONLY canonical subcommands
