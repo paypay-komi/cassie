@@ -60,11 +60,33 @@ async function checkPermissions(command, client, message) {
 	let node = command;
 
 	const isGuild = message.inGuild();
+	const isGuildOwner =
+		isGuild && message.author.id === message.guild.ownerId;
 
 	// SAFE: only fetch member in guilds
 	const clientMember = isGuild ? await message.guild.members.fetchMe() : null;
 
 	while (node) {
+		// Guild owner only (unless overrides grant access later)
+		if (node.guildOwnerOnly && !isGuildOwner) {
+			if (!isGuild) {
+				message.reply("This command can only be used in a server.");
+				return false;
+			}
+			message.reply("Only the server owner can use this command.");
+			return false;
+		}
+
+		// Bot owner only
+		if (
+			node.permissions?.includes("botOwner") &&
+			client.owners?.length &&
+			!client.owners.includes(message.author.id)
+		) {
+			message.reply("This command can only be used by bot owners.");
+			return false;
+		}
+
 		// Discord permissions
 		if (node.requiredDiscordPermissions?.length) {
 			if (!isGuild) return true; // DMs bypass permissions safely
@@ -88,16 +110,6 @@ async function checkPermissions(command, client, message) {
 				);
 				return false;
 			}
-		}
-
-		// Bot owner only
-		if (
-			node.permissions?.includes("botOwner") &&
-			client.owners?.length &&
-			!client.owners.includes(message.author.id)
-		) {
-			message.reply("This command can only be used by bot owners.");
-			return false;
 		}
 
 		node = node.parentRef;
