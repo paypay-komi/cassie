@@ -6,6 +6,10 @@ module.exports = {
 	name: Events.GuildCreate,
 	async execute(client, guild) {
 		const log = getLogger("GuildJoin");
+
+		// Only DM owners from shard 0 to prevent duplicate DMs
+		if (client.shard && client.shard.ids[0] !== 0) return;
+
 		log.info(`Joined guild: ${guild.name} (${guild.id})`);
 
 		// DM all bot owners
