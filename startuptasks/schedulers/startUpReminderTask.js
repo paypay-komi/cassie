@@ -7,6 +7,13 @@ module.exports = {
 	timer: null,
 	async execute(client) {
 		const log = getLogger("ReminderTask");
+
+		// Only run on shard 0 to prevent duplicate reminders
+		if (client.shard && client.shard.ids[0] !== 0) {
+			log.info("Not shard 0, skipping reminder task");
+			return;
+		}
+
 		const runTask = async () => {
 			const now = new Date();
 			const reminders = await db.prisma.reminder.findMany({

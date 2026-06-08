@@ -1,31 +1,52 @@
-const { ShardingManager } = require("discord.js");
+const { ShardingManager, Client, GatewayIntentBits } = require("discord.js");
 const path = require("path");
 require("dotenv/config");
 
-const manager = new ShardingManager(path.join(__dirname, "bot.js"), {
-	token: process.env.DISCORD_TOKEN,
-	totalShards: "auto",
-});
+const GUILDS_PER_SHARD = 2;
 
-manager.on("shardCreate", (shard) => {
-	process.stdout.write(`[Shard ${shard.id}] Launched\n`);
+(async () => {
+	const token = process.env.DISCORD_TOKEN;
+	if (!token) {
+		console.error("DISCORD_TOKEN not set in .env");
+		process.exit(1);
+	}
 
-	const attachLogs = () => {
-		if (!shard.process) {
-			setTimeout(attachLogs, 50);
-			return;
-		}
+	// Scout: quick one-shot to count guilds
+	const scout = new Client({ intents: [GatewayIntentBits.Guilds] });
+	await scout.login(token);
+	await new Promise((resolve) => scout.once("ready", resolve));
+	const guildCount = scout.guilds.cache.size;
+	await scout.destroy();
 
-		shard.process.stdout?.on("data", (data) => {
-			process.stdout.write(`[Shard ${shard.id}] ${data}`);
-		});
+	const totalShards = Math.max(1, Math.ceil(guildCount / GUILDS_PER_SHARD));
+	console.log(`[ShardManager] ${guildCount} guilds → ${totalShards} shard(s) (${GUILDS_PER_SHARD}/shard)`);
 
-		shard.process.stderr?.on("data", (data) => {
-			process.stderr.write(`[Shard ${shard.id} ERROR] ${data}`);
-		});
-	};
+	const manager = new ShardingManager(path.join(__dirname, "bot.js"), {
+		token,
+		totalShards,
+	});
 
-	attachLogs();
-});
+	manager.on("shardCreate", (shard) => {
+		process.stdout.write(`[Shard ${shard.id}/${totalShards - 1}] Launched\n`);
 
-manager.spawn();
+		const attachLogs = () => {
+			if (!shard.process) {
+				setTimeout(attachLogs, 50);
+				return;
+			}
+
+			shard.process.stdout?.on("data", (data) => {
+				process.stdout.write(`[Shard ${shard.id}] ${data}`);
+			});
+
+			shard.process.stderr?.on("data", (data) => {
+				process.stderr.write(`[Shard ${shard.id} ERROR] ${data}`);
+			});
+		};
+
+		attachLogs();
+	});
+
+	await manager.spawn({ timeout: -1 });
+	console.log("[ShardManager] All shards spawned");
+})();
