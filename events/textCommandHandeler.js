@@ -202,14 +202,41 @@ module.exports = {
 			return showSubcommandHelp(finalCommand, message);
 		}
 
-		// ---------------------------
-		// Permissions
-		// ---------------------------
-		if (!(await checkPermissions(finalCommand, client, message))) return;
-		if (!handleUseLocation(finalCommand, client, message)) return;
-		// ---------------------------
-		// Execute
-		// ---------------------------
+	// ---------------------------
+	// Permissions
+	// ---------------------------
+	if (!(await checkPermissions(finalCommand, client, message))) return;
+	if (!handleUseLocation(finalCommand, client, message)) return;
+
+	// ---------------------------
+	// Restrictions (disabled/deny overrides)
+	// ---------------------------
+	if (message.inGuild() && finalCommand.commandId) {
+		const isGuildOwner = message.author.id === message.guild.ownerId;
+
+		if (!isGuildOwner) {
+			try {
+				const roleIds = [...message.member.roles.cache.keys()];
+				const effective = await client.db.settings.getEffective(
+					message.guildId,
+					message.channelId,
+					message.author.id,
+					roleIds,
+				);
+
+				if (effective.disabledCommands.includes(finalCommand.commandId)) {
+					return message.reply("That command is disabled in this server.");
+				}
+			} catch (err) {
+				const log = getLogger("TextCmd");
+				log.error("Error checking restrictions:", err);
+			}
+		}
+	}
+
+	// ---------------------------
+	// Execute
+	// ---------------------------
 		try {
 			await finalCommand.execute(message, args);
 

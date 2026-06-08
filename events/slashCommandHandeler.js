@@ -28,6 +28,34 @@ async function checkPermissions(cmd, interaction, client) {
 	return true;
 }
 
+async function checkRestrictions(cmd, interaction) {
+	if (!interaction.inGuild() || !cmd.commandId) return true;
+
+	const isGuildOwner = interaction.user.id === interaction.guild.ownerId;
+	if (isGuildOwner) return true;
+
+	try {
+		const member = interaction.member;
+		const roleIds = member ? [...member.roles.cache.keys()] : [];
+		const effective = await interaction.client.db.settings.getEffective(
+			interaction.guildId,
+			interaction.channelId,
+			interaction.user.id,
+			roleIds,
+		);
+
+		if (effective.disabledCommands.includes(cmd.commandId)) {
+			await interaction.reply("That command is disabled in this server.");
+			return false;
+		}
+	} catch (err) {
+		const log = getLogger("SlashCmd");
+		log.error("Error checking restrictions:", err);
+	}
+
+	return true;
+}
+
 module.exports = {
 	name: "interactionCreate",
 	async execute(client, interaction) {
@@ -36,6 +64,7 @@ module.exports = {
 		if (!cmd) return;
 
 		if (!(await checkPermissions(cmd, interaction, client))) return;
+		if (!(await checkRestrictions(cmd, interaction))) return;
 
 		try {
 			await cmd.execute(interaction);
