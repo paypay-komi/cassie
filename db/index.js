@@ -546,6 +546,7 @@ async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
 
 	return null;
 },
+};
 
 // ------------------------------------------------------
 // EXPORT NAMESPACED DB
