@@ -19,9 +19,7 @@ module.exports = {
 		const content = args.slice(1).join(" ");
 
 		if (!content) {
-			return message.reply(
-				"Tag content cannot be empty.",
-			);
+			return message.reply("Tag content cannot be empty.");
 		}
 
 		if (content.length > 2000) {
