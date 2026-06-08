@@ -1,20 +1,22 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
-	name: "disable",
-	parent: "channel",
+	name: "channel",
+	parent: "enable",
 	description:
-		"Disable a command in a specific channel. Usage: `c.manage channel #channel disable <command>`",
+		"Re-enable a command in a specific channel. Usage: `c.manage enable channel #channel <command>`",
 
 	async execute(message, args) {
-		const channelId = this.parentRef?._targetChannel;
-		if (!channelId || !args.length) {
+		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage channel #channel disable <command>`",
+				"❌ Usage: `c.manage enable channel #channel <command>`",
 			);
 		}
 
+		const raw = args.shift();
+		const channelId = raw.replace(/[<#>]/g, "");
 		const ch = message.guild.channels.cache.get(channelId);
+		if (!ch) return message.reply("❌ Channel not found.");
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;
@@ -28,11 +30,11 @@ module.exports = {
 			message.guildId,
 			channelId,
 			commandId,
-			true,
+			false,
 		);
 
 		return message.reply(
-			`✅ \`${input}\` has been disabled in ${ch.toString()}.`,
+			`✅ \`${input}\` has been re-enabled in ${ch.toString()}.`,
 		);
 	},
 };

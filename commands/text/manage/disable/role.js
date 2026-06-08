@@ -1,20 +1,22 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
-	name: "clear",
-	parent: "role",
+	name: "role",
+	parent: "disable",
 	description:
-		"Remove a role's command access override. Usage: `c.manage role @role clear <command>`",
+		"Deny a role from using a command. Usage: `c.manage disable role @role <command>`",
 
 	async execute(message, args) {
-		const roleId = this.parentRef?._targetRole;
-		if (!roleId || !args.length) {
+		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage role @role clear <command>`",
+				"❌ Usage: `c.manage disable role @role <command>`",
 			);
 		}
 
+		const raw = args.shift();
+		const roleId = raw.replace(/[<@&>]/g, "");
 		const role = message.guild.roles.cache.get(roleId);
+		if (!role) return message.reply("❌ Role not found.");
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;
@@ -24,14 +26,15 @@ module.exports = {
 			return message.reply(`❌ ${err.message}`);
 		}
 
-		await message.client.db.commandAccess.removeRoleAccess(
+		await message.client.db.commandAccess.setRoleAccess(
 			message.guildId,
 			roleId,
 			commandId,
+			false,
 		);
 
 		return message.reply(
-			`✅ Cleared override for **${role.name}** on \`${input}\`.`,
+			`🚫 **${role.name}** is now denied from using \`${input}\`.`,
 		);
 	},
 };

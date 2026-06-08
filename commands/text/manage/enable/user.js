@@ -1,24 +1,27 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
-	name: "allow",
-	parent: "user",
+	name: "user",
+	parent: "enable",
 	description:
-		"Allow a user to use a command. Usage: `c.manage user @user allow <command>`",
+		"Allow a user to use a command. Usage: `c.manage enable user @user <command>`",
 
 	async execute(message, args) {
-		const userId = this.parentRef?._targetUser;
-		if (!userId || !args.length) {
+		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage user @user allow <command>`",
+				"❌ Usage: `c.manage enable user @user <command>`",
 			);
 		}
 
+		const raw = args.shift();
+		const userId = raw.replace(/[<@!>]/g, "");
 		let userName = userId;
 		try {
 			const user = await message.client.users.fetch(userId);
 			userName = user.tag;
-		} catch { /* keep raw ID */ }
+		} catch {
+			return message.reply("❌ User not found.");
+		}
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;

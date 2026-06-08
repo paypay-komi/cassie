@@ -1,6 +1,8 @@
 const { idToName } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "e7e5e366-f96d-4334-99de-98f26fe166d1",
 	name: "guild",
 	parent: "list",
 	description: "List all guild-wide disabled commands.",

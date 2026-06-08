@@ -1,20 +1,22 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
-	name: "deny",
-	parent: "role",
+	name: "role",
+	parent: "enable",
 	description:
-		"Deny a role from using a command. Usage: `c.manage role @role deny <command>`",
+		"Allow a role to use a command. Usage: `c.manage enable role @role <command>`",
 
 	async execute(message, args) {
-		const roleId = this.parentRef?._targetRole;
-		if (!roleId || !args.length) {
+		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage role @role deny <command>`",
+				"❌ Usage: `c.manage enable role @role <command>`",
 			);
 		}
 
+		const raw = args.shift();
+		const roleId = raw.replace(/[<@&>]/g, "");
 		const role = message.guild.roles.cache.get(roleId);
+		if (!role) return message.reply("❌ Role not found.");
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;
@@ -28,11 +30,11 @@ module.exports = {
 			message.guildId,
 			roleId,
 			commandId,
-			false,
+			true,
 		);
 
 		return message.reply(
-			`🚫 **${role.name}** is now denied from using \`${input}\`.`,
+			`✅ **${role.name}** is now allowed to use \`${input}\`.`,
 		);
 	},
 };

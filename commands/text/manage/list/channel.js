@@ -1,6 +1,8 @@
 const { idToName } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "731163e5-c901-4360-8600-aa8bdfc3f478",
 	name: "channel",
 	parent: "list",
 	description: "List channel-specific disabled commands.",

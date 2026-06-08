@@ -1,24 +1,27 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
-	name: "clear",
-	parent: "user",
+	name: "user",
+	parent: "disable",
 	description:
-		"Remove a user's command access override. Usage: `c.manage user @user clear <command>`",
+		"Deny a user from using a command. Usage: `c.manage disable user @user <command>`",
 
 	async execute(message, args) {
-		const userId = this.parentRef?._targetUser;
-		if (!userId || !args.length) {
+		if (args.length < 2) {
 			return message.reply(
-				"❌ Usage: `c.manage user @user clear <command>`",
+				"❌ Usage: `c.manage disable user @user <command>`",
 			);
 		}
 
+		const raw = args.shift();
+		const userId = raw.replace(/[<@!>]/g, "");
 		let userName = userId;
 		try {
 			const user = await message.client.users.fetch(userId);
 			userName = user.tag;
-		} catch { /* keep raw ID */ }
+		} catch {
+			return message.reply("❌ User not found.");
+		}
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;
@@ -28,14 +31,15 @@ module.exports = {
 			return message.reply(`❌ ${err.message}`);
 		}
 
-		await message.client.db.commandAccess.removeUserAccess(
+		await message.client.db.commandAccess.setUserAccess(
 			message.guildId,
 			userId,
 			commandId,
+			false,
 		);
 
 		return message.reply(
-			`✅ Cleared override for **${userName}** on \`${input}\`.`,
+			`🚫 **${userName}** is now denied from using \`${input}\`.`,
 		);
 	},
 };

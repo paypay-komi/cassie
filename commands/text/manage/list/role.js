@@ -1,6 +1,8 @@
 const { idToName } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "4e5bf898-519a-466c-b1cf-b4bb9e5cce1d",
 	name: "role",
 	parent: "list",
 	description: "List all role-based command access overrides. Optionally filter by role: `c.manage list role @role`",

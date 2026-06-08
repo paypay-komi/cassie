@@ -1,6 +1,8 @@
 const { idToName } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "0fa589f7-2207-4b71-b961-abac3f0ffade",
 	name: "user",
 	parent: "list",
 	description: "List all user-based command access overrides.",

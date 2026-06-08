@@ -1,6 +1,8 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "26c859e0-f8aa-4ca3-8e93-c303cc734e98",
 	name: "guild",
 	parent: "enable",
 	description: "Re-enable a guild-wide disabled command. Usage: `c.manage enable guild <command>`",
