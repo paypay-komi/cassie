@@ -5,24 +5,30 @@ async function checkPermissions(cmd, interaction, client) {
 	const isGuildOwner =
 		isGuild && interaction.user.id === interaction.guild.ownerId;
 
-	// Guild owner only (unless overrides grant access later)
-	if (cmd.guildOwnerOnly && !isGuildOwner) {
-		if (!isGuild) {
-			await interaction.reply("This command can only be used in a server.");
+	// Walk parent chain so parent permissions apply to subcommands
+	let node = cmd;
+	while (node) {
+		// Guild owner only
+		if (node.guildOwnerOnly && !isGuildOwner) {
+			if (!isGuild) {
+				await interaction.reply("This command can only be used in a server.");
+				return false;
+			}
+			await interaction.reply("Only the server owner can use this command.");
 			return false;
 		}
-		await interaction.reply("Only the server owner can use this command.");
-		return false;
-	}
 
-	// Bot owner only
-	if (
-		cmd.permissions?.includes("botOwner") &&
-		client.owners?.length &&
-		!client.owners.includes(interaction.user.id)
-	) {
-		await interaction.reply("This command can only be used by bot owners.");
-		return false;
+		// Bot owner only
+		if (
+			node.permissions?.includes("botOwner") &&
+			client.owners?.length &&
+			!client.owners.includes(interaction.user.id)
+		) {
+			await interaction.reply("This command can only be used by bot owners.");
+			return false;
+		}
+
+		node = node.parentRef;
 	}
 
 	return true;
@@ -44,7 +50,21 @@ async function checkRestrictions(cmd, interaction) {
 			roleIds,
 		);
 
-		if (effective.disabledCommands.includes(cmd.commandId)) {
+		// Walk parent chain — disabling a parent blocks all its subcommands
+		let restrictNode = cmd;
+		let isRestricted = false;
+		while (restrictNode) {
+			if (
+				restrictNode.commandId &&
+				effective.disabledCommands.includes(restrictNode.commandId)
+			) {
+				isRestricted = true;
+				break;
+			}
+			restrictNode = restrictNode.parentRef;
+		}
+
+		if (isRestricted) {
 			await interaction.reply("That command is disabled in this server.");
 			return false;
 		}

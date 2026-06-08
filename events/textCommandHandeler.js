@@ -225,7 +225,21 @@ module.exports = {
 					roleIds,
 				);
 
-				if (effective.disabledCommands.includes(finalCommand.commandId)) {
+				// Walk parent chain — disabling a parent blocks all its subcommands
+				let restrictNode = finalCommand;
+				let isRestricted = false;
+				while (restrictNode) {
+					if (
+						restrictNode.commandId &&
+						effective.disabledCommands.includes(restrictNode.commandId)
+					) {
+						isRestricted = true;
+						break;
+					}
+					restrictNode = restrictNode.parentRef;
+				}
+
+				if (isRestricted) {
 					return message.reply("That command is disabled in this server.");
 				}
 			} catch (err) {
