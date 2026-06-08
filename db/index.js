@@ -32,24 +32,6 @@ const guild = {
 			create: { guildId, ...data },
 		});
 	},
-
-	async getRoleDisabledCommands(guildId) {
-		const settings = await this.get(guildId);
-		return settings.roleDisabledCommands || {};
-	},
-
-	async updateRoleDisabledCommands(guildId, roleDisabledCommands) {
-		return this.update(guildId, { roleDisabledCommands });
-	},
-
-	async getUserDisabledCommandsMap(guildId) {
-		const settings = await this.get(guildId);
-		return settings.userDisabledCommands || {};
-	},
-
-	async updateUserDisabledCommandsMap(guildId, userDisabledCommands) {
-		return this.update(guildId, { userDisabledCommands });
-	},
 };
 const ideas = {
 	async handleVote(userId, ideaId, value) {
@@ -353,50 +335,149 @@ const global = {
 };
 
 // ------------------------------------------------------
+// NAMESPACE: commandAccess (replaces old JSON blob columns)
+// ------------------------------------------------------
+const commandAccess = {
+	// Guild-wide disabled commands
+	async getGuildDisabled(guildId) {
+		return prisma.guildDisabledCommand.findMany({ where: { guildId } });
+	},
+
+	async setGuildDisabled(guildId, command, disabled) {
+		if (disabled) {
+			return prisma.guildDisabledCommand.upsert({
+				where: { guildId_command: { guildId, command } },
+				update: {},
+				create: { guildId, command },
+			});
+		}
+		return prisma.guildDisabledCommand
+			.deleteMany({ where: { guildId, command } })
+			.then(() => null);
+	},
+
+	// Channel disabled commands
+	async getChannelDisabled(guildId, channelId) {
+		return prisma.guildChannelDisabledCommand.findMany({
+			where: { guildId, channelId },
+		});
+	},
+
+	async setChannelDisabled(guildId, channelId, command, disabled) {
+		if (disabled) {
+			return prisma.guildChannelDisabledCommand.upsert({
+				where: { channelId_command: { channelId, command } },
+				update: {},
+				create: { guildId, channelId, command },
+			});
+		}
+		return prisma.guildChannelDisabledCommand
+			.deleteMany({ where: { guildId, channelId, command } })
+			.then(() => null);
+	},
+
+	// Role allow/deny
+	async getRoleAccess(guildId, roleId) {
+		return prisma.guildRoleCommandAccess.findMany({
+			where: { guildId, roleId },
+		});
+	},
+
+	async setRoleAccess(guildId, roleId, command, allowed) {
+		return prisma.guildRoleCommandAccess.upsert({
+			where: { guildId_roleId_command: { guildId, roleId, command } },
+			update: { allowed },
+			create: { guildId, roleId, command, allowed },
+		});
+	},
+
+	async removeRoleAccess(guildId, roleId, command) {
+		return prisma.guildRoleCommandAccess
+			.deleteMany({ where: { guildId, roleId, command } })
+			.then(() => null);
+	},
+
+	async clearRoleAccess(guildId, roleId) {
+		return prisma.guildRoleCommandAccess
+			.deleteMany({ where: { guildId, roleId } })
+			.then(() => null);
+	},
+
+	// User allow/deny
+	async getUserAccess(guildId, userId) {
+		return prisma.guildUserCommandAccess.findMany({
+			where: { guildId, userId },
+		});
+	},
+
+	async setUserAccess(guildId, userId, command, allowed) {
+		return prisma.guildUserCommandAccess.upsert({
+			where: { guildId_userId_command: { guildId, userId, command } },
+			update: { allowed },
+			create: { guildId, userId, command, allowed },
+		});
+	},
+
+	async removeUserAccess(guildId, userId, command) {
+		return prisma.guildUserCommandAccess
+			.deleteMany({ where: { guildId, userId, command } })
+			.then(() => null);
+	},
+
+	async clearUserAccess(guildId, userId) {
+		return prisma.guildUserCommandAccess
+			.deleteMany({ where: { guildId, userId } })
+			.then(() => null);
+	},
+};
+
+// ------------------------------------------------------
 // NAMESPACE: settings (merged effective settings)
 // ------------------------------------------------------
 const settings = {
 	async getEffective(guildId, channelId, userId, roleIds = []) {
-		const [g, ch, u] = await Promise.all([
-			guild.get(guildId),
-			channel.get(guildId, channelId),
-			user.get(guildId, userId),
+		const [g, ch, u, guildDisabled, channelDisabled, roleAccess, userAccess] =
+			await Promise.all([
+				guild.get(guildId),
+				channel.get(guildId, channelId),
+				user.get(guildId, userId),
+				prisma.guildDisabledCommand.findMany({ where: { guildId } }),
+				prisma.guildChannelDisabledCommand.findMany({
+					where: { guildId, channelId },
+				}),
+				roleIds.length > 0
+					? prisma.guildRoleCommandAccess.findMany({
+							where: { guildId, roleId: { in: roleIds } },
+						})
+					: [],
+				prisma.guildUserCommandAccess.findMany({ where: { guildId, userId } }),
+			]);
+
+		// Start with guild-level + channel-level disabled
+		const disabledSet = new Set([
+			...guildDisabled.map((r) => r.command),
+			...channelDisabled.map((r) => r.command),
 		]);
 
-		const guildDisabled = Array.isArray(g.disabledCommands)
-			? g.disabledCommands
-			: [];
-
-		const channelDisabled = Array.isArray(ch.disabledCommands)
-			? ch.disabledCommands
-			: [];
-
-		const userRowDisabled = Array.isArray(u.disabledCommands)
-			? u.disabledCommands
-			: [];
-
-		const roleDisabledMap = g.roleDisabledCommands || {};
-		const userDisabledMap = g.userDisabledCommands || {};
-
-		const roleDisabled = new Set();
-		for (const roleId of roleIds) {
-			const arr = roleDisabledMap[roleId];
-			if (Array.isArray(arr)) {
-				for (const cmd of arr) roleDisabled.add(cmd);
-			}
+		// Apply role-level deny (add to disabled set)
+		for (const r of roleAccess) {
+			if (!r.allowed) disabledSet.add(r.command);
 		}
 
-		const userMapDisabled = Array.isArray(userDisabledMap[userId])
-			? userDisabledMap[userId]
-			: [];
+		// Apply user-level deny (add to disabled set)
+		for (const r of userAccess) {
+			if (!r.allowed) disabledSet.add(r.command);
+		}
 
-		const disabledSet = new Set([
-			...guildDisabled,
-			...channelDisabled,
-			...roleDisabled,
-			...userRowDisabled,
-			...userMapDisabled,
-		]);
+		// Apply role-level allow (remove from disabled set)
+		for (const r of roleAccess) {
+			if (r.allowed) disabledSet.delete(r.command);
+		}
+
+		// Apply user-level allow (remove from disabled set) — highest priority
+		for (const r of userAccess) {
+			if (r.allowed) disabledSet.delete(r.command);
+		}
 
 		return {
 			guildId,
@@ -425,6 +506,7 @@ const db = {
 	global,
 	ideas,
 	settings,
+	commandAccess,
 	userPrefix,
 	chatHistory,
 };

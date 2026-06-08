@@ -67,13 +67,14 @@ model reminder {
 // Guild-Level Settings
 // ------------------------------------------------------
 model GuildSettings {
-	guildId              String  @id
-	disabledCommands     Json
-	roleDisabledCommands Json
-	userDisabledCommands Json
+	guildId String  @id
 
-    channels     ChannelSettings[]
-    userSettings GuildUserSettings[]
+    channels              ChannelSettings[]
+    userSettings          GuildUserSettings[]
+    disabledCommands      GuildDisabledCommand[]
+    channelDisabledCmds   GuildChannelDisabledCommand[]
+    roleCommandAccess     GuildRoleCommandAccess[]
+    userCommandAccess     GuildUserCommandAccess[]
 }
 
 model UserPrefix {
@@ -160,7 +161,6 @@ model GlobalAfkMention {
 model ChannelSettings {
     id               Int    @id @default(autoincrement())
     channelId        String
-    disabledCommands Json
 
     guild   GuildSettings @relation(fields: [guildId], references: [guildId])
     guildId String
@@ -175,7 +175,6 @@ model GuildUserSettings {
 	// @userid
 	userId  String
 
-	disabledCommands Json
 	statTracking     Boolean @default(true)
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId])
@@ -335,6 +334,66 @@ model CourtVote {
 
     @@unique([caseId, voterId])
     @@index([voterId])
+}
+
+// ------------------------------------------------------
+// Command Access Control (replaces old JSON blobs)
+// ------------------------------------------------------
+
+// Guild-wide disabled command (no one can use it without an allow override)
+model GuildDisabledCommand {
+    id      String @id @default(cuid())
+    guildId String
+    command String
+
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+    @@unique([guildId, command])
+    @@index([guildId])
+}
+
+// Channel-specific disabled command
+model GuildChannelDisabledCommand {
+    id        String @id @default(cuid())
+    guildId   String
+    channelId String
+    command   String
+
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+    @@unique([channelId, command])
+    @@index([guildId])
+    @@index([channelId])
+}
+
+// Per-role command access (allow = bypass guild/channel disable, deny = block regardless)
+model GuildRoleCommandAccess {
+    id      String  @id @default(cuid())
+    guildId String
+    roleId  String
+    command String
+    allowed Boolean  // true = allowed (bypasses guild/channel disable), false = denied
+
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+    @@unique([guildId, roleId, command])
+    @@index([guildId])
+    @@index([roleId])
+}
+
+// Per-user command access (allow = bypass everything, deny = block regardless)
+model GuildUserCommandAccess {
+    id      String  @id @default(cuid())
+    guildId String
+    userId  String
+    command String
+    allowed Boolean  // true = allowed (bypasses guild/channel/role disable), false = denied
+
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+    @@unique([guildId, userId, command])
+    @@index([guildId])
+    @@index([userId])
 }
 
 enum CourtStatus {
