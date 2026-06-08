@@ -7,16 +7,14 @@ module.exports = {
 		"Remove a role's command access override. Usage: `c.manage role @role clear <command>`",
 
 	async execute(message, args) {
-		const target = this._middleArgs?.[0];
-		if (!target || !args.length) {
+		const roleId = this.parentRef?._targetRole;
+		if (!roleId || !args.length) {
 			return message.reply(
 				"❌ Usage: `c.manage role @role clear <command>`",
 			);
 		}
 
-		const roleId = target.replace(/[<@&>]/g, "");
 		const role = message.guild.roles.cache.get(roleId);
-		if (!role) return message.reply("❌ Role not found.");
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;

@@ -26,47 +26,32 @@ function showSubcommandHelp(command, message) {
 }
 
 /**
- * Resolve nested subcommands (supports aliases and middle args).
+ * Resolve nested subcommands (supports aliases).
+ * Stops at the first arg that doesn't match a subcommand name.
  *
- * Middle args are args that don't match any subcommand at a given level.
- * They are collected and stored on the final leaf command as `_middleArgs[]`.
- *
- * Example: `c.manage channel #general disable tag`
- *   manage → channel (next) → #general (middle) → disable (next) → tag (none)
- *   Result: command=disable, args=["tag"], disable._middleArgs=["#general"]
+ * The resolved command's `execute` receives the remaining args and a `next()`
+ * callback. If the command wants to continue subcommand resolution after
+ * consuming some args, it can call `next(remainingArgs)`.
  */
 function resolveNested(command, args) {
 	let current = command;
 	const path = [current.name];
-	const middleArgs = [];
 
-	while (
-		args.length &&
-		current.subcommands &&
-		Object.keys(current.subcommands).length > 0
-	) {
+	while (args.length && current.subcommands) {
 		const input = args[0].toLowerCase();
 
-		// Check name first, then aliases
 		const next =
 			current.subcommands[input] ||
 			Object.values(current.subcommands).find((sc) =>
 				sc.aliases?.includes(input),
 			);
 
-		if (!next) {
-			// Not a subcommand — stash as a middle arg for the leaf
-			middleArgs.push(args.shift());
-			continue;
-		}
+		if (!next) break;
 
 		args.shift();
 		current = next;
 		path.push(current.name);
 	}
-
-	// Attach middle args so leaf commands can get their target
-	current._middleArgs = middleArgs;
 
 	return { command: current, path };
 }
@@ -214,13 +199,6 @@ module.exports = {
 		// ---------------------------
 		const { command: finalCommand, path } = resolveNested(command, args);
 
-		// ---------------------------
-		// Auto parent help if no execute()
-		// ---------------------------
-		if (typeof finalCommand.execute !== "function") {
-			return showSubcommandHelp(finalCommand, message);
-		}
-
 	// ---------------------------
 	// Use location (dm vs guild) — cheapest check first
 	// ---------------------------
@@ -258,20 +236,38 @@ module.exports = {
 	}
 
 	// ---------------------------
-	// Execute
+	// Execute — with next() for intermediate commands
 	// ---------------------------
+	async function runCommandChain(cmd, remArgs, pathSoFar) {
+		if (typeof cmd.execute !== "function") {
+			return showSubcommandHelp(cmd, message);
+		}
+
+		// next() lets intermediate commands continue subcommand resolution
+		// after consuming target args
+		const next = async (remainingArgs) => {
+			const { command: sub, path: subPath } = resolveNested(
+				cmd,
+				remainingArgs,
+			);
+
+			if (sub === cmd || typeof sub.execute !== "function") {
+				return showSubcommandHelp(sub, message);
+			}
+
+			// Append new segments to the existing path
+			const fullPath = [...pathSoFar, ...subPath.slice(1)];
+			return runCommandChain(sub, remainingArgs, fullPath);
+		};
+
 		try {
-			await finalCommand.execute(message, args);
+			await cmd.execute(message, remArgs, next);
 
-			// ---------------------------
 			// Stats
-			// ---------------------------
-			const statName = path.join(".");
-
+			const statName = pathSoFar.join(".");
 			if (message.inGuild()) {
-				const gid = message.guild.id;
 				await client.db.stats.incrementUserCommand(
-					gid,
+					message.guildId,
 					message.author.id,
 					statName,
 				);
@@ -283,8 +279,11 @@ module.exports = {
 			await client.db.stats.incrementGlobalCommand(statName);
 		} catch (err) {
 			const log = getLogger("TextCmd");
-			log.error(`Error executing ${path.join(".")}:`, err);
+			log.error(`Error executing ${pathSoFar.join(".")}:`, err);
 			message.reply("There was an error executing that command.");
 		}
+	}
+
+	await runCommandChain(finalCommand, args, path);
 	},
 };

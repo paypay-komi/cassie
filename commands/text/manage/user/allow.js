@@ -7,14 +7,13 @@ module.exports = {
 		"Allow a user to use a command. Usage: `c.manage user @user allow <command>`",
 
 	async execute(message, args) {
-		const target = this._middleArgs?.[0];
-		if (!target || !args.length) {
+		const userId = this.parentRef?._targetUser;
+		if (!userId || !args.length) {
 			return message.reply(
 				"❌ Usage: `c.manage user @user allow <command>`",
 			);
 		}
 
-		const userId = target.replace(/[<@!>]/g, "");
 		let userName = userId;
 		try {
 			const user = await message.client.users.fetch(userId);

@@ -7,16 +7,14 @@ module.exports = {
 		"Re-enable a command in a specific channel. Usage: `c.manage channel #channel enable <command>`",
 
 	async execute(message, args) {
-		const target = this._middleArgs?.[0];
-		if (!target || !args.length) {
+		const channelId = this.parentRef?._targetChannel;
+		if (!channelId || !args.length) {
 			return message.reply(
 				"❌ Usage: `c.manage channel #channel enable <command>`",
 			);
 		}
 
-		const channelId = target.replace(/[<#>]/g, "");
 		const ch = message.guild.channels.cache.get(channelId);
-		if (!ch) return message.reply("❌ Channel not found.");
 
 		const input = args.join(" ").toLowerCase();
 		let commandId;
