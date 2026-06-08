@@ -246,7 +246,26 @@ module.exports = {
 				}
 
 				if (reason) {
-					return message.reply(reasonLabels[reason]);
+					let msg = reasonLabels[reason];
+
+					// If restricted, check if the command is allowed in other channels
+					try {
+						const allowedChIds = await client.db.settings.getChannelAllowLocations(
+							message.guildId,
+							finalCommand.commandId,
+						);
+						if (allowedChIds.length > 0) {
+							const mentions = allowedChIds
+								.map((id) => message.guild.channels.cache.get(id))
+								.filter(Boolean)
+								.map((ch) => ch.toString());
+							if (mentions.length > 0) {
+								msg += ` ✅ Allowed in: ${mentions.join(", ")}`;
+							}
+						}
+					} catch { /* non-fatal */ }
+
+					return message.reply(msg);
 				}
 			} catch (err) {
 				const log = getLogger("TextCmd");

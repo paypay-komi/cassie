@@ -71,7 +71,27 @@ async function checkRestrictions(cmd, interaction) {
 		}
 
 		if (reason) {
-			await interaction.reply(reasonLabels[reason]);
+			let msg = reasonLabels[reason];
+
+			// If restricted, check if the command is allowed in other channels
+			try {
+				const allowedChIds = await interaction.client.db.settings.getChannelAllowLocations(
+					interaction.guildId,
+					cmd.commandId,
+				);
+				if (allowedChIds.length > 0) {
+					const guild = interaction.guild;
+					const mentions = allowedChIds
+						.map((id) => guild.channels.cache.get(id))
+						.filter(Boolean)
+						.map((ch) => ch.toString());
+					if (mentions.length > 0) {
+						msg += ` ✅ Allowed in: ${mentions.join(", ")}`;
+					}
+				}
+			} catch { /* non-fatal */ }
+
+			await interaction.reply(msg);
 			return false;
 		}
 	} catch (err) {

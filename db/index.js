@@ -554,6 +554,17 @@ async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
 
 	return null;
 },
+
+/**
+ * Get all channel IDs where a command has an allow override.
+ */
+async getChannelAllowLocations(guildId, commandId) {
+	const rows = await prisma.guildChannelCommandAccess.findMany({
+		where: { guildId, commandId, allowed: true },
+		select: { channelId: true },
+	});
+	return rows.map((r) => r.channelId);
+},
 };
 
 // ------------------------------------------------------
