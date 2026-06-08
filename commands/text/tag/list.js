@@ -4,6 +4,7 @@ module.exports = {
 	parent: "tag",
 	description: "List all tags in this guild.",
 	aliases: ["all"],
+	guildOwnerOnly: true,
 	dmUse: false,
 
 	async execute(message, args) {

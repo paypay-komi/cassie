@@ -3,6 +3,7 @@ module.exports = {
 	name: "info",
 	parent: "tag",
 	description: "Show metadata about a tag.",
+	guildOwnerOnly: true,
 	dmUse: false,
 
 	async execute(message, args) {

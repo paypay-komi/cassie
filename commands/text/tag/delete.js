@@ -7,6 +7,7 @@ commandId: "b9c83c22-006c-418f-bf37-8bbfd278e43c",
 	parent: "tag",
 	description: "Delete a tag. Only the creator or members with Manage Messages can delete tags.",
 	aliases: ["del", "remove", "rm"],
+	guildOwnerOnly: true,
 	dmUse: false,
 
 	async execute(message, args) {

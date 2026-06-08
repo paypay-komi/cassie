@@ -6,6 +6,7 @@ commandId: "72955a75-0960-4591-a994-d94adfcc6da1",
 	name: "edit",
 	parent: "tag",
 	description: "Edit a tag's content. Only the creator or members with Manage Messages can edit tags.",
+	guildOwnerOnly: true,
 	dmUse: false,
 
 	async execute(message, args) {

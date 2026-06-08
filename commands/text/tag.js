@@ -6,6 +6,7 @@ commandId: "9d0b8ce5-bb87-42a4-bd84-ac47b288ceb8",
 	name: "tag",
 	description: "View a tag or manage tags for this guild.",
 	aliases: ["tags"],
+	guildOwnerOnly: true,
 	dmUse: false,
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,

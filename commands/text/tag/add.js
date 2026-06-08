@@ -3,6 +3,7 @@ module.exports = {
 	name: "add",
 	parent: "tag",
 	description: "Create a new tag.",
+	guildOwnerOnly: true,
 	dmUse: false,
 
 	async execute(message, args) {
