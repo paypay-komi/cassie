@@ -356,24 +356,19 @@ const commandAccess = {
 			.then(() => null);
 	},
 
-	// Channel disabled commands
-	async getChannelDisabled(guildId, channelId) {
-		return prisma.guildChannelDisabledCommand.findMany({
+	// Channel access (allow/deny override)
+	async getChannelAccess(guildId, channelId) {
+		return prisma.guildChannelCommandAccess.findMany({
 			where: { guildId, channelId },
 		});
 	},
 
-	async setChannelDisabled(guildId, channelId, commandId, disabled) {
-		if (disabled) {
-			return prisma.guildChannelDisabledCommand.upsert({
-				where: { channelId_commandId: { channelId, commandId } },
-				update: {},
-				create: { guildId, channelId, commandId },
-			});
-		}
-		return prisma.guildChannelDisabledCommand
-			.deleteMany({ where: { guildId, channelId, commandId } })
-			.then(() => null);
+	async setChannelAccess(guildId, channelId, commandId, allowed) {
+		return prisma.guildChannelCommandAccess.upsert({
+			where: { channelId_commandId: { channelId, commandId } },
+			update: { allowed },
+			create: { guildId, channelId, commandId, allowed },
+		});
 	},
 
 	// Role allow/deny
@@ -436,13 +431,13 @@ const commandAccess = {
 // ------------------------------------------------------
 const settings = {
 	async getEffective(guildId, channelId, userId, roleIds = []) {
-		const [g, ch, u, guildDisabled, channelDisabled, roleAccess, userAccess] =
+		const [g, ch, u, guildDisabled, channelAccess, roleAccess, userAccess] =
 			await Promise.all([
 				guild.get(guildId),
 				channel.get(guildId, channelId),
 				user.get(guildId, userId),
 				prisma.guildDisabledCommand.findMany({ where: { guildId } }),
-				prisma.guildChannelDisabledCommand.findMany({
+				prisma.guildChannelCommandAccess.findMany({
 					where: { guildId, channelId },
 				}),
 				roleIds.length > 0
@@ -453,11 +448,15 @@ const settings = {
 				prisma.guildUserCommandAccess.findMany({ where: { guildId, userId } }),
 			]);
 
-		// Start with guild-level + channel-level disabled
+		// Start with guild-level disabled
 		const disabledSet = new Set([
 			...guildDisabled.map((r) => r.commandId),
-			...channelDisabled.map((r) => r.commandId),
 		]);
+
+		// Apply channel-level deny (add to disabled set)
+		for (const r of channelAccess) {
+			if (!r.allowed) disabledSet.add(r.commandId);
+		}
 
 		// Apply role-level deny (add to disabled set)
 		for (const r of roleAccess) {
@@ -467,6 +466,11 @@ const settings = {
 		// Apply user-level deny (add to disabled set)
 		for (const r of userAccess) {
 			if (!r.allowed) disabledSet.add(r.commandId);
+		}
+
+		// Apply channel-level allow (remove from disabled set)
+		for (const r of channelAccess) {
+			if (r.allowed) disabledSet.delete(r.commandId);
 		}
 
 		// Apply role-level allow (remove from disabled set)
@@ -499,12 +503,13 @@ const settings = {
  * Returns one of: "server", "channel", "role", "user", or null if not restricted.
  *
  * Priority (highest to lowest):
- *   user allow → not restricted
- *   role allow → not restricted
- *   user deny  → "user"
- *   role deny  → "role"
- *   channel    → "channel"
- *   guild      → "server"
+ *   user allow  → not restricted
+ *   role allow  → not restricted
+ *   channel allow → not restricted
+ *   user deny   → "user"
+ *   role deny   → "role"
+ *   channel deny → "channel"
+ *   guild       → "server"
  */
 async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
 	// User allow — overrides everything
@@ -526,17 +531,20 @@ async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
 	}
 	if (roleEntries.some((r) => r.allowed)) return null;
 
+	// Channel allow — overrides guild disable and channel deny
+	const channelEntry = await prisma.guildChannelCommandAccess.findUnique({
+		where: { channelId_commandId: { channelId, commandId } },
+	});
+	if (channelEntry?.allowed) return null;
+
 	// User deny
 	if (userAccess && !userAccess.allowed) return "user";
 
 	// Role deny
 	if (roleEntries.some((r) => !r.allowed)) return "role";
 
-	// Channel disable
-	const channelDisabled = await prisma.guildChannelDisabledCommand.findUnique({
-		where: { channelId_commandId: { channelId, commandId } },
-	});
-	if (channelDisabled) return "channel";
+	// Channel deny
+	if (channelEntry && !channelEntry.allowed) return "channel";
 
 	// Guild disable
 	const guildDisabled = await prisma.guildDisabledCommand.findUnique({

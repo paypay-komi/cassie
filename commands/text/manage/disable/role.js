@@ -1,6 +1,8 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "86781955-2794-4e86-a44c-0dad06620d30",
 	name: "role",
 	parent: "disable",
 	description:

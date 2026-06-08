@@ -1,6 +1,8 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "c62f1a19-b3cd-40f0-880f-702716c3b7c7",
 	name: "channel",
 	parent: "disable",
 	description:
@@ -26,15 +28,15 @@ module.exports = {
 			return message.reply(`❌ ${err.message}`);
 		}
 
-		await message.client.db.commandAccess.setChannelDisabled(
+		await message.client.db.commandAccess.setChannelAccess(
 			message.guildId,
 			channelId,
 			commandId,
-			true,
+			false,
 		);
 
 		return message.reply(
-			`🚫 \`${input}\` has been disabled in ${ch.toString()}.`,
+			`🚫 \`${input}\` is now denied in ${ch.toString()}.`,
 		);
 	},
 };

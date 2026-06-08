@@ -72,7 +72,7 @@ model GuildSettings {
     channels              ChannelSettings[]
     userSettings          GuildUserSettings[]
     disabledCommands      GuildDisabledCommand[]
-    channelDisabledCmds   GuildChannelDisabledCommand[]
+    channelCommandAccess   GuildChannelCommandAccess[]
     roleCommandAccess     GuildRoleCommandAccess[]
     userCommandAccess     GuildUserCommandAccess[]
 }
@@ -352,12 +352,13 @@ model GuildDisabledCommand {
     @@index([guildId])
 }
 
-// Channel-specific disabled command
-model GuildChannelDisabledCommand {
-    id        String @id @default(cuid())
+// Channel-level command access (allow/deny override)
+model GuildChannelCommandAccess {
+    id        String  @id @default(cuid())
     guildId   String
     channelId String
     commandId String
+    allowed   Boolean @default(false)  // true = allow override, false = deny
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 

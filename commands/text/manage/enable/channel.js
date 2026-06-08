@@ -1,6 +1,8 @@
 const { resolveRequired } = require("../../../../lib/commandResolver");
 
 module.exports = {
+
+commandId: "e7976110-87aa-4ccc-a7dd-8b07acb2b696",
 	name: "channel",
 	parent: "enable",
 	description:
@@ -26,15 +28,15 @@ module.exports = {
 			return message.reply(`❌ ${err.message}`);
 		}
 
-		await message.client.db.commandAccess.setChannelDisabled(
+		await message.client.db.commandAccess.setChannelAccess(
 			message.guildId,
 			channelId,
 			commandId,
-			false,
+			true,
 		);
 
 		return message.reply(
-			`✅ \`${input}\` has been re-enabled in ${ch.toString()}.`,
+			`✅ \`${input}\` is now allowed in ${ch.toString()}. This will override guild-wide and channel-specific disables.`,
 		);
 	},
 };

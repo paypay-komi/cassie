@@ -5,17 +5,17 @@ module.exports = {
 commandId: "731163e5-c901-4360-8600-aa8bdfc3f478",
 	name: "channel",
 	parent: "list",
-	description: "List channel-specific disabled commands.",
+	description: "List channel-specific allow/deny overrides.",
 
 	async execute(message, args) {
 		const { db } = message.client;
 
-		const rows = await db.prisma.guildChannelDisabledCommand.findMany({
+		const rows = await db.prisma.guildChannelCommandAccess.findMany({
 			where: { guildId: message.guildId },
 		});
 
 		if (!rows.length) {
-			return message.reply("No channel-specific disabled commands.");
+			return message.reply("No channel-specific command overrides.");
 		}
 
 		const lines = [];
@@ -23,11 +23,12 @@ commandId: "731163e5-c901-4360-8600-aa8bdfc3f478",
 			const name = idToName(message.client, r.commandId) ?? `${r.commandId} *(unknown)*`;
 			const ch = message.guild.channels.cache.get(r.channelId);
 			const chName = ch ? ch.toString() : `\`${r.channelId}\``;
-			lines.push(`• ${chName} → \`${name}\``);
+			const icon = r.allowed ? "✅" : "🚫";
+			lines.push(`• ${chName} ${icon} \`${name}\``);
 		}
 
 		lines.sort();
-		let current = "📺 **Channel-Disabled Commands**\n\n";
+		let current = "📺 **Channel Command Overrides**\n*(✅ = allowed, 🚫 = denied)*\n\n";
 		for (const line of lines) {
 			const next = current + line + "\n";
 			if (next.length > 1900) {
