@@ -11,6 +11,8 @@ const SYSTEM_PROMPT = {
 const MAX_HISTORY = 20;
 const EDIT_INTERVAL = 1000; // throttle edits (ms) — Discord is ~1/sec per message
 const DISCORD_LIMIT = 2000;
+const MAX_RESPONSE_LENGTH = 10000; // safety cutoff: chars before we force-stop
+const MAX_DURATION = 60_000;        // safety cutoff: ms before we force-stop
 
 module.exports = {
 
@@ -119,10 +121,21 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 			// ---------- stream loop ----------
 
 			let lastEdit = 0;
+			const startTime = Date.now();
+			let cutOff = false;
 
 			while (true) {
 				const { done, value } = await reader.read();
 				if (done) break;
+
+				// Safety cutoffs — prevent infinite generation
+				const overLength = fullResponse.length >= MAX_RESPONSE_LENGTH;
+				const overTime = Date.now() - startTime >= MAX_DURATION;
+				if (overLength || overTime) {
+					reader.cancel().catch(() => {});
+					cutOff = true;
+					break;
+				}
 
 				buffer += decoder.decode(value, { stream: true });
 
@@ -153,6 +166,12 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 
 			// Final update — makes sure the last message is complete
 			await updateStream();
+
+			if (cutOff) {
+				await message.channel.send(
+					"⚠️ Response was cut off (hit length or time limit). Try asking in shorter messages.",
+				);
+			}
 
 			// Persist assistant response to DB
 			await message.client.db.chatHistory.add(
