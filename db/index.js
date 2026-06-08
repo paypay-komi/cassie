@@ -343,16 +343,16 @@ const commandAccess = {
 		return prisma.guildDisabledCommand.findMany({ where: { guildId } });
 	},
 
-	async setGuildDisabled(guildId, command, disabled) {
+	async setGuildDisabled(guildId, commandId, disabled) {
 		if (disabled) {
 			return prisma.guildDisabledCommand.upsert({
-				where: { guildId_command: { guildId, command } },
+				where: { guildId_commandId: { guildId, commandId } },
 				update: {},
-				create: { guildId, command },
+				create: { guildId, commandId },
 			});
 		}
 		return prisma.guildDisabledCommand
-			.deleteMany({ where: { guildId, command } })
+			.deleteMany({ where: { guildId, commandId } })
 			.then(() => null);
 	},
 
@@ -363,16 +363,16 @@ const commandAccess = {
 		});
 	},
 
-	async setChannelDisabled(guildId, channelId, command, disabled) {
+	async setChannelDisabled(guildId, channelId, commandId, disabled) {
 		if (disabled) {
 			return prisma.guildChannelDisabledCommand.upsert({
-				where: { channelId_command: { channelId, command } },
+				where: { channelId_commandId: { channelId, commandId } },
 				update: {},
-				create: { guildId, channelId, command },
+				create: { guildId, channelId, commandId },
 			});
 		}
 		return prisma.guildChannelDisabledCommand
-			.deleteMany({ where: { guildId, channelId, command } })
+			.deleteMany({ where: { guildId, channelId, commandId } })
 			.then(() => null);
 	},
 
@@ -383,17 +383,17 @@ const commandAccess = {
 		});
 	},
 
-	async setRoleAccess(guildId, roleId, command, allowed) {
+	async setRoleAccess(guildId, roleId, commandId, allowed) {
 		return prisma.guildRoleCommandAccess.upsert({
-			where: { guildId_roleId_command: { guildId, roleId, command } },
+			where: { guildId_roleId_commandId: { guildId, roleId, commandId } },
 			update: { allowed },
-			create: { guildId, roleId, command, allowed },
+			create: { guildId, roleId, commandId, allowed },
 		});
 	},
 
-	async removeRoleAccess(guildId, roleId, command) {
+	async removeRoleAccess(guildId, roleId, commandId) {
 		return prisma.guildRoleCommandAccess
-			.deleteMany({ where: { guildId, roleId, command } })
+			.deleteMany({ where: { guildId, roleId, commandId } })
 			.then(() => null);
 	},
 
@@ -410,17 +410,17 @@ const commandAccess = {
 		});
 	},
 
-	async setUserAccess(guildId, userId, command, allowed) {
+	async setUserAccess(guildId, userId, commandId, allowed) {
 		return prisma.guildUserCommandAccess.upsert({
-			where: { guildId_userId_command: { guildId, userId, command } },
+			where: { guildId_userId_commandId: { guildId, userId, commandId } },
 			update: { allowed },
-			create: { guildId, userId, command, allowed },
+			create: { guildId, userId, commandId, allowed },
 		});
 	},
 
-	async removeUserAccess(guildId, userId, command) {
+	async removeUserAccess(guildId, userId, commandId) {
 		return prisma.guildUserCommandAccess
-			.deleteMany({ where: { guildId, userId, command } })
+			.deleteMany({ where: { guildId, userId, commandId } })
 			.then(() => null);
 	},
 
@@ -455,28 +455,28 @@ const settings = {
 
 		// Start with guild-level + channel-level disabled
 		const disabledSet = new Set([
-			...guildDisabled.map((r) => r.command),
-			...channelDisabled.map((r) => r.command),
+			...guildDisabled.map((r) => r.commandId),
+			...channelDisabled.map((r) => r.commandId),
 		]);
 
 		// Apply role-level deny (add to disabled set)
 		for (const r of roleAccess) {
-			if (!r.allowed) disabledSet.add(r.command);
+			if (!r.allowed) disabledSet.add(r.commandId);
 		}
 
 		// Apply user-level deny (add to disabled set)
 		for (const r of userAccess) {
-			if (!r.allowed) disabledSet.add(r.command);
+			if (!r.allowed) disabledSet.add(r.commandId);
 		}
 
 		// Apply role-level allow (remove from disabled set)
 		for (const r of roleAccess) {
-			if (r.allowed) disabledSet.delete(r.command);
+			if (r.allowed) disabledSet.delete(r.commandId);
 		}
 
 		// Apply user-level allow (remove from disabled set) — highest priority
 		for (const r of userAccess) {
-			if (r.allowed) disabledSet.delete(r.command);
+			if (r.allowed) disabledSet.delete(r.commandId);
 		}
 
 		return {

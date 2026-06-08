@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { getLogger } = require("../lib/logger");
 
 const log = getLogger("ReloadTextCmds");
@@ -89,6 +90,16 @@ module.exports = function reloadTextCommands(client, targetName) {
 			cmd.name = cmd.name.toLowerCase();
 			cmd.parent = cmd.parent?.toLowerCase() ?? null;
 			cmd.aliases = (cmd.aliases || []).map((a) => a.toLowerCase());
+
+			// Generate stable commandId from file path if not already set
+			if (!cmd.commandId) {
+				const relPath = path.relative(path.join(__dirname, ".."), filePath);
+				cmd.commandId = crypto
+					.createHash("sha256")
+					.update(relPath)
+					.digest("hex")
+					.slice(0, 16);
+			}
 
 			// ONLY canonical subcommands
 			cmd.subcommands ??= {};

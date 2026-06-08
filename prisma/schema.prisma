@@ -342,13 +342,13 @@ model CourtVote {
 
 // Guild-wide disabled command (no one can use it without an allow override)
 model GuildDisabledCommand {
-    id      String @id @default(cuid())
-    guildId String
-    command String
+    id        String @id @default(cuid())
+    guildId   String
+    commandId String
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
-    @@unique([guildId, command])
+    @@unique([guildId, commandId])
     @@index([guildId])
 }
 
@@ -357,41 +357,41 @@ model GuildChannelDisabledCommand {
     id        String @id @default(cuid())
     guildId   String
     channelId String
-    command   String
+    commandId String
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
-    @@unique([channelId, command])
+    @@unique([channelId, commandId])
     @@index([guildId])
     @@index([channelId])
 }
 
 // Per-role command access (allow = bypass guild/channel disable, deny = block regardless)
 model GuildRoleCommandAccess {
-    id      String  @id @default(cuid())
-    guildId String
-    roleId  String
-    command String
-    allowed Boolean  // true = allowed (bypasses guild/channel disable), false = denied
+    id        String  @id @default(cuid())
+    guildId   String
+    roleId    String
+    commandId String
+    allowed   Boolean  // true = allowed (bypasses guild/channel disable), false = denied
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
-    @@unique([guildId, roleId, command])
+    @@unique([guildId, roleId, commandId])
     @@index([guildId])
     @@index([roleId])
 }
 
 // Per-user command access (allow = bypass everything, deny = block regardless)
 model GuildUserCommandAccess {
-    id      String  @id @default(cuid())
-    guildId String
-    userId  String
-    command String
-    allowed Boolean  // true = allowed (bypasses guild/channel/role disable), false = denied
+    id        String  @id @default(cuid())
+    guildId   String
+    userId    String
+    commandId String
+    allowed   Boolean  // true = allowed (bypasses guild/channel/role disable), false = denied
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
-    @@unique([guildId, userId, command])
+    @@unique([guildId, userId, commandId])
     @@index([guildId])
     @@index([userId])
 }
