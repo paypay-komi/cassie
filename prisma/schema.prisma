@@ -386,6 +386,7 @@ model GuildRoleCommandAccess {
 model GuildUserCommandAccess {
     id        String  @id @default(cuid())
     guildId   String
+	// @userid
     userId    String
     commandId String
     allowed   Boolean  // true = allowed (bypasses guild/channel/role disable), false = denied
@@ -402,4 +403,14 @@ enum CourtStatus {
     GUILTY
     NOT_GUILTY
     DISMISSED
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  sid       String   @unique
+
+  data      String
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
 }

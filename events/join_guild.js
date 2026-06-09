@@ -2,11 +2,18 @@ const { Events, EmbedBuilder } = require("discord.js");
 const { getLogger } = require("../lib/logger");
 
 module.exports = {
-
 	name: Events.GuildCreate,
 	async execute(client, guild) {
-		const log = getLogger("GuildJoin");
-
+		const log = getLogger("GuildJoin-owner dm");
+		// temp to fix
+		
+		await prisma.guildSettings.upsert({
+			where: { guildId: guild.id },
+			update: {},
+			create: {
+				guildId: guild.id,
+			},
+		});
 		// Only DM owners from shard 0 to prevent duplicate DMs
 		if (client.shard && client.shard.ids[0] !== 0) return;
 
@@ -19,13 +26,23 @@ module.exports = {
 
 		const embed = new EmbedBuilder()
 			.setTitle("Joined a Server")
-			.setColor(0x57F287)
+			.setColor(0x57f287)
 			.setThumbnail(guild.iconURL())
 			.addFields(
 				{ name: "Name", value: guild.name, inline: true },
 				{ name: "ID", value: guild.id, inline: true },
-				{ name: "Members", value: guild.memberCount.toLocaleString(), inline: true },
-				{ name: "Owner", value: owner ? `${owner.user.tag} (${owner.id})` : "Unknown", inline: false },
+				{
+					name: "Members",
+					value: guild.memberCount.toLocaleString(),
+					inline: true,
+				},
+				{
+					name: "Owner",
+					value: owner
+						? `${owner.user.tag} (${owner.id})`
+						: "Unknown",
+					inline: false,
+				},
 			)
 			.setFooter({ text: `Now in ${client.guilds.cache.size} servers` })
 			.setTimestamp();

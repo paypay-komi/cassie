@@ -2,7 +2,9 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const axios = require("axios");
 const { getLogger } = require("../../lib/logger");
+
 function walk(dir) {
 	const files = fs.readdirSync(dir);
 	let out = [];
@@ -22,29 +24,67 @@ function walk(dir) {
 
 module.exports = {
 	name: "webserver",
+	shard0Only: true,
 
 	app: null,
 	server: null,
 
 	async execute(client) {
 		const log = getLogger("WebServer");
+
 		const app = express();
 		this.app = app;
-		app.use((req, res, next) => {
-			res.setHeader("Access-Control-Allow-Origin", "*");
-			res.setHeader("Access-Control-Allow-Methods", "*");
-			res.setHeader("Access-Control-Allow-Headers", "*");
 
-			if (req.method === "OPTIONS") {
-				return res.sendStatus(204);
-			}
+		// REQUIRED for funnel / HTTPS cookies
+		app.set("trust proxy", 1);
 
+		app.use(express.json());
+		app.use(express.urlencoded({ extended: true }));
+
+		// CORS (safe for OAuth + dashboard)
+		app.use(
+			cors({
+				origin: process.env.BASE_URL,
+				credentials: true,
+			}),
+		);
+
+		// -----------------------------
+		// SESSION MIDDLEWARE (Prisma)
+		// -----------------------------
+		const sessionMiddleware = require("../../dashboard/session");
+		app.use(sessionMiddleware);
+
+		// -----------------------------
+		// ROUTER AUTH MIDDLEWARE
+		// -----------------------------
+		function requireAuth(req, res, next) {
+			if (!req.session.user) return res.redirect("/login");
 			next();
+		}
+
+		// Protect dashboard only
+		app.use("/dashboard", requireAuth);
+		console.log(`${process.env.BASE_URL}/auth/discord/callback`);
+		// CALLBACK → exchange code → session
+
+		// logout (optional but useful)
+		app.get("/logout", (req, res) => {
+			req.session.destroy(() => {
+				res.redirect("/");
+			});
 		});
+
+		// -----------------------------
+		// BASIC ROUTES
+		// -----------------------------
 		app.get("/", (req, res) => {
 			res.send("bot online");
 		});
 
+		// -----------------------------
+		// YOUR ROUTE LOADER (UNCHANGED)
+		// -----------------------------
 		const routesDir = path.join(process.cwd(), "routes");
 		const files = walk(routesDir).filter((f) => f.endsWith(".js"));
 
@@ -68,7 +108,9 @@ module.exports = {
 			log.info(`[route] ${method.toUpperCase()} ${fullUrl}`);
 		}
 
-		// 404 handler
+		// -----------------------------
+		// 404 HANDLER
+		// -----------------------------
 		app.use((req, res) => {
 			log.info(`[404] ${req.method} ${req.path}`);
 			res.status(404).json({
@@ -77,10 +119,15 @@ module.exports = {
 			});
 		});
 
+		// -----------------------------
+		// START SERVER
+		// -----------------------------
 		this.server = app.listen(3000, () => {
 			log.info("webserver running on 3000");
 		});
 
+		// Expose client to route handlers via app.locals
+		app.locals.client = client;
 		client.app = app;
 	},
 

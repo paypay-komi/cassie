@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/adapter-pg": "^7.8.0",
+    "@quixo3/prisma-session-store": "^3.1.20",
     "@top-gg/sdk": "^3.1.6",
     "async-wait-until": "^2.0.31",
     "cors": "^2.8.6",
@@ -21,10 +22,13 @@
     "dotenv": "^17.4.2",
     "eslint-plugin-custom": "file:eslint-plugin-custom",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "fastest-levenshtein": "^1.0.16",
     "jsonwebtoken": "^9.0.3",
     "luxon": "^3.7.2",
     "module-alias": "^2.3.4",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4",
     "pg": "^8.21.0",
     "topgg-autoposter": "^2.0.2",
     "vm2": "^3.11.5"

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0f0f13;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: #15151c;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        header h1 {
+            margin: 0;
+            color: white;
+            font-weight: bold;
+        }
+        .user-info {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        .guild-grid {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            overflow-y: auto;
+        }
+        .guild-card {
+            background-color: #1a1a22;
+            border: 1px solid #22222c;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .guild-card:hover {
+            background-color: #22222c;
+        }
+        .guild-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background-color: #22222c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #aaa;
+        }
+        .guild-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+        }
+        .guild-name {
+            margin: 15px 0 5px;
+            text-align: center;
+        }
+        .guild-label {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .manage-label {
+            color: #28a745;
+        }
+        .invite-label {
+            color: #007bff;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-content {
+            background-color: #1a1a22;
+            border-radius: 12px;
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+        }
+        .modal-content h2 {
+            margin: 0 0 15px;
+        }
+        .modal-content p {
+            margin: 0 0 20px;
+        }
+        .modal-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+        .modal-button:hover {
+            background-color: #218838;
+        }
+        .refresh-button {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .refresh-button:hover {
+            background-color: #5a6268;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* Scrollbar styling */
+        .guild-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+        .guild-grid::-webkit-scrollbar-track {
+            background: #22222c;
+        }
+        .guild-grid::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dashboard</h1>
+        <div class="user-info">[Username]</div>
+    </header>
+    <div class="guild-grid" id="guildGrid"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="inviteModal">
+        <div class="modal-content" id="modalContent">
+            <h2 id="modalTitle">Invite Server</h2>
+            <p id="modalText">The bot isn't in this server yet. Click below to invite it.</p>
+            <button class="modal-button" id="inviteBtn">Invite Bot</button>
+            <button class="refresh-button" id="refreshBtn" style="display: none;">Refresh</button>
+            <button class="modal-button" id="closeBtn">×</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const guildGrid = document.getElementById('guildGrid');
+            const modal = document.getElementById('inviteModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalText = document.getElementById('modalText');
+            const inviteBtn = document.getElementById('inviteBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const closeBtn = document.getElementById('closeBtn');
+            let clientId = null;
+            let perms = null;
+            let guilds = [];
+
+            // Load user info
+            const userResponse = await fetch('/api/data/user', { credentials: 'include' });
+            const userInfo = await userResponse.json();
+            if (userInfo.ok) {
+                document.querySelector('.user-info').textContent = userInfo.username;
+            }
+
+            // Load guild data
+            const response = await fetch('/api/data/guilds', { credentials: 'include' });
+            const data = await response.json();
+            if (!data.ok) {
+                guildGrid.innerHTML = '<p style="color: red;">Unauthorized</p>';
+                return;
+            }
+
+            clientId = data.clientId;
+            perms = data.perms;
+            guilds = data.guilds;
+
+            // Render guild cards
+            guildGrid.innerHTML = '';
+            guilds.forEach(guild => {
+                const card = document.createElement('div');
+                card.className = 'guild-card';
+                card.innerHTML = `\n                    <div class="guild-icon">
+                        ${guild.icon ? `<img src="${guild.icon}">` : `<div>${guild.fallback}</div>`}
+                    </div>
+                    <div class="guild-name">${guild.name}</div>
+                    <div class="guild-label ${guild.botIn ? 'manage-label' : 'invite-label'}">${guild.botIn ? 'Manage' : 'Invite'}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (guild.botIn) {
+                        window.location.href = `/guild/${guild.id}`;
+                    } else {
+                        showModal(guild);
+                    }
+                });
+                
+                guildGrid.appendChild(card);
+            });
+        });
+
+        function showModal(guild) {
+            const modal = document.getElementById('inviteModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalText = document.getElementById('modalText');
+            const inviteBtn = document.getElementById('inviteBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const closeBtn = document.getElementById('closeBtn');
+
+            modalTitle.textContent = `Invite ${guild.name}`;
+            modalText.textContent = `The bot isn't in this server yet. Click below to invite it.`;
+            inviteBtn.onclick = () => {
+                window.open(`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${perms}&scope=bot&guild_id=${guild.id}`, '_blank', 'noopener noreferrer');
+                modal.style.display = 'none';
+                refreshBtn.style.display = 'block';
+            };
+            
+            refreshBtn.onclick = () => {
+                window.location.reload();
+            };
+            
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            modal.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

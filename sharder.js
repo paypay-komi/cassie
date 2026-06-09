@@ -2,7 +2,7 @@ const { ShardingManager, Client, GatewayIntentBits } = require("discord.js");
 const path = require("path");
 require("dotenv/config");
 
-const GUILDS_PER_SHARD = 2;
+const GUILDS_PER_SHARD = 4500;
 
 (async () => {
 	const token = process.env.DISCORD_TOKEN;
@@ -19,7 +19,9 @@ const GUILDS_PER_SHARD = 2;
 	await scout.destroy();
 
 	const totalShards = Math.max(1, Math.ceil(guildCount / GUILDS_PER_SHARD));
-	console.log(`[ShardManager] ${guildCount} guilds → ${totalShards} shard(s) (${GUILDS_PER_SHARD}/shard)`);
+	console.log(
+		`[ShardManager] ${guildCount} guilds → ${totalShards} shard(s) (${GUILDS_PER_SHARD}/shard)`,
+	);
 
 	const manager = new ShardingManager(path.join(__dirname, "bot.js"), {
 		token,
@@ -27,7 +29,9 @@ const GUILDS_PER_SHARD = 2;
 	});
 
 	manager.on("shardCreate", (shard) => {
-		process.stdout.write(`[Shard ${shard.id}/${totalShards - 1}] Launched\n`);
+		process.stdout.write(
+			`[Shard ${shard.id}/${totalShards - 1}] Launched\n`,
+		);
 
 		const attachLogs = () => {
 			if (!shard.process) {
