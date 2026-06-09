@@ -42,8 +42,8 @@ module.exports = {
 			}
 
 			const memberCount = guild?.memberCount ?? 0;
-			const channelCount = guild?.channels?.size ?? guild?.channels ?? 0;
-			const roleCount = guild?.roles?.size ?? guild?.roles ?? 0;
+			const channelCount = guild?.channels?.cache?.size ?? guild?.channels ?? 0;
+			const roleCount = guild?.roles?.cache?.size ?? guild?.roles ?? 0;
 			const guildName = guild?.name ?? "Unknown";
 			const guildIcon = guild?.icon ?? null;
 
