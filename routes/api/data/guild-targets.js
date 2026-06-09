@@ -1,5 +1,3 @@
-const db = require("../../../db");
-
 module.exports = {
 	path: "/api/data/guild-targets",
 	method: "get",

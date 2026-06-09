@@ -411,6 +411,14 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Autocomplete item selection via event delegation
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.ac-item');
+  if (item) {
+    selectTarget(item.dataset.id, item.dataset.label);
+  }
+});
+
 // ── Overview Tab ──
 async function loadOverview() {
   const el = document.getElementById('content');
@@ -631,6 +639,10 @@ function onOvTargetInput() {
   const q = document.getElementById('ov-target-input').value.toLowerCase().trim();
   const list = document.getElementById('ov-target-list');
 
+  // Clear hidden input when user types — forces explicit selection from dropdown
+  document.getElementById('ov-target').value = '';
+  selectedTargetId = '';
+
   let items;
   if (type === 'channel') items = targetData.channels || [];
   else if (type === 'role') items = targetData.roles || [];
@@ -658,7 +670,7 @@ function onOvTargetInput() {
     const color = type === 'role' && item.color && item.color !== '#000000'
       ? `<span style="color:${item.color};font-size:16px">●</span>`
       : '';
-    html += `<div class="ac-item" onclick="selectTarget('${item.id}','${escape(label.replace(/'/g, "\\'"))}')">
+    html += `<div class="ac-item" data-id="${escape(item.id)}" data-label="${escape(label)}">
       ${color}${escape(label)}
       <span class="ac-id">${escape(item.id)}</span>
     </div>`;
@@ -666,6 +678,14 @@ function onOvTargetInput() {
   list.innerHTML = html;
   list.style.display = '';
 }
+
+// Autocomplete item selection via event delegation
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.ac-item');
+  if (item) {
+    selectTarget(item.dataset.id, item.dataset.label);
+  }
+});
 
 function selectTarget(id, label) {
   document.getElementById('ov-target-input').value = label;
@@ -726,8 +746,8 @@ async function loadTags() {
         <div class="tag-meta">${tag.uses} uses · Created ${date}</div>
         <div class="tag-content" id="tagc-${escape(tag.name)}">${escape(tag.content)}</div>
         <div class="tag-actions">
-          <button class="btn btn-sm btn-ghost" onclick="editTag('${escape(tag.name)}')">Edit</button>
-          <button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteTag('${escape(tag.name)}')">Delete</button>
+          <button class="btn btn-sm btn-ghost" data-tagname="${escape(tag.name)}" onclick="editTag(this.dataset.tagname)">Edit</button>
+          <button class="btn btn-sm btn-ghost" data-tagname="${escape(tag.name)}" style="color:var(--red)" onclick="deleteTag(this.dataset.tagname)">Delete</button>
         </div>
       </div>`;
     }
@@ -751,10 +771,9 @@ async function createTag() {
 
 function editTag(name) {
   const contentEl = document.getElementById(`tagc-${name}`);
-  const card = document.getElementById(`tag-${name}`);
   const currentText = contentEl.textContent;
-  contentEl.innerHTML = `<div class="tag-edit-area"><textarea id="edit-${name}">${escape(currentText)}</textarea></div>
-    <button class="btn btn-sm btn-green" onclick="saveTagEdit('${escape(name)}')">Save</button>
+  contentEl.innerHTML = `<div class="tag-edit-area"><textarea id="edit-${escape(name)}">${escape(currentText)}</textarea></div>
+    <button class="btn btn-sm btn-green" data-tagname="${escape(name)}" onclick="saveTagEdit(this.dataset.tagname)">Save</button>
     <button class="btn btn-sm btn-ghost" onclick="loadTags()">Cancel</button>`;
 }
 
