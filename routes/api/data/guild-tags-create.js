@@ -28,7 +28,7 @@ module.exports = {
 			}
 
 			const tag = await db.prisma.guildTag.create({
-				data: { guildId, name, content },
+				data: { guildId, name, content, creatorId: req.session.user.id },
 			});
 
 			return res.json({
