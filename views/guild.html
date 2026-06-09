@@ -343,8 +343,16 @@ const guildId = window.location.pathname.split('/')[2];
 
 // ── Utilities ──
 async function api(url, opts = {}) {
-  const res = await fetch(url, { credentials: 'include', ...opts });
-  return res.json();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url, { ...opts, credentials: 'include', signal: controller.signal });
+    clearTimeout(timeout);
+    return res.json();
+  } catch (e) {
+    clearTimeout(timeout);
+    return { ok: false, error: e.name === 'AbortError' ? 'timeout' : 'network_error' };
+  }
 }
 
 function escape(str) {
@@ -358,11 +366,16 @@ function showMsg(inner, type = 'error') {
   el.innerHTML = `<div class="msg msg-${type}">${inner}</div>`;
 }
 
-// ── Tabs ──
+// ── Sidebar ──
+function setActiveTab(tab) {
+  document.querySelectorAll('.sidebar-item').forEach(s => {
+    s.classList.toggle('active', s.dataset.tab === tab);
+  });
+}
+
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
-    item.classList.add('active');
+    setActiveTab(item.dataset.tab);
     loadTab(item.dataset.tab);
   });
 });
@@ -496,6 +509,14 @@ async function loadOverrides() {
 
   if (!ovData.ok) { showMsg('Failed to load overrides.'); return; }
 
+  // Build a command name lookup (use commandId → name)
+  const cmdNames = {};
+  if (cmdData.ok) {
+    for (const cmd of cmdData.commands) {
+      cmdNames[cmd.id] = cmd.name;
+    }
+  }
+
   let html = '<div class="section-title">Add Override</div>';
 
   // Build command options
@@ -513,33 +534,35 @@ async function loadOverrides() {
     <label><input type="checkbox" id="ov-allowed" checked> Allow</label>
     <button class="btn" onclick="addOverride()">Add</button>
   </div>`;
+  html += '<div style="color:var(--secondary);font-size:12px;margin-bottom:16px">Target ID is the Discord ID of the channel, role, or user.</div>';
 
   html += '<div class="section-title">Existing Overrides</div>';
 
   const sections = [
-    { label: 'Channel', key: 'channels', idKey: 'channelId' },
-    { label: 'Role', key: 'roles', idKey: 'roleId' },
-    { label: 'User', key: 'users', idKey: 'userId' },
+    { label: 'Channel', key: 'channels', idKey: 'channelId', type: 'channel' },
+    { label: 'Role', key: 'roles', idKey: 'roleId', type: 'role' },
+    { label: 'User', key: 'users', idKey: 'userId', type: 'user' },
   ];
 
   const allOverrides = [];
   for (const sec of sections) {
     for (const ov of ovData[sec.key] || []) {
-      allOverrides.push({ type: sec.label, typeKey: sec.key, targetId: ov[sec.idKey], commandId: ov.commandId, allowed: ov.allowed });
+      allOverrides.push({ type: sec.type, label: sec.label, targetId: ov[sec.idKey], commandId: ov.commandId, allowed: ov.allowed });
     }
   }
 
   if (allOverrides.length === 0) {
     html += '<div style="color:var(--secondary);font-size:13px">No overrides configured.</div>';
   } else {
-    html += '<table class="override-table"><thead><tr><th>Type</th><th>Target ID</th><th>Command</th><th>Access</th><th></th></tr></thead><tbody>';
+    html += '<table class="override-table"><thead><tr><th>Type</th><th>Target</th><th>Command</th><th>Access</th><th></th></tr></thead><tbody>';
     for (const ov of allOverrides) {
+      const cmdName = cmdNames[ov.commandId] || ov.commandId.slice(0, 8) + '...';
       html += `<tr>
-        <td>${ov.type}</td>
+        <td>${ov.label}</td>
         <td style="font-family:monospace;font-size:12px">${escape(ov.targetId)}</td>
-        <td style="font-family:monospace;font-size:12px">${escape(ov.commandId)}</td>
+        <td style="font-size:13px">${escape(cmdName)}</td>
         <td style="color:${ov.allowed ? 'var(--green)' : 'var(--red)'}">${ov.allowed ? 'Allow' : 'Deny'}</td>
-        <td><button class="del-btn" onclick="deleteOverride('${ov.typeKey}','${ov.targetId}','${ov.commandId}')">✕</button></td>
+        <td><button class="del-btn" onclick="deleteOverride('${ov.type}','${ov.targetId}','${ov.commandId}')">✕</button></td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -655,10 +678,16 @@ async function deleteTag(name) {
 
 // ── Router ──
 async function loadTab(tab) {
-  if (tab === 'overview') loadOverview();
-  else if (tab === 'commands') loadCommands();
-  else if (tab === 'overrides') loadOverrides();
-  else if (tab === 'tags') loadTags();
+  setActiveTab(tab);
+  try {
+    if (tab === 'overview') await loadOverview();
+    else if (tab === 'commands') await loadCommands();
+    else if (tab === 'overrides') await loadOverrides();
+    else if (tab === 'tags') await loadTags();
+  } catch (e) {
+    console.error(e);
+    showMsg('An error occurred.', 'error');
+  }
 }
 
 loadTab('overview');
