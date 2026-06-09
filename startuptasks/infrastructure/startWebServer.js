@@ -25,6 +25,7 @@ function walk(dir) {
 module.exports = {
 	name: "webserver",
 	shard0Only: true,
+	reloadAble: true,
 
 	app: null,
 	server: null,
