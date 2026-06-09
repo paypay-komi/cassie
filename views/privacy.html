@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy - Cassie</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f13;
+  --card: #1a1a22;
+  --text: #fff;
+  --secondary: #aaa;
+  --accent: #5865F2;
+  --border: #2a2a36;
+}
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 20px;
+}
+.wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+}
+h1 { font-size: 26px; margin-bottom: 8px; color: var(--accent); }
+.updated { color: var(--secondary); font-size: 13px; margin-bottom: 30px; }
+h2 { font-size: 18px; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
+p { margin-bottom: 14px; color: #ccc; }
+ul { margin-bottom: 14px; padding-left: 20px; color: #ccc; }
+li { margin-bottom: 6px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 20px; color: var(--secondary); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: June 8, 2026</p>
+
+  <h2>1. Data We Collect</h2>
+  <p>Cassie ("the Bot") collects and stores the following data when you use its features:</p>
+  <ul>
+    <li><strong>Discord User ID</strong> &mdash; used to identify you for custom prefixes, reminders, AFK status, todo lists, command usage statistics, chat history, and per-user command overrides.</li>
+    <li><strong>Discord Guild (Server) ID</strong> &mdash; used to store server-specific settings such as custom prefix, disabled commands, tags, and allow/deny overrides.</li>
+    <li><strong>Discord Channel ID</strong> &mdash; used for channel-specific command overrides and settings.</li>
+    <li><strong>Discord Role ID</strong> &mdash; used for role-based command overrides.</li>
+    <li><strong>Command Usage Data</strong> &mdash; we track which commands you use, in which server, and how often. This is used for statistics and diagnostics.</li>
+    <li><strong>Message Content</strong> &mdash; when you use chat/AI features, the messages you send are stored temporarily to provide conversational context.</li>
+    <li><strong>User-Created Content</strong> &mdash; tags, reminders, and todo list items you create are stored so they can be retrieved later.</li>
+    <li><strong>AFK Status</strong> &mdash; your AFK message is stored to notify others when you are away.</li>
+  </ul>
+
+  <h2>2. Web Dashboard Data</h2>
+  <p>When you log in to the web dashboard via Discord OAuth, we collect:</p>
+  <ul>
+    <li>Your Discord User ID, username, and avatar URL</li>
+    <li>Your Discord access token (used only during your session to fetch your guild list)</li>
+  </ul>
+  <p>This data is stored in an encrypted session cookie and is deleted when you log out or after 7 days of inactivity.</p>
+
+  <h2>3. How We Use Your Data</h2>
+  <p>Your data is used exclusively to provide the Bot's functionality:</p>
+  <ul>
+    <li>Processing commands and applying your settings</li>
+    <li>Remembering your custom prefix, reminders, tags, and todo lists</li>
+    <li>Enforcing command restrictions (disable/enable per server, channel, role, or user)</li>
+    <li>Displaying statistics on the web dashboard</li>
+    <li>Improving the Bot based on usage patterns</li>
+  </ul>
+
+  <h2>4. Data Storage &amp; Retention</h2>
+  <p>All data is stored in a PostgreSQL database. We retain data indefinitely to provide continuous service. If you want your data deleted, contact us using the information below. Note that some data may be retained for legitimate operational purposes (e.g., command logs).</p>
+
+  <h2>5. Data Sharing</h2>
+  <p>We do not sell, trade, or share your personal data with third parties. Data is only accessible to the Bot operator for support and maintenance purposes.</p>
+
+  <h2>6. Data Security</h2>
+  <p>We take reasonable measures to protect your data, including encrypted database connections and secure session handling. However, no method of electronic storage is 100% secure.</p>
+
+  <h2>7. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Request a copy of the data we hold about you</li>
+    <li>Request deletion of your data</li>
+    <li>Request correction of inaccurate data</li>
+  </ul>
+  <p>To exercise these rights, contact us using the information below.</p>
+
+  <h2>8. Contact</h2>
+  <p>For privacy-related inquiries, please contact the Bot operator in the <a id="support-link" href="#">support server</a> or send a direct message.</p>
+
+  <h2>9. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. Changes will be posted here and the "Last updated" date will be revised.</p>
+</div>
+<script>
+fetch('/api/invite/support')
+  .then(r => r.json())
+  .then(d => { if (d.ok) document.getElementById('support-link').href = d.url; })
+  .catch(() => {});
+</script>
+</body>
+</html>

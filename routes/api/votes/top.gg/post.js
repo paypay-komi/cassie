@@ -32,13 +32,11 @@ module.exports = {
 	path: "/api/votes/topgg",
 	method: "post",
 
-	middleware: [require("express").text({ type: "*/*" })],
-
 	handler: (req, res) => {
 		const log = getLogger("Votes:TopGG");
 		const secret = process.env.TOPGG_WEBHOOK_SECRET;
 
-		const rawBody = req.body;
+		const rawBody = req.rawBody;
 		let payload;
 		let userId;
 
@@ -53,7 +51,6 @@ module.exports = {
 			// --- v1 signature ---
 			if (verifyV1Signature(rawBody, sig, secret)) {
 				payload = JSON.parse(rawBody);
-
 				userId = payload?.data?.user?.platform_id;
 			}
 
@@ -71,7 +68,7 @@ module.exports = {
 			const type = payload?.type || payload?.data?.type;
 
 			if (type === "test" || type === "webhook.test") {
-				log.info("Test webhook");
+				log.info("Test webhook received");
 				return res.sendStatus(200);
 			}
 

@@ -40,6 +40,10 @@ module.exports = {
 			return res.json({
 				ok: true,
 				commands,
+				debug: {
+					disabledCount: disabled.length,
+					disabledIds: disabled.map((r) => r.commandId),
+				},
 			});
 		} catch (err) {
 			console.error(err);

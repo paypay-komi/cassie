@@ -332,6 +332,84 @@ body {
 }
 .msg-error { background: #2a1515; border: 1px solid #5a2020; color: #ff6b6b; }
 .msg-success { background: #152a15; border: 1px solid #205a20; color: #6bff6b; }
+/* ── Info card ── */
+.info-card {
+  background: #15152a;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.info-card a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.info-card a:hover { color: #7983f5; }
+.info-card strong { color: var(--text); }
+/* ── Hierarchy box ── */
+.hierarchy-box {
+  background: #15152a;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.hierarchy-box .h-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--secondary);
+  margin-bottom: 8px;
+}
+.hierarchy-box .h-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  color: var(--secondary);
+}
+.hierarchy-box .h-row .h-arrow {
+  color: #444;
+  font-size: 11px;
+  width: 14px;
+  text-align: center;
+}
+.hierarchy-box .h-row.h-top { color: var(--text); }
+.hierarchy-box .h-row.h-bot { color: #666; }
+.hierarchy-box .h-tip {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #2a2a4a;
+  color: var(--secondary);
+  font-size: 12px;
+}
+.hierarchy-box .h-tip a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+/* ── State badge ── */
+.state-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+.state-badge.enabled { background: #152a15; color: #4caf50; border: 1px solid #2a5a2a; }
+.state-badge.disabled { background: #2a1515; color: #f44336; border: 1px solid #5a2020; }
+/* ── Override target with name + id ── */
+.ov-target-name { font-size: 13px; }
+.ov-target-id { font-size: 10px; color: var(--secondary); font-family: monospace; }
 /* ── Scrollbar ── */
 .content::-webkit-scrollbar { width: 8px; }
 .content::-webkit-scrollbar-track { background: transparent; }
@@ -344,6 +422,8 @@ body {
   <div style="display:flex;align-items:center;gap:12px">
     <a href="/dashboard" class="back-btn">← Dashboard</a>
     <h1>Cassie</h1>
+    <a href="/privacy" style="color:#555;font-size:11px;text-decoration:none">Privacy</a>
+    <a href="/terms" style="color:#555;font-size:11px;text-decoration:none">Terms</a>
   </div>
   <div id="guild-header">
     <span id="guild-name">Loading...</span>
@@ -396,10 +476,14 @@ function setActiveTab(tab) {
   });
 }
 
+function switchTab(tab) {
+  setActiveTab(tab);
+  loadTab(tab);
+}
+
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
-    setActiveTab(item.dataset.tab);
-    loadTab(item.dataset.tab);
+    switchTab(item.dataset.tab);
   });
 });
 
@@ -486,6 +570,7 @@ async function loadCommands() {
 
   let html = '<div class="section-title">Commands</div>';
   html += '<input type="text" class="search-input" id="cmd-search" placeholder="Search commands..." oninput="filterCommands()">';
+  html += '<div class="info-card">Toggle a command <strong>OFF</strong> to disable it <strong>server-wide</strong>. Then use the <a onclick="switchTab(\'overrides\')">Overrides</a> tab to add exceptions for specific channels, roles, or users.</div>';
   html += '<div id="cmd-list"></div>';
   el.innerHTML = html;
 
@@ -545,6 +630,23 @@ function filterCommands() {
 // ── Overrides Tab ──
 let targetData = { channels: [], roles: [], members: [] };
 let selectedTargetId = '';
+let _ovDisabledSet = new Set();
+let _ovCmdNames = {};
+let _memberSearchTimeout = null;
+
+function getTargetName(type, id) {
+  const arr = type === 'channel' ? targetData.channels
+    : type === 'role' ? targetData.roles
+    : targetData.members;
+  const found = arr.find(t => t.id === id);
+  if (!found) return null;
+  if (type === 'user') {
+    return found.displayName && found.displayName !== found.username
+      ? `${found.username} (${found.displayName})`
+      : found.username;
+  }
+  return found.name;
+}
 
 async function loadOverrides() {
   const el = document.getElementById('content');
@@ -562,15 +664,30 @@ async function loadOverrides() {
   // Cache target data for autocomplete
   if (tgtData.ok) targetData = tgtData;
 
-  // Build a command name lookup
-  const cmdNames = {};
+  // Build command lookups
+  _ovCmdNames = {};
+  _ovDisabledSet = new Set();
   if (cmdData.ok) {
     for (const cmd of cmdData.commands) {
-      cmdNames[cmd.id] = cmd.name;
+      _ovCmdNames[cmd.id] = cmd.name;
+      if (cmd.disabled) _ovDisabledSet.add(cmd.id);
     }
   }
 
-  let html = '<div class="section-title">Add Override</div>';
+  // ── Hierarchy info box ──
+  let html = `<div class="hierarchy-box">
+    <div class="h-title">How Overrides Work</div>
+    <div class="h-row h-top"><span>👤</span> User <span style="color:var(--secondary);font-size:12px">— highest priority</span></div>
+    <div class="h-row"><span class="h-arrow">↑</span></div>
+    <div class="h-row"><span>🔷</span> Role</div>
+    <div class="h-row"><span class="h-arrow">↑</span></div>
+    <div class="h-row"><span>📢</span> Channel</div>
+    <div class="h-row"><span class="h-arrow">↑</span></div>
+    <div class="h-row h-bot"><span>🏠</span> Server-wide <span style="color:var(--secondary);font-size:12px">— set in <a onclick="switchTab('commands')">Commands</a> tab</span></div>
+    <div class="h-tip">💡 <strong>Tip:</strong> Disable a command server-wide in the <a onclick="switchTab('commands')">Commands</a> tab, then add <strong>Allow</strong> overrides here for the channels/roles/users that should still be able to use it.</div>
+  </div>`;
+
+  html += '<div class="section-title">Add Override</div>';
 
   // Build command options
   let cmdOpts = '<option value="">Select command...</option>';
@@ -587,7 +704,8 @@ async function loadOverrides() {
       <div class="autocomplete-list" id="ov-target-list"></div>
       <input type="hidden" id="ov-target">
     </div>
-    <select id="ov-cmd" style="max-width:200px">${cmdOpts}</select>
+    <select id="ov-cmd" style="max-width:200px" onchange="onOvCmdChange()">${cmdOpts}</select>
+    <span id="ov-cmd-badge"></span>
     <label><input type="checkbox" id="ov-allowed" checked> Allow</label>
     <button class="btn" onclick="addOverride()">Add</button>
   </div>`;
@@ -612,10 +730,17 @@ async function loadOverrides() {
   } else {
     html += '<table class="override-table"><thead><tr><th>Type</th><th>Target</th><th>Command</th><th>Access</th><th></th></tr></thead><tbody>';
     for (const ov of allOverrides) {
-      const cmdName = cmdNames[ov.commandId] || ov.commandId.slice(0, 8) + '...';
+      const cmdName = _ovCmdNames[ov.commandId] || ov.commandId.slice(0, 8) + '...';
+      const tgtName = getTargetName(ov.type, ov.targetId);
+      let tgtHtml;
+      if (tgtName) {
+        tgtHtml = `<div class="ov-target-name">${escape(tgtName)}</div><div class="ov-target-id">${escape(ov.targetId)}</div>`;
+      } else {
+        tgtHtml = `<span class="ov-target-id">${escape(ov.targetId)}</span>`;
+      }
       html += `<tr>
         <td>${ov.label}</td>
-        <td style="font-family:monospace;font-size:12px">${escape(ov.targetId)}</td>
+        <td>${tgtHtml}</td>
         <td style="font-size:13px">${escape(cmdName)}</td>
         <td style="color:${ov.allowed ? 'var(--green)' : 'var(--red)'}">${ov.allowed ? 'Allow' : 'Deny'}</td>
         <td><button class="del-btn" onclick="deleteOverride('${ov.type}','${ov.targetId}','${ov.commandId}')">✕</button></td>
@@ -627,7 +752,19 @@ async function loadOverrides() {
   el.innerHTML = html;
 }
 
+function onOvCmdChange() {
+  const badge = document.getElementById('ov-cmd-badge');
+  const cmdId = document.getElementById('ov-cmd').value;
+  if (!cmdId) { badge.innerHTML = ''; return; }
+  const disabled = _ovDisabledSet.has(cmdId);
+  badge.innerHTML = `<span class="state-badge ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Disabled' : 'Enabled'}</span>`;
+}
+
 function onOvTypeChange() {
+  if (_memberSearchTimeout) {
+    clearTimeout(_memberSearchTimeout);
+    _memberSearchTimeout = null;
+  }
   document.getElementById('ov-target-input').value = '';
   document.getElementById('ov-target').value = '';
   selectedTargetId = '';
@@ -643,19 +780,50 @@ function onOvTargetInput() {
   document.getElementById('ov-target').value = '';
   selectedTargetId = '';
 
-  let items;
-  if (type === 'channel') items = targetData.channels || [];
-  else if (type === 'role') items = targetData.roles || [];
-  else items = targetData.members || [];
+  // Cancel any pending member search
+  if (_memberSearchTimeout) {
+    clearTimeout(_memberSearchTimeout);
+    _memberSearchTimeout = null;
+  }
 
+  // User search uses the server-side API
+  if (type === 'user') {
+    if (q.length < 2) {
+      list.style.display = 'none';
+      return;
+    }
+    list.innerHTML = '<div class="ac-item" style="color:var(--secondary);cursor:default">Searching...</div>';
+    list.style.display = 'block';
+    _memberSearchTimeout = setTimeout(async () => {
+      const data = await api(`/api/data/guild-member-search?guildId=${guildId}&q=${encodeURIComponent(q)}`);
+      if (!data.ok || !data.members || data.members.length === 0) {
+        list.innerHTML = '<div class="ac-item" style="color:var(--secondary);cursor:default">No users found</div>';
+        list.style.display = q.length >= 2 ? 'block' : 'none';
+        return;
+      }
+      let html = '';
+      for (const m of data.members.slice(0, 50)) {
+        const label = m.displayName && m.displayName !== m.username
+          ? `${m.username} (${m.displayName})`
+          : m.username;
+        html += `<div class="ac-item" data-id="${escape(m.id)}" data-label="${escape(label)}">
+          ${escape(label)}
+          <span class="ac-id">${escape(m.id)}</span>
+        </div>`;
+      }
+      list.innerHTML = html;
+      list.style.display = 'block';
+    }, 300);
+    return;
+  }
+
+  // Channels and roles — filter from cached data
+  const items = type === 'channel' ? (targetData.channels || []) : (targetData.roles || []);
   if (!q || items.length === 0) { list.style.display = 'none'; return; }
 
-  // Filter and sort by relevance
   const filtered = items
     .map(item => {
-      const label = type === 'user'
-        ? `${item.username}${item.displayName !== item.username ? ' (' + item.displayName + ')' : ''}`
-        : item.name;
+      const label = item.name;
       const idx = label.toLowerCase().indexOf(q);
       const idIdx = item.id.startsWith(q) ? 0 : -1;
       return { item, label, score: idIdx === 0 ? 0 : (idx >= 0 ? idx : 999) };
@@ -676,16 +844,8 @@ function onOvTargetInput() {
     </div>`;
   }
   list.innerHTML = html;
-  list.style.display = '';
+  list.style.display = 'block';
 }
-
-// Autocomplete item selection via event delegation
-document.addEventListener('click', (e) => {
-  const item = e.target.closest('.ac-item');
-  if (item) {
-    selectTarget(item.dataset.id, item.dataset.label);
-  }
-});
 
 function selectTarget(id, label) {
   document.getElementById('ov-target-input').value = label;

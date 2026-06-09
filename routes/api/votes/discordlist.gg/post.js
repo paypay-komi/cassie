@@ -7,8 +7,6 @@ module.exports = {
 	path: "/api/votes/dlistgg",
 	method: "post",
 
-	middleware: [require("express").text({ type: "*/*" })],
-
 	handler: (req, res) => {
 		const log = getLogger("Votes:DListGG");
 		const secret = process.env.DLISTGG_WEBHOOK_AUTH;
@@ -18,7 +16,7 @@ module.exports = {
 			return res.sendStatus(500);
 		}
 
-		if (!req.body) {
+		if (!req.rawBody) {
 			log.warn("Empty body");
 			return res.sendStatus(400);
 		}
@@ -26,7 +24,7 @@ module.exports = {
 		let decoded;
 
 		try {
-			decoded = jwt.verify(req.body, secret);
+			decoded = jwt.verify(req.rawBody, secret);
 		} catch (err) {
 			log.warn("Bad JWT");
 			return res.sendStatus(401);

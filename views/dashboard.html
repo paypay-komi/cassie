@@ -78,6 +78,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   perms = data.perms;
 
   guildGrid.innerHTML = '';
+
+  if (data.guilds.length === 0) {
+    guildGrid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa">
+        <div style="font-size:48px;margin-bottom:16px">📋</div>
+        <h2 style="color:var(--text,#fff);margin:0 0 8px">No Servers Found</h2>
+        <p style="margin:0 0 16px;font-size:14px">
+          You don't have permission to manage any servers yet.<br>
+          Create a server or ask the owner of an existing server to give you
+          <strong>Manage Server</strong> permissions.
+        </p>
+        <a href="https://discord.com/create"
+           target="_blank"
+           style="display:inline-block;padding:10px 24px;background:#5865F2;color:#fff;
+                  border-radius:6px;text-decoration:none;font-size:15px">
+          Create a Server
+        </a>
+      </div>`;
+  }
+
   data.guilds.forEach(g => {
     const card = document.createElement('div');
     card.className = 'guild-card';
@@ -106,5 +126,10 @@ function showInviteModal(guild) {
   document.getElementById('inviteModal').style.display = 'flex';
 }
 </script>
+<div style="padding:12px 20px;text-align:center;border-top:1px solid #2a2a36;flex-shrink:0;font-size:12px;color:#666">
+  <a href="/privacy" style="color:#888;text-decoration:none">Privacy Policy</a>
+  <span style="margin:0 8px;color:#444">&middot;</span>
+  <a href="/terms" style="color:#888;text-decoration:none">Terms of Service</a>
+</div>
 </body>
 </html>

@@ -45,7 +45,12 @@ module.exports = {
 			const channelCount = guild?.channels?.cache?.size ?? guild?.channels ?? 0;
 			const roleCount = guild?.roles?.cache?.size ?? guild?.roles ?? 0;
 			const guildName = guild?.name ?? "Unknown";
-			const guildIcon = guild?.icon ?? null;
+			// guild.icon is a hash string on Guild objects but a full URL when
+			// returned from broadcastEval; iconURL() handles both cases.
+			const guildIcon =
+				typeof guild?.iconURL === "function"
+					? guild.iconURL()
+					: guild?.icon ?? null;
 
 			// Count total commands used in this guild
 			const cmdCount = await db.prisma.userCommandStats.count({

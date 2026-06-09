@@ -39,8 +39,35 @@ module.exports = {
 		// REQUIRED for funnel / HTTPS cookies
 		app.set("trust proxy", 1);
 
-		app.use(express.json());
-		app.use(express.urlencoded({ extended: true }));
+		// Capture raw body bytes on every request before any parsing.
+		// Webhook HMAC verification needs the exact raw string, not the
+		// re-serialized object. Each parser's verify callback fires when it
+		// actually reads the body; subsequent parsers skip because req._body
+		// is already set.
+		app.use(
+			express.json({
+				verify: (req, _buf, enc) => {
+					req.rawBody = _buf.toString(enc || "utf8");
+				},
+			}),
+		);
+		app.use(
+			express.urlencoded({
+				extended: true,
+				verify: (req, _buf, enc) => {
+					if (!req.rawBody) req.rawBody = _buf.toString(enc || "utf8");
+				},
+			}),
+		);
+		// Catch-all for non-JSON, non-form text bodies (JWT webhooks, etc.)
+		app.use(
+			express.text({
+				type: "*/*",
+				verify: (req, _buf, enc) => {
+					if (!req.rawBody) req.rawBody = _buf.toString(enc || "utf8");
+				},
+			}),
+		);
 
 		// CORS (safe for OAuth + dashboard)
 		app.use(

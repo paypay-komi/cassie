@@ -68,6 +68,7 @@ model reminder {
 // ------------------------------------------------------
 model GuildSettings {
 	guildId String  @id
+	prefix  String  @default("c.")
 
     channels              ChannelSettings[]
     userSettings          GuildUserSettings[]

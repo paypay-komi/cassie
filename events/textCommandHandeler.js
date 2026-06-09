@@ -165,20 +165,37 @@ module.exports = {
 		if (message.author.bot) return;
 
 		const content = message.content;
-		const startsWithC = content.toLowerCase().startsWith("c.");
+		const lowerContent = content.toLowerCase();
 
-		// Look up user's custom prefix from DB
+		// ── Determine prefix priority: custom user > guild > default "c." ──
+		let matchedPrefix = null;
+
+		// 1. Check default "c."
+		if (lowerContent.startsWith("c.")) matchedPrefix = "c.";
+
+		// 2. Check guild prefix (for guild messages)
+		if (message.inGuild()) {
+			try {
+				const guildSettings = await client.db.guild.get(message.guildId);
+				const guildPrefix = guildSettings?.prefix;
+				if (guildPrefix && content.startsWith(guildPrefix)) {
+					matchedPrefix = guildPrefix;
+				}
+			} catch { /* DB error, ignore */ }
+		}
+
+		// 3. Check user custom prefix (highest priority)
 		let customPrefix = null;
 		try {
 			const data = await client.db.userPrefix.get(message.author.id);
 			if (data?.prefix) customPrefix = data.prefix;
-		} catch { /* DB error, stick with c. */ }
+		} catch { /* DB error, ignore */ }
+		if (customPrefix && content.startsWith(customPrefix)) {
+			matchedPrefix = customPrefix;
+		}
 
-		const matchesCustom = customPrefix && content.startsWith(customPrefix);
+		if (!matchedPrefix) return;
 
-		if (!startsWithC && !matchesCustom) return;
-
-		const matchedPrefix = matchesCustom ? customPrefix : "c.";
 		const args = content.slice(matchedPrefix.length).trim().split(/ +/);
 		const input = args.shift().toLowerCase();
 
@@ -216,13 +233,19 @@ module.exports = {
 	// ---------------------------
 	// Permissions
 	// ---------------------------
-	if (!(await checkPermissions(finalCommand, client, message))) return;
+			if (!(await checkPermissions(finalCommand, client, message))) return;
 
 	// ---------------------------
 	// Restrictions (disabled/deny overrides)
 	// ---------------------------
-	if (message.inGuild() && finalCommand.commandId) {
+	const cmdIdForLog = finalCommand.commandId;
+	if (message.inGuild() && cmdIdForLog) {
 		const isGuildOwner = message.author.id === message.guild.ownerId;
+
+		if (isGuildOwner) {
+			const log = getLogger("TextCmd");
+			log.debug(`Skipping restrictions for guild owner ${message.author.id}`);
+		}
 
 		if (!isGuildOwner) {
 			try {
@@ -280,6 +303,16 @@ module.exports = {
 				const log = getLogger("TextCmd");
 				log.error("Error checking restrictions:", err);
 			}
+		}
+
+		if (cmdIdForLog) {
+			console.log(
+				"[RESTRICT_EXIT] commandId=%s guildId=%s authorId=%s ownerId=%s allowed=true",
+				cmdIdForLog,
+				message.guildId,
+				message.author.id,
+				message.guild?.ownerId,
+			);
 		}
 	}
 
