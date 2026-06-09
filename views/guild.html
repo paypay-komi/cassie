@@ -231,6 +231,24 @@ body {
   font-size: 13px;
 }
 .add-override label { font-size: 12px; color: var(--secondary); display: flex; align-items: center; gap: 4px; }
+/* ── Override target autocomplete ── */
+.autocomplete-wrap { position: relative; width: 220px; }
+.autocomplete-wrap input { width: 100%; }
+.autocomplete-list {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: #1a1a22; border: 1px solid #333; border-top: none;
+  max-height: 200px; overflow-y: auto; z-index: 100;
+  display: none;
+}
+.autocomplete-list .ac-item {
+  padding: 6px 10px; cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+}
+.autocomplete-list .ac-item:hover { background: #2a2a36; }
+.autocomplete-list .ac-item .ac-id {
+  font-size: 10px; color: var(--secondary); font-family: monospace; margin-left: auto;
+}
+.autocomplete-list .ac-highlight { background: #2a2a36; }
 /* ── Tags ── */
 .tag-card {
   background: var(--card);
@@ -385,6 +403,14 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   });
 });
 
+// Close autocomplete on outside click
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('ov-target-list');
+  if (wrap && !e.target.closest('.autocomplete-wrap')) {
+    wrap.style.display = 'none';
+  }
+});
+
 // ── Overview Tab ──
 async function loadOverview() {
   const el = document.getElementById('content');
@@ -502,19 +528,26 @@ function filterCommands() {
 }
 
 // ── Overrides Tab ──
+let targetData = { channels: [], roles: [], members: [] };
+let selectedTargetId = '';
+
 async function loadOverrides() {
   const el = document.getElementById('content');
   el.innerHTML = '<div class="loading">Loading overrides...</div>';
 
-  // Fetch both overrides and commands in parallel
-  const [ovData, cmdData] = await Promise.all([
+  // Fetch overrides, commands, and target data in parallel
+  const [ovData, cmdData, tgtData] = await Promise.all([
     api(`/api/data/guild-overrides-list?guildId=${guildId}`),
     api(`/api/data/guild-commands?guildId=${guildId}`),
+    api(`/api/data/guild-targets?guildId=${guildId}`),
   ]);
 
   if (!ovData.ok) { showMsg('Failed to load overrides.'); return; }
 
-  // Build a command name lookup (use commandId → name)
+  // Cache target data for autocomplete
+  if (tgtData.ok) targetData = tgtData;
+
+  // Build a command name lookup
   const cmdNames = {};
   if (cmdData.ok) {
     for (const cmd of cmdData.commands) {
@@ -533,13 +566,16 @@ async function loadOverrides() {
   }
 
   html += `<div class="add-override">
-    <select id="ov-type"><option value="channel">Channel</option><option value="role">Role</option><option value="user">User</option></select>
-    <input id="ov-target" placeholder="Target ID" style="width:180px">
+    <select id="ov-type" onchange="onOvTypeChange()"><option value="channel">Channel</option><option value="role">Role</option><option value="user">User</option></select>
+    <div class="autocomplete-wrap">
+      <input id="ov-target-input" placeholder="Type to search..." oninput="onOvTargetInput()" onfocus="onOvTargetInput()" autocomplete="off">
+      <div class="autocomplete-list" id="ov-target-list"></div>
+      <input type="hidden" id="ov-target">
+    </div>
     <select id="ov-cmd" style="max-width:200px">${cmdOpts}</select>
     <label><input type="checkbox" id="ov-allowed" checked> Allow</label>
     <button class="btn" onclick="addOverride()">Add</button>
   </div>`;
-  html += '<div style="color:var(--secondary);font-size:12px;margin-bottom:16px">Target ID is the Discord ID of the channel, role, or user.</div>';
 
   html += '<div class="section-title">Existing Overrides</div>';
 
@@ -576,12 +612,67 @@ async function loadOverrides() {
   el.innerHTML = html;
 }
 
+function onOvTypeChange() {
+  document.getElementById('ov-target-input').value = '';
+  document.getElementById('ov-target').value = '';
+  selectedTargetId = '';
+  document.getElementById('ov-target-list').style.display = 'none';
+}
+
+function onOvTargetInput() {
+  const type = document.getElementById('ov-type').value;
+  const q = document.getElementById('ov-target-input').value.toLowerCase().trim();
+  const list = document.getElementById('ov-target-list');
+
+  let items;
+  if (type === 'channel') items = targetData.channels || [];
+  else if (type === 'role') items = targetData.roles || [];
+  else items = targetData.members || [];
+
+  if (!q || items.length === 0) { list.style.display = 'none'; return; }
+
+  // Filter and sort by relevance
+  const filtered = items
+    .map(item => {
+      const label = type === 'user'
+        ? `${item.username}${item.displayName !== item.username ? ' (' + item.displayName + ')' : ''}`
+        : item.name;
+      const idx = label.toLowerCase().indexOf(q);
+      const idIdx = item.id.startsWith(q) ? 0 : -1;
+      return { item, label, score: idIdx === 0 ? 0 : (idx >= 0 ? idx : 999) };
+    })
+    .filter(x => x.score < 999)
+    .sort((a, b) => a.score - b.score);
+
+  if (filtered.length === 0) { list.style.display = 'none'; return; }
+
+  let html = '';
+  for (const { item, label } of filtered.slice(0, 50)) {
+    const color = type === 'role' && item.color && item.color !== '#000000'
+      ? `<span style="color:${item.color};font-size:16px">●</span>`
+      : '';
+    html += `<div class="ac-item" onclick="selectTarget('${item.id}','${escape(label.replace(/'/g, "\\'"))}')">
+      ${color}${escape(label)}
+      <span class="ac-id">${escape(item.id)}</span>
+    </div>`;
+  }
+  list.innerHTML = html;
+  list.style.display = '';
+}
+
+function selectTarget(id, label) {
+  document.getElementById('ov-target-input').value = label;
+  document.getElementById('ov-target').value = id;
+  selectedTargetId = id;
+  document.getElementById('ov-target-list').style.display = 'none';
+}
+
 async function addOverride() {
   const type = document.getElementById('ov-type').value;
-  const targetId = document.getElementById('ov-target').value.trim();
+  const targetId = document.getElementById('ov-target').value;
   const commandId = document.getElementById('ov-cmd').value;
   const allowed = document.getElementById('ov-allowed').checked;
-  if (!targetId || !commandId) { showMsg('Fill in target ID and command.', 'error'); return; }
+  if (!targetId || !commandId) { showMsg('Select a target and command.', 'error'); return; }
 
   const data = await api('/api/data/guild-overrides', {
     method: 'POST',
