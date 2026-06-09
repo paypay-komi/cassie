@@ -505,15 +505,22 @@ async function loadCommands() {
   document.getElementById('cmd-list').innerHTML = listHtml;
 }
 
-function toggleCmd(el) {
-  const disabled = el.dataset.disabled === 'true';
-  api('/api/data/guild-command-toggle', {
+async function toggleCmd(el) {
+  const wasDisabled = el.dataset.disabled === 'true';
+  // Optimistic update
+  el.dataset.disabled = String(!wasDisabled);
+  el.classList.toggle('on', wasDisabled);
+
+  const data = await api('/api/data/guild-command-toggle', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, commandId: el.dataset.id, disabled: !disabled }),
+    body: JSON.stringify({ guildId, commandId: el.dataset.id, disabled: !wasDisabled }),
   });
-  el.dataset.disabled = String(!disabled);
-  el.classList.toggle('on', disabled);
+  if (!data.ok) {
+    // Revert on failure
+    el.dataset.disabled = String(wasDisabled);
+    el.classList.toggle('on', !wasDisabled);
+  }
 }
 
 function filterCommands() {
