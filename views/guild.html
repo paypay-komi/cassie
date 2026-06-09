@@ -35,6 +35,8 @@ body {
   flex-shrink: 0;
   z-index: 10;
 }
+.back-btn { color: var(--secondary); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 4px; transition: 0.15s; }
+.back-btn:hover { color: var(--text); background: var(--hover); }
 .header h1 { color: var(--accent); font-size: 18px; }
 #guild-header {
   display: flex;
@@ -321,7 +323,10 @@ body {
 <body>
 
 <div class="header">
-  <h1>Cassie</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="/dashboard" class="back-btn">← Dashboard</a>
+    <h1>Cassie</h1>
+  </div>
   <div id="guild-header">
     <span id="guild-name">Loading...</span>
     <img id="guild-icon" src="" alt="" style="display:none">
