@@ -46,16 +46,16 @@ module.exports = {
 		// is already set.
 		app.use(
 			express.json({
-				verify: (req, _buf, enc) => {
-					req.rawBody = _buf.toString(enc || "utf8");
+				verify: (req, res, buf, enc) => {
+					req.rawBody = buf.toString(enc || "utf8");
 				},
 			}),
 		);
 		app.use(
 			express.urlencoded({
 				extended: true,
-				verify: (req, _buf, enc) => {
-					if (!req.rawBody) req.rawBody = _buf.toString(enc || "utf8");
+				verify: (req, res, buf, enc) => {
+					if (!req.rawBody) req.rawBody = buf.toString(enc || "utf8");
 				},
 			}),
 		);
@@ -63,8 +63,8 @@ module.exports = {
 		app.use(
 			express.text({
 				type: "*/*",
-				verify: (req, _buf, enc) => {
-					if (!req.rawBody) req.rawBody = _buf.toString(enc || "utf8");
+				verify: (req, res, buf, enc) => {
+					if (!req.rawBody) req.rawBody = buf.toString(enc || "utf8");
 				},
 			}),
 		);
