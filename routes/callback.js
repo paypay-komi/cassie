@@ -8,6 +8,13 @@ module.exports = {
 		const code = req.query.code;
 		if (!code) return res.status(400).send("No code provided");
 
+		// Validate state to prevent CSRF
+		const state = req.query.state;
+		if (!state || state !== req.session.oauthState) {
+			return res.status(400).send("Invalid state parameter — possible CSRF attack");
+		}
+		delete req.session.oauthState;
+
 		try {
 			// exchange code for access token
 			const tokenRes = await axios.post(

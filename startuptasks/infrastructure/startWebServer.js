@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const axios = require("axios");
 const { getLogger } = require("../../lib/logger");
 
@@ -76,6 +77,38 @@ module.exports = {
 				credentials: true,
 			}),
 		);
+
+		// -----------------------------
+		// RATE LIMITING
+		// -----------------------------
+		const generalLimiter = rateLimit({
+			windowMs: 60 * 1000, // 1 minute
+			max: 100,
+			standardHeaders: true,
+			legacyHeaders: false,
+			message: { ok: false, error: "Too many requests, slow down" },
+		});
+		app.use(generalLimiter);
+
+		const apiLimiter = rateLimit({
+			windowMs: 60 * 1000,
+			max: 60,
+			standardHeaders: true,
+			legacyHeaders: false,
+			message: { ok: false, error: "Too many requests, slow down" },
+		});
+
+		// Tighter limits on sensitive routes
+		app.use("/api/", apiLimiter);
+		// Webhook limit is generous — bursts of GitHub pushes + listing
+		// vote webhooks are under /api/ so they share the 60/min limit
+		app.use("/webhook/", rateLimit({
+			windowMs: 60 * 1000,
+			max: 30,
+			standardHeaders: true,
+			legacyHeaders: false,
+			message: { ok: false, error: "Too many requests" },
+		}));
 
 		// -----------------------------
 		// SESSION MIDDLEWARE (Prisma)
