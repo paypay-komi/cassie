@@ -1,3 +1,5 @@
+const { requireGuildAccess } = require("../../../lib/guildGuard");
+
 module.exports = {
 	path: "/api/data/guild-member-search",
 	method: "get",
@@ -13,6 +15,9 @@ module.exports = {
 		if (!guildId) {
 			return res.status(400).json({ ok: false, error: "missing guildId" });
 		}
+
+		const guard = await requireGuildAccess(req.session, guildId, req.app?.locals?.client);
+		if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
 
 		if (query.length < 2) {
 			return res.json({ ok: true, members: [] });

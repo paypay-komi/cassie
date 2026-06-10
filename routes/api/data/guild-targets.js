@@ -1,3 +1,5 @@
+const { requireGuildAccess } = require("../../../lib/guildGuard");
+
 module.exports = {
 	path: "/api/data/guild-targets",
 	method: "get",
@@ -11,6 +13,9 @@ module.exports = {
 		if (!guildId) {
 			return res.status(400).json({ ok: false, error: "missing guildId" });
 		}
+
+		const guard = await requireGuildAccess(req.session, guildId, req.app?.locals?.client);
+		if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
 
 		try {
 			const client = req.app?.locals?.client;

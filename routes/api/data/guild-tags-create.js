@@ -1,4 +1,5 @@
 const db = require("../../../db");
+const { requireGuildAccess } = require("../../../lib/guildGuard");
 
 module.exports = {
 	path: "/api/data/guild-tags-create",
@@ -13,6 +14,9 @@ module.exports = {
 		if (!guildId || !name || !content) {
 			return res.status(400).json({ ok: false, error: "missing required fields" });
 		}
+
+		const guard = await requireGuildAccess(req.session, guildId, req.app?.locals?.client);
+		if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
 
 		if (name.length > 100) {
 			return res.status(400).json({ ok: false, error: "tag name too long (max 100)" });
