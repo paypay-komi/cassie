@@ -159,22 +159,33 @@ body {
 }
 /* ── Command list ── */
 .command-group { margin-bottom: 16px; }
-.command-group h3 {
-  font-size: 13px;
-  color: var(--secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #2a2a36;
-}
 .command-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 .command-row .cmd-name { font-size: 14px; }
+.parent-row {
+  background: rgba(88,101,242,0.08);
+  border: 1px solid rgba(88,101,242,0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+}
+.parent-row .cmd-parent {
+  font-weight: 700;
+  color: var(--accent);
+}
+.child-row {
+  padding-left: 10px;
+  border-left: 2px solid #2a2a36;
+}
+.child-row .cmd-child {
+  font-size: 13px;
+  color: var(--secondary);
+}
 /* ── Toggle ── */
 .toggle {
   width: 40px; height: 22px;
@@ -570,49 +581,105 @@ async function loadCommands() {
 
   let html = '<div class="section-title">Commands</div>';
   html += '<input type="text" class="search-input" id="cmd-search" placeholder="Search commands..." oninput="filterCommands()">';
-  html += '<div class="info-card">Toggle a command <strong>OFF</strong> to disable it <strong>server-wide</strong>. Then use the <a onclick="switchTab(\'overrides\')">Overrides</a> tab to add exceptions for specific channels, roles, or users.</div>';
+  html += '<div class="info-card">Toggle a command <strong>OFF</strong> to disable it <strong>server-wide</strong>. Disabling a parent command also disables all its subcommands. Then use the <a onclick="switchTab(\'overrides\')">Overrides</a> tab to add exceptions for specific channels, roles, or users.</div>';
   html += '<div id="cmd-list"></div>';
   el.innerHTML = html;
 
-  // Group by first word
-  const groups = {};
+  // Build parent → children map for arbitrary depth
+  const childrenByParent = {};
   for (const cmd of data.commands) {
-    const group = cmd.name.split(' ')[0];
-    if (!groups[group]) groups[group] = [];
-    groups[group].push(cmd);
+    const pid = cmd.parentId || '__root__';
+    if (!childrenByParent[pid]) childrenByParent[pid] = [];
+    childrenByParent[pid].push(cmd);
+  }
+
+  // Render a command node and all its descendants recursively
+  function renderNode(cmd, depth) {
+    const hasChildren = childrenByParent[cmd.id] && childrenByParent[cmd.id].length > 0;
+    const rowClass = hasChildren ? 'parent-row' : 'child-row';
+    const nameClass = hasChildren ? 'cmd-parent' : 'cmd-child';
+    const indent = depth * 18;
+    const on = cmd.disabled ? '' : ' on';
+    let html = `<div class="command-row ${rowClass}" data-name="${escape(cmd.name).toLowerCase()}" style="margin-left:${indent}px">
+      <span class="cmd-name ${nameClass}">${escape(cmd.name)}</span>
+      <div class="toggle${on}" data-id="${cmd.id}" data-disabled="${cmd.disabled}" onclick="toggleCmd(this)"></div>
+    </div>`;
+    const children = (childrenByParent[cmd.id] || []).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    for (const child of children) {
+      html += renderNode(child, depth + 1);
+    }
+    return html;
   }
 
   let listHtml = '';
-  for (const [group, cmds] of Object.entries(groups).sort()) {
-    listHtml += `<div class="command-group" data-group="${escape(group)}">
-      <h3>${escape(group)}</h3>`;
-    for (const cmd of cmds.sort((a, b) => a.name.localeCompare(b.name))) {
-      const on = cmd.disabled ? '' : ' on';
-      listHtml += `<div class="command-row" data-name="${escape(cmd.name).toLowerCase()}">
-        <span class="cmd-name">${escape(cmd.name)}</span>
-        <div class="toggle${on}" data-id="${cmd.id}" data-disabled="${cmd.disabled}" onclick="toggleCmd(this)"></div>
-      </div>`;
-    }
+  const roots = (childrenByParent['__root__'] || []).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  for (const root of roots) {
+    listHtml += `<div class="command-group" data-group="${escape(root.name)}">`;
+    listHtml += renderNode(root, 0);
     listHtml += '</div>';
   }
   document.getElementById('cmd-list').innerHTML = listHtml;
+  console.log('[Commands] loaded', data.commands.length, 'commands, disabled IDs:', data.debug?.disabledIds);
 }
 
 async function toggleCmd(el) {
   const wasDisabled = el.dataset.disabled === 'true';
-  // Optimistic update
-  el.dataset.disabled = String(!wasDisabled);
+  const newDisabled = !wasDisabled;
+  const cmdId = el.dataset.id;
+
+  // Cascade only when toggling a parent row (has subcommands)
+  const row = el.closest('.command-row');
+  const isParent = row?.classList.contains('parent-row');
+  const parentName = row?.dataset.name || '';
+  const childToggles = isParent
+    ? [...(row.closest('.command-group')?.querySelectorAll('.toggle') || [])]
+        .filter(t => t.dataset.id !== cmdId)
+        .filter(t => {
+          const r = t.closest('.command-row');
+          const n = r?.dataset.name || '';
+          return n.startsWith(parentName + ' ');
+        })
+    : [];
+
+  // Optimistic update — parent
+  el.dataset.disabled = String(newDisabled);
   el.classList.toggle('on', wasDisabled);
+
+  // Optimistic update — children (if parent, cascade visually)
+  if (childToggles.length > 0) {
+    for (const childEl of childToggles) {
+      childEl.dataset.disabled = String(newDisabled);
+      childEl.classList.toggle('on', wasDisabled);
+    }
+  }
 
   const data = await api('/api/data/guild-command-toggle', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, commandId: el.dataset.id, disabled: !wasDisabled }),
+    body: JSON.stringify({ guildId, commandId: cmdId, disabled: newDisabled }),
   });
   if (!data.ok) {
-    // Revert on failure
+    // Revert parent
     el.dataset.disabled = String(wasDisabled);
     el.classList.toggle('on', !wasDisabled);
+    // Revert children
+    if (childToggles.length > 0) {
+      for (const childEl of childToggles) {
+        childEl.dataset.disabled = String(wasDisabled);
+        childEl.classList.toggle('on', !wasDisabled);
+      }
+    }
+  }
+  // If API returned extra (subcommands toggled server-side), sync their state
+  else if (data.extra && data.extra.length > 0 && childToggles.length > 0) {
+    // Server-side already handled the cascade; our optimistic update was correct
+    // but if the user had manually changed a child before, the server overwrote it.
+    // Sync the displayed state to match what the server did.
+    // (We already set all children to match the parent, which matches the server cascade.)
   }
 }
 
