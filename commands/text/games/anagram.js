@@ -28,6 +28,7 @@ commandId: "83bbbe59-6e58-4a4f-ba76-2e908a8630be",
   ],
   parent: "games",
   aliases: [],
+  slashEnabled: false,
   async execute(message, args) {
     const word = randomWord();
     const anagrams = findAnagrams(word);

@@ -1,4 +1,5 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
+const { ArgsBuilder } = require("../../lib/argsBuilder");
 
 module.exports = {
 
@@ -8,6 +9,9 @@ commandId: "0bfd59dd-e035-49f6-a928-f980b61f59e3",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	category: "Utility",
 	aliases: ["p"],
+	// Optional args declaration — generates typed Discord options for /ping
+	// Commands without this fall back to a generic string option.
+	args: ArgsBuilder.create(),
 
 	async execute(message) {
 		const startTime = Date.now();

@@ -5,11 +5,14 @@ const {
 	validateIdea,
 	bustIdeaCache,
 } = require("../../../utils/ideas/validateIdea.js");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {
 	commandId: "5426e56e-0f41-4f5f-bf9c-c8bde8bb58be",
 	name: "add",
 	description: "adds an idea to the idea board",
+	args: ArgsBuilder.create()
+		.string("idea", { required: true, description: "Your idea" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "idea",
 

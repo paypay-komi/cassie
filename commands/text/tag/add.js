@@ -1,8 +1,13 @@
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
+
 module.exports = {
 	commandId: "2986f8de-bd20-44d4-9b8d-51e0d6d4b71a",
 	name: "add",
 	parent: "tag",
 	description: "Create a new tag.",
+	args: ArgsBuilder.create()
+		.string("name", { required: true, description: "Tag name" })
+		.string("content", { required: true, description: "Tag content" }),
 	guildOwnerOnly: true,
 	dmUse: false,
 

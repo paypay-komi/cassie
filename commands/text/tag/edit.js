@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {
 
@@ -6,6 +7,9 @@ commandId: "72955a75-0960-4591-a994-d94adfcc6da1",
 	name: "edit",
 	parent: "tag",
 	description: "Edit a tag's content. Only the creator or members with Manage Messages can edit tags.",
+	args: ArgsBuilder.create()
+		.string("name", { required: true, description: "Tag name" })
+		.string("content", { required: true, description: "New tag content" }),
 	guildOwnerOnly: true,
 	dmUse: false,
 

@@ -1,6 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../lib/logger");
 const { pingSafeMesage } = require("../../utils/safeMsg");
+const { ArgsBuilder } = require("../../lib/argsBuilder");
 
 const SYSTEM_PROMPT = {
 	role: "system",
@@ -17,6 +18,8 @@ module.exports = {
 commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 	name: "chat",
 	description: "Chat with AI (streaming, formatted)",
+	args: ArgsBuilder.create()
+		.string("message", { required: true, description: "Message for the AI" }),
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,

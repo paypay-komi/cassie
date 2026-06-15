@@ -1,4 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {
 
@@ -6,6 +7,8 @@ commandId: "b9c83c22-006c-418f-bf37-8bbfd278e43c",
 	name: "delete",
 	parent: "tag",
 	description: "Delete a tag. Only the creator or members with Manage Messages can delete tags.",
+	args: ArgsBuilder.create()
+		.string("name", { required: true, description: "Tag name" }),
 	aliases: ["del", "remove", "rm"],
 	guildOwnerOnly: true,
 	dmUse: false,

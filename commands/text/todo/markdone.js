@@ -1,12 +1,15 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../../lib/logger");
 const { fetchUserTodoList } = require("./utils/fetchuserTodoList");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {
 
 commandId: "e542ce2e-4f18-4185-9d4b-7cb167b7d447",
 	name: "complete",
 	description: "Mark a todo item as done",
+	args: ArgsBuilder.create()
+		.integer("id", { required: true, description: "Item number to mark done" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "todo",
 	aliases: ["done", "markdone", "finish"],

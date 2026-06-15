@@ -6,11 +6,14 @@ const {
 	ButtonStyle,
 	ComponentType,
 } = require("discord.js");
+const { ArgsBuilder } = require("../../lib/argsBuilder");
 
 module.exports = {
 	commandId: "b0f7624f-a39e-49b2-b653-e0c61c15b2e5",
 	name: "help",
 	description: "List all commands or get info about a specific command.",
+	args: ArgsBuilder.create()
+		.string("command", { description: "Command to get help for" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
 	aliases: ["h"],
 

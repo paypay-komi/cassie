@@ -1,4 +1,5 @@
 const { PermissionsBitField, EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const { ArgsBuilder } = require("../../lib/argsBuilder");
 
 const MAX_DICE = 100000;
 const MAX_SIDES = 1000000;
@@ -9,6 +10,8 @@ module.exports = {
 commandId: "efa5f934-c486-4a5a-8606-775349acda31",
 	name: "roll",
 	description: "Roll dice. Usage: c.roll [NdN] e.g. c.roll 2d6",
+	args: ArgsBuilder.create()
+		.string("dice", { description: "Dice notation, e.g. 2d6" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.AttachFiles],
 	execute(message, args) {
 		if (!args[0])
