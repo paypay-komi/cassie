@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="Terms of Service - Cassie">
+<meta property="og:description" content="Terms of Service for Cassie Discord bot. CSAM zero-tolerance policy, user conduct rules, and legal terms.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nekomi.tailef6033.ts.net/terms">
+<meta property="og:image" content="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="theme-color" content="#5865F2">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64">
 <title>Terms of Service - Cassie</title>
+<!-- OG embed cache buster: bump ?v=N in the image URL to force Discord to refresh cached embed -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -44,7 +55,7 @@ a:hover { text-decoration: underline; }
 <div class="wrap">
   <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
   <h1>Terms of Service</h1>
-  <p class="updated">Last updated: June 8, 2026</p>
+  <p class="updated">Last updated: June 14, 2026</p>
 
   <h2>1. Acceptance of Terms</h2>
   <p>By inviting Cassie ("the Bot") to your Discord server or using the web dashboard, you agree to these Terms of Service. If you do not agree, do not use the Bot.</p>
@@ -59,6 +70,8 @@ a:hover { text-decoration: underline; }
   <p>You agree not to:</p>
   <ul>
     <li>Use the Bot for any illegal or unauthorized purpose</li>
+    <li>Use the Bot to create, share, distribute, or promote child sexual abuse material (CSAM), child exploitation content, or any form of illegal media</li>
+    <li>Use the Bot's AI features to generate content depicting minors in sexual or exploitative situations</li>
     <li>Attempt to exploit, abuse, or disrupt the Bot's functionality</li>
     <li>Use the Bot to harass, spam, or harm others</li>
     <li>Attempt to access data you do not have permission to access</li>
@@ -74,22 +87,39 @@ a:hover { text-decoration: underline; }
   <h2>7. User-Generated Content</h2>
   <p>You are solely responsible for any content you create using the Bot (such as tags, reminders, and todo lists). We reserve the right to remove content that violates these terms or is otherwise objectionable.</p>
 
-  <h2>8. Limitation of Liability</h2>
+  <h2>8. Prohibited Content &amp; Zero-Tolerance Policy</h2>
+  <p>Cassie has a <strong>zero-tolerance policy</strong> regarding child sexual abuse material (CSAM), child exploitation content, and any content involving minors in sexual or exploitative contexts. This includes:</p>
+  <ul>
+    <li>CSAM images, videos, or links</li>
+    <li>AI-generated or AI-manipulated content depicting child exploitation</li>
+    <li>Text, prompts, or instructions intended to produce CSAM</li>
+    <li>Grooming or solicitation of minors</li>
+    <li>Any content illegal under applicable child protection laws</li>
+  </ul>
+  <p>Violation of this policy will result in immediate and permanent ban from the Bot. Suspected CSAM will be reported to the National Center for Missing &amp; Exploited Children (NCMEC) via the CyberTipline and/or relevant law enforcement authorities, along with any identifying information available.</p>
+
+  <h2>9. Reporting Violations</h2>
+  <p>If you encounter content that violates these terms — especially CSAM, child exploitation, or other illegal material — please report it immediately to the Bot operator through the <a id="report-link" href="#">support server</a> or by direct message. Reports will be reviewed promptly and appropriate action will be taken, including reporting to law enforcement where required.</p>
+
+  <h2>10. Law Enforcement Cooperation</h2>
+  <p>We will cooperate with law enforcement authorities investigating illegal activity involving the Bot. This includes preserving and providing relevant data, reporting suspected CSAM to NCMEC's CyberTipline, and complying with valid legal requests. We may retain data beyond normal retention periods when reasonably necessary for an ongoing investigation.</p>
+
+  <h2>11. Limitation of Liability</h2>
   <p>To the maximum extent permitted by law, the Bot operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of data, profits, or service interruption.</p>
 
-  <h2>9. Termination</h2>
+  <h2>12. Termination</h2>
   <p>We reserve the right to ban users or servers from using the Bot for violations of these terms. If you wish to stop using the Bot, you may remove it from your server and stop accessing the web dashboard.</p>
 
-  <h2>10. Changes to Terms</h2>
+  <h2>13. Changes to Terms</h2>
   <p>We may update these Terms of Service at any time. Continued use of the Bot after changes constitutes acceptance of the new terms.</p>
 
-  <h2>11. Contact</h2>
+  <h2>14. Contact</h2>
   <p>For questions about these terms, please contact the Bot operator through the <a id="support-link" href="#">support server</a> or via direct message.</p>
 </div>
 <script>
 fetch('/api/invite/support')
   .then(r => r.json())
-  .then(d => { if (d.ok) document.getElementById('support-link').href = d.url; })
+  .then(d => { if (d.ok) { document.getElementById('support-link').href = d.url; document.getElementById('report-link').href = d.url; } })
   .catch(() => {});
 </script>
 </body>

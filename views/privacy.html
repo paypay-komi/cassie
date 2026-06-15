@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="Privacy Policy - Cassie">
+<meta property="og:description" content="Privacy Policy for Cassie Discord bot. GDPR-compliant data practices, your rights, retention, and deletion requests.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nekomi.tailef6033.ts.net/privacy">
+<meta property="og:image" content="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="theme-color" content="#5865F2">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64">
 <title>Privacy Policy - Cassie</title>
+<!-- OG embed cache buster: bump ?v=N in the image URL to force Discord to refresh cached embed -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -44,67 +55,106 @@ a:hover { text-decoration: underline; }
 <div class="wrap">
   <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: June 8, 2026</p>
+  <p class="updated">Last updated: June 14, 2026</p>
 
-  <h2>1. Data We Collect</h2>
-  <p>Cassie ("the Bot") collects and stores the following data when you use its features:</p>
+  <h2>1. Data Controller</h2>
+  <p>Cassie ("the Bot") is operated by an individual developer. For privacy-related inquiries, contact the operator through the <a id="support-link" href="#">support server</a> or via Discord direct message. Responses will be provided within 30 days.</p>
+
+  <h2>2. Lawful Basis for Processing</h2>
+  <p>We process your personal data under the following lawful bases as defined in Article 6 of the GDPR:</p>
+  <ul>
+    <li><strong>Legitimate Interest (Article 6(1)(f))</strong> &mdash; for core Bot functionality: storing guild settings, tags, reminders, todo lists, AFK status, command overrides, and command usage statistics. This processing is necessary to provide the service you intentionally use, and it does not override your fundamental rights and freedoms.</li>
+    <li><strong>Consent (Article 6(1)(a))</strong> &mdash; for AI chat history and message content used by AI features. You provide consent by actively using these features. You may withdraw consent at any time by ceasing to use AI features or requesting deletion of your data.</li>
+    <li><strong>Legal Obligation (Article 6(1)(c))</strong> &mdash; where we are required to retain or disclose data by applicable law (e.g., reporting illegal content to authorities).</li>
+  </ul>
+
+  <h2>3. Data We Collect</h2>
+  <p>Cassie collects and stores the following data when you use its features:</p>
   <ul>
     <li><strong>Discord User ID</strong> &mdash; used to identify you for custom prefixes, reminders, AFK status, todo lists, command usage statistics, chat history, and per-user command overrides.</li>
     <li><strong>Discord Guild (Server) ID</strong> &mdash; used to store server-specific settings such as custom prefix, disabled commands, tags, and allow/deny overrides.</li>
     <li><strong>Discord Channel ID</strong> &mdash; used for channel-specific command overrides and settings.</li>
     <li><strong>Discord Role ID</strong> &mdash; used for role-based command overrides.</li>
-    <li><strong>Command Usage Data</strong> &mdash; we track which commands you use, in which server, and how often. This is used for statistics and diagnostics.</li>
-    <li><strong>Message Content</strong> &mdash; when you use chat/AI features, the messages you send are stored temporarily to provide conversational context.</li>
+    <li><strong>Command Usage Data</strong> &mdash; we record which command was used, in which server, by whom, and when. This is used for statistics and diagnostics.</li>
+    <li><strong>Message Content</strong> &mdash; when you use AI/chat features, the messages you send are stored to provide conversational context. Retained until you request deletion.</li>
     <li><strong>User-Created Content</strong> &mdash; tags, reminders, and todo list items you create are stored so they can be retrieved later.</li>
     <li><strong>AFK Status</strong> &mdash; your AFK message is stored to notify others when you are away.</li>
+    <li><strong>Announcement Preferences</strong> &mdash; which servers have subscribed or opted out of announcement broadcasts, and when they were last notified.</li>
   </ul>
 
-  <h2>2. Web Dashboard Data</h2>
+  <h2>4. Web Dashboard Data</h2>
   <p>When you log in to the web dashboard via Discord OAuth, we collect:</p>
   <ul>
     <li>Your Discord User ID, username, and avatar URL</li>
     <li>Your Discord access token (used only during your session to fetch your guild list)</li>
   </ul>
-  <p>This data is stored in an encrypted session cookie and is deleted when you log out or after 7 days of inactivity.</p>
+  <p>This data is stored in an encrypted session cookie and is deleted when you log out or after 7 days of inactivity. We do not use tracking cookies, analytics cookies, or any third-party cookies on the dashboard.</p>
 
-  <h2>3. How We Use Your Data</h2>
+  <h2>5. How We Use Your Data</h2>
   <p>Your data is used exclusively to provide the Bot's functionality:</p>
   <ul>
     <li>Processing commands and applying your settings</li>
     <li>Remembering your custom prefix, reminders, tags, and todo lists</li>
     <li>Enforcing command restrictions (disable/enable per server, channel, role, or user)</li>
     <li>Displaying statistics on the web dashboard</li>
-    <li>Improving the Bot based on usage patterns</li>
+    <li>Improving the Bot based on usage patterns (aggregated, not individual)</li>
   </ul>
 
-  <h2>4. Data Storage &amp; Retention</h2>
-  <p>All data is stored in a PostgreSQL database. We retain data indefinitely to provide continuous service. If you want your data deleted, contact us using the information below. Note that some data may be retained for legitimate operational purposes (e.g., command logs).</p>
-
-  <h2>5. Data Sharing</h2>
-  <p>We do not sell, trade, or share your personal data with third parties. Data is only accessible to the Bot operator for support and maintenance purposes.</p>
-
-  <h2>6. Data Security</h2>
-  <p>We take reasonable measures to protect your data, including encrypted database connections and secure session handling. However, no method of electronic storage is 100% secure.</p>
-
-  <h2>7. Your Rights</h2>
-  <p>You have the right to:</p>
+  <h2>6. Data Storage &amp; Retention</h2>
+  <p>All data is stored in a PostgreSQL database on the same machine running the Bot. We retain data for as long as it is needed to provide the Bot's functionality:</p>
   <ul>
-    <li>Request a copy of the data we hold about you</li>
-    <li>Request deletion of your data</li>
-    <li>Request correction of inaccurate data</li>
+    <li><strong>Guild settings, tags, reminders, todo lists, time capsules, AFK status, command overrides, command usage statistics, announcement preferences</strong> &mdash; retained indefinitely until you request deletion or remove the Bot from your server.</li>
+    <li><strong>Web dashboard session cookies</strong> &mdash; retained for up to 7 days of inactivity, or deleted on logout.</li>
   </ul>
-  <p>To exercise these rights, contact us using the information below.</p>
+  <p>You may request deletion of your data at any time (see Section 11). Data needed for ongoing investigations (e.g., reported illegal content) may be retained longer until the matter is resolved.</p>
 
-  <h2>8. Contact</h2>
-  <p>For privacy-related inquiries, please contact the Bot operator in the <a id="support-link" href="#">support server</a> or send a direct message.</p>
+  <h2>7. Data Sharing</h2>
+  <p>We do not sell, trade, or share your personal data with third parties. Data is only accessible to the Bot operator for support, maintenance, and legal compliance purposes. We do not use third-party analytics, advertising, or tracking services.</p>
 
-  <h2>9. Changes to This Policy</h2>
-  <p>We may update this Privacy Policy from time to time. Changes will be posted here and the "Last updated" date will be revised.</p>
+  <h2>8. International Data Transfers</h2>
+  <p>The Bot and its database are hosted on servers located in the United States. If you access the Bot from the European Economic Area (EEA), the United Kingdom, or other regions, your personal data will be transferred to and processed in the United States. Such transfers are protected by appropriate safeguards, including the EU-US Data Privacy Framework and Standard Contractual Clauses where applicable.</p>
+
+  <h2>9. Data Security</h2>
+  <p>We take reasonable measures to protect your data, including encrypted database connections, secure session handling, and restricted access to the server. However, no method of electronic storage or transmission is 100% secure. In the event of a data breach that poses a risk to your rights and freedoms, we will notify the relevant supervisory authority within 72 hours and, where required, inform affected users.</p>
+
+  <h2>10. Your Rights Under GDPR</h2>
+  <p>As a data subject in the European Economic Area (EEA), you have the following rights under the General Data Protection Regulation:</p>
+  <ul>
+    <li><strong>Right of Access (Article 15)</strong> &mdash; request a copy of the personal data we hold about you.</li>
+    <li><strong>Right to Rectification (Article 16)</strong> &mdash; request correction of inaccurate or incomplete data.</li>
+    <li><strong>Right to Erasure (Article 17)</strong> &mdash; request deletion of your data, also known as the "right to be forgotten."</li>
+    <li><strong>Right to Restriction of Processing (Article 18)</strong> &mdash; request that we stop processing your data while maintaining it in storage.</li>
+    <li><strong>Right to Data Portability (Article 20)</strong> &mdash; request your data in a machine-readable format (JSON) to transfer to another service.</li>
+    <li><strong>Right to Object (Article 21)</strong> &mdash; object to processing based on legitimate interest, including processing for analytics or service improvement.</li>
+    <li><strong>Right to Withdraw Consent (Article 7)</strong> &mdash; where processing is based on consent, you may withdraw at any time without affecting the lawfulness of prior processing.</li>
+  </ul>
+  <p>To exercise any of these rights, contact us through the support server or via Discord DM. We will respond within 30 days. You also have the right to lodge a complaint with your local data protection supervisory authority if you believe your rights have been violated.</p>
+
+  <h2>11. How to Request Deletion</h2>
+  <p>To request full deletion of your data:</p>
+  <ul>
+    <li><strong>Option 1:</strong> Send a direct message to the Bot operator on Discord detailing your request.</li>
+    <li><strong>Option 2:</strong> Join the <a id="support-link2" href="#">support server</a> and open a ticket.</li>
+  </ul>
+  <p>Please include your Discord User ID (right-click your profile &rarr; Copy ID) to help us locate your data. We will confirm receipt within 72 hours and complete the deletion within 30 days. Note that some data may be retained if required by law (e.g., records of illegal content reports).</p>
+
+  <h2>12. Children's Data</h2>
+  <p>Cassie is not intended for children under 13, in line with Discord's Terms of Service. However, the age of digital consent under GDPR varies between 13 and 16 depending on the EU member state. If you are below the age of digital consent in your country, you must have parental permission to use the Bot. We do not knowingly collect data from children below the applicable age. If we become aware that a child's data has been collected without appropriate consent, we will delete it promptly.</p>
+
+  <h2>13. Contact</h2>
+  <p>For privacy-related inquiries, deletion requests, or any questions about this policy:</p>
+  <ul>
+    <li>Support server: <a id="support-link3" href="#">Join the server</a></li>
+    <li>Discord DM: Message the Bot operator directly</li>
+  </ul>
+
+  <h2>14. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. Changes will be posted here and the "Last updated" date will be revised. If significant changes are made, we will notify users via the support server. Continued use of the Bot after changes constitutes acceptance of the updated policy.</p>
 </div>
 <script>
 fetch('/api/invite/support')
   .then(r => r.json())
-  .then(d => { if (d.ok) document.getElementById('support-link').href = d.url; })
+  .then(d => { if (d.ok) { ['support-link','support-link2','support-link3'].forEach(id => { document.getElementById(id).href = d.url; }); } })
   .catch(() => {});
 </script>
 </body>
