@@ -275,8 +275,8 @@ footer .links { display: flex; gap: 16px; }
   </section>
 
   <section class="stats">
-    <div class="stat"><div class="num">{{guildCount}}</div><div class="label">Servers</div></div>
-    <div class="stat"><div class="num">{{cmdCount}}</div><div class="label">Commands Run</div></div>
+    <div class="stat"><div class="num" id="stat-guilds">{{guildCount}}</div><div class="label">Servers</div></div>
+    <div class="stat"><div class="num" id="stat-commands">{{cmdCount}}</div><div class="label">Commands Run</div></div>
     <div class="stat"><div class="num">24/7</div><div class="label">Uptime</div></div>
   </section>
 
@@ -289,5 +289,30 @@ footer .links { display: flex; gap: 16px; }
     </div>
   </footer>
 </div>
+<script>
+async function refreshStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    if (!d.ok) return;
+    const guilds = document.getElementById('stat-guilds');
+    const cmds = document.getElementById('stat-commands');
+    if (guilds && guilds.textContent !== String(d.guilds)) {
+      guilds.textContent = d.guilds;
+      guilds.style.transition = 'color 0.3s';
+      guilds.style.color = '#3ba55d';
+      setTimeout(() => guilds.style.color = '', 1000);
+    }
+    if (cmds && cmds.textContent !== String(d.commands)) {
+      cmds.textContent = d.commands;
+      cmds.style.transition = 'color 0.3s';
+      cmds.style.color = '#3ba55d';
+      setTimeout(() => cmds.style.color = '', 1000);
+    }
+  } catch {}
+}
+setInterval(refreshStats, 10000);
+refreshStats();
+</script>
 </body>
 </html>
