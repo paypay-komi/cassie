@@ -1,4 +1,5 @@
 const { idToName } = require("../../../../lib/commandResolver");
+const { pingSafeMesage } = require("../../../../utils/safeMsg");
 
 module.exports = {
 
@@ -76,26 +77,34 @@ commandId: "4cdde65a-2ac5-4fd6-933c-b79b91e14749",
 		}
 
 		if (!parts.length) {
-			return message.reply("✅ No overrides set for this server.");
+			return message.reply(pingSafeMesage("✅ No overrides set for this server.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management."));
 		}
 
 		const full = parts.join("\n\n");
 
+		// Try replying with the full content first
 		if (full.length <= 2000) {
-			return message.reply(full);
+			return message.reply(pingSafeMesage(full));
 		}
 
-		// Split into multiple messages
-		let current = "";
+		// ── Split across multiple followUp messages ──
+		// Flatten into individual lines (each line is a bullet point or section header)
+		const allLines = [];
 		for (const part of parts) {
-			const next = current ? `${current}\n\n${part}` : part;
+			const lines = part.split("\n");
+			allLines.push(...lines);
+		}
+
+		let current = "";
+		for (const line of allLines) {
+			const next = current ? `${current}\n${line}` : line;
 			if (next.length > 1900) {
-				await message.channel.send(current);
-				current = part;
+				await message.channel.send(pingSafeMesage(current));
+				current = line;
 			} else {
 				current = next;
 			}
 		}
-		if (current) await message.channel.send(current);
+		if (current) await message.channel.send(pingSafeMesage(current + "\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management."));
 	},
 };

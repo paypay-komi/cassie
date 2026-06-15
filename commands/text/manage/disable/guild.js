@@ -1,15 +1,19 @@
-const { resolveRequired, getAllCommandIds } = require("../../../../lib/commandResolver");
+const { resolveRequired, getAllCommandIds, suggestCommandNames } = require("../../../../lib/commandResolver");
+const { ArgsBuilder } = require("../../../../lib/argsBuilder");
+const { pingSafeMesage } = require("../../../../utils/safeMsg");
 
 module.exports = {
 
 commandId: "fe3e2ff1-80f9-4e14-ae2b-827504bb4376",
 	name: "guild",
 	parent: "disable",
-	description: "Disable commands guild-wide. Usage: `c.manage disable guild <command>` or `c.manage disable guild all`",
+	description: "Disable a command guild-wide.",
+	args: ArgsBuilder.create()
+		.string("command", { autocomplete: suggestCommandNames, description: "Command name or \"all\"" }),
 
 	async execute(message, args) {
 		if (!args.length) {
-			return message.reply("❌ Usage: `c.manage disable guild <command>` or `c.manage disable guild all`");
+			return message.reply(pingSafeMesage("❌ Usage: `c.manage disable guild <command>` or `c.manage disable guild all`"));
 		}
 
 		const input = args.join(" ").toLowerCase();
@@ -23,14 +27,14 @@ commandId: "fe3e2ff1-80f9-4e14-ae2b-827504bb4376",
 				})),
 				skipDuplicates: true,
 			});
-			return message.reply(`✅ **${allIds.length}** commands have been disabled in this server.`);
+			return message.reply(pingSafeMesage(`✅ **${allIds.length}** commands have been disabled in this server.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.`));
 		}
 
 		let commandId;
 		try {
 			commandId = resolveRequired(message.client, input);
 		} catch (err) {
-			return message.reply(`❌ ${err.message}`);
+			return message.reply(pingSafeMesage(`❌ ${err.message}`));
 		}
 
 		await message.client.db.commandAccess.setGuildDisabled(
@@ -39,6 +43,6 @@ commandId: "fe3e2ff1-80f9-4e14-ae2b-827504bb4376",
 			true,
 		);
 
-		return message.reply(`✅ \`${input}\` has been disabled in this server.`);
+		return message.reply(pingSafeMesage(`✅ \`${input}\` has been disabled in this server.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.`));
 	},
 };

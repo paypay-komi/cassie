@@ -1,4 +1,6 @@
 const { idToName } = require("../../../../lib/commandResolver");
+const { ArgsBuilder } = require("../../../../lib/argsBuilder");
+const { pingSafeMesage } = require("../../../../utils/safeMsg");
 
 module.exports = {
 
@@ -6,6 +8,8 @@ commandId: "4e5bf898-519a-466c-b1cf-b4bb9e5cce1d",
 	name: "role",
 	parent: "list",
 	description: "List all role-based command access overrides. Optionally filter by role: `c.manage list role @role`",
+	args: ArgsBuilder.create()
+		.role("role", { description: "Optional role to filter by" }),
 
 	async execute(message, args) {
 		const { db, guild } = message.client;
@@ -15,20 +19,27 @@ commandId: "4e5bf898-519a-466c-b1cf-b4bb9e5cce1d",
 		// Optional role filter
 		let targetRole = null;
 		if (args.length) {
-			const roleId = args[0].replace(/[<@&>]/g, "");
-			targetRole = message.guild.roles.cache.get(roleId);
-			if (!targetRole) return message.reply("❌ Role not found.");
+			const raw = args[0];
+			let roleId;
+			if (raw === "@everyone") {
+				targetRole = message.guild.roles.everyone;
+				roleId = message.guild.id;
+			} else {
+				roleId = raw.replace(/[<@&>]/g, "");
+				targetRole = message.guild.roles.cache.get(roleId);
+			}
+			if (!targetRole) return message.reply(pingSafeMesage("❌ Role not found."));
 			where.roleId = roleId;
 		}
 
 		const rows = await db.prisma.guildRoleCommandAccess.findMany({ where });
 
 		if (!rows.length) {
-			return message.reply(
+			return message.reply(pingSafeMesage(
 				targetRole
-					? `No command overrides for ${targetRole}.`
-					: "No role-based command overrides configured.",
-			);
+					? `No command overrides for ${targetRole}.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.`
+					: "No role-based command overrides configured.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.",
+			));
 		}
 
 		const lines = [];
@@ -45,12 +56,12 @@ commandId: "4e5bf898-519a-466c-b1cf-b4bb9e5cce1d",
 		for (const line of lines) {
 			const next = current + line + "\n";
 			if (next.length > 1900) {
-				await message.channel.send(current);
+				await message.channel.send(pingSafeMesage(current));
 				current = line + "\n";
 			} else {
 				current = next;
 			}
 		}
-		await message.channel.send(current);
+		await message.channel.send(pingSafeMesage(current + "\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management."));
 	},
 };

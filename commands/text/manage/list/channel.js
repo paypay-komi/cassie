@@ -1,4 +1,5 @@
 const { idToName } = require("../../../../lib/commandResolver");
+const { pingSafeMesage } = require("../../../../utils/safeMsg");
 
 module.exports = {
 
@@ -15,7 +16,7 @@ commandId: "731163e5-c901-4360-8600-aa8bdfc3f478",
 		});
 
 		if (!rows.length) {
-			return message.reply("No channel-specific command overrides.");
+			return message.reply(pingSafeMesage("No channel-specific command overrides.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management."));
 		}
 
 		const lines = [];
@@ -32,12 +33,12 @@ commandId: "731163e5-c901-4360-8600-aa8bdfc3f478",
 		for (const line of lines) {
 			const next = current + line + "\n";
 			if (next.length > 1900) {
-				await message.channel.send(current);
+				await message.channel.send(pingSafeMesage(current));
 				current = line + "\n";
 			} else {
 				current = next;
 			}
 		}
-		await message.channel.send(current);
+		await message.channel.send(pingSafeMesage(current + "\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management."));
 	},
 };

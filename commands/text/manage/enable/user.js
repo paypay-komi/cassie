@@ -1,18 +1,22 @@
-const { resolveRequired, getAllCommandIds } = require("../../../../lib/commandResolver");
+const { resolveRequired, getAllCommandIds, suggestCommandNames } = require("../../../../lib/commandResolver");
+const { ArgsBuilder } = require("../../../../lib/argsBuilder");
+const { pingSafeMesage } = require("../../../../utils/safeMsg");
 
 module.exports = {
 
 commandId: "9cb0310c-0b4b-47e0-8cca-578b8c10aa06",
 	name: "user",
 	parent: "enable",
-	description:
-		"Allow a user to use commands. Usage: `c.manage enable user @user <command>` or `c.manage enable user @user all`",
+	description: "Allow a user to use commands.",
+	args: ArgsBuilder.create()
+		.user("user", { required: true, description: "The user to unrestrict" })
+		.string("command", { autocomplete: suggestCommandNames, description: "Command name or \"all\"" }),
 
 	async execute(message, args) {
 		if (args.length < 2) {
-			return message.reply(
+			return message.reply(pingSafeMesage(
 				"❌ Usage: `c.manage enable user @user <command>` or `c.manage enable user @user all`",
-			);
+			));
 		}
 
 		const raw = args.shift();
@@ -22,7 +26,7 @@ commandId: "9cb0310c-0b4b-47e0-8cca-578b8c10aa06",
 			const user = await message.client.users.fetch(userId);
 			userName = user.tag;
 		} catch {
-			return message.reply("❌ User not found.");
+			return message.reply(pingSafeMesage("❌ User not found."));
 		}
 
 		const input = args.join(" ").toLowerCase();
@@ -43,16 +47,16 @@ commandId: "9cb0310c-0b4b-47e0-8cca-578b8c10aa06",
 					})),
 				}),
 			]);
-			return message.reply(
-				`✅ **${userName}** is now allowed to use all commands.`,
-			);
+			return message.reply(pingSafeMesage(
+				`✅ **${userName}** is now allowed to use all commands.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.`,
+			));
 		}
 
 		let commandId;
 		try {
 			commandId = resolveRequired(message.client, input);
 		} catch (err) {
-			return message.reply(`❌ ${err.message}`);
+			return message.reply(pingSafeMesage(`❌ ${err.message}`));
 		}
 
 		await message.client.db.commandAccess.setUserAccess(
@@ -62,8 +66,8 @@ commandId: "9cb0310c-0b4b-47e0-8cca-578b8c10aa06",
 			true,
 		);
 
-		return message.reply(
-			`✅ **${userName}** is now allowed to use \`${input}\`.`,
-		);
+		return message.reply(pingSafeMesage(
+			`✅ **${userName}** is now allowed to use \`${input}\`.\n📊 Tip: Use the [dashboard](https://nekomi.tailef6033.ts.net/dashboard) for easier management.`,
+		));
 	},
 };
