@@ -220,5 +220,16 @@ module.exports = function reloadTextCommands(client, targetName) {
 		paths.forEach((p) => log.info(`!${p}`));
 	}
 
+	// --------------------------------------------------
+	// 🔹 Regenerate slash command definitions from text commands
+	// --------------------------------------------------
+	try {
+		const autoGenerateSlashData = require("./autoGenerateSlashData");
+		autoGenerateSlashData(client);
+		log.info("✅ Slash definitions regenerated from text commands");
+	} catch (err) {
+		log.warn("⚠️ Could not regenerate slash definitions:", err.message);
+	}
+
 	return { reloaded, subcommands, failed };
 };
