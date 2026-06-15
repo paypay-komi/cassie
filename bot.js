@@ -22,6 +22,10 @@ const client = new Client({
 	],
 	partials: [Partials.Channel], // required for DMs to fire MessageCreate
 });
+client.on("error", (err) => {
+	const log = getLogger("Client");
+	log.error("Client error:", err);
+});
 function walk(dir) {
 	let results = [];
 	const list = fs.readdirSync(dir);

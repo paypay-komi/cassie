@@ -91,8 +91,8 @@ async function checkPermissions(command, client, message) {
 			return false;
 		}
 
-		// Discord permissions
-		if (node.requiredDiscordPermissions?.length) {
+		// Required bot permissions
+		if (node.requiredBotPermissions?.length) {
 			if (!isGuild) return true; // DMs bypass permissions safely
 
 			const missing = [];
@@ -110,7 +110,32 @@ async function checkPermissions(command, client, message) {
 
 			if (missing.length) {
 				message.reply(
-					`I lack the required permissions: ${missing.join(", ")} to run this command`,
+					`I need the ${missing.join(", ")} permission(s) to run this command.`,
+				);
+				return false;
+			}
+		}
+
+		// Required user permissions
+		if (node.requiredUserPermissions?.length) {
+			if (!isGuild) return true; // DMs bypass permissions safely
+
+			const missing = [];
+
+			for (const perm of node.requiredUserPermissions) {
+				if (!message.member.permissionsIn(message.channel).has(perm)) {
+					const name =
+						new PermissionsBitField(perm)
+							.toArray()[0]
+							?.replace(/([a-z])([A-Z])/g, "$1 $2") ?? perm;
+
+					missing.push(name);
+				}
+			}
+
+			if (missing.length) {
+				message.reply(
+					`You need the ${missing.join(", ")} permission(s) to use this command.`,
 				);
 				return false;
 			}
@@ -160,6 +185,9 @@ async function handleUseLocation(command, client, message) {
 }
 
 module.exports = {
+	checkPermissions,
+	handleUseLocation,
+	showSubcommandHelp,
 	name: Events.MessageCreate,
 	async execute(client, message) {
 		if (message.author.bot) return;
@@ -361,7 +389,13 @@ module.exports = {
 		} catch (err) {
 			const log = getLogger("TextCmd");
 			log.error(`Error executing ${pathSoFar.join(".")}:`, err);
-			message.reply("There was an error executing that command.");
+			try {
+				await message.reply("There was an error executing that command.");
+			} catch {
+				log.warn(
+					`Failed to reply error message — original message was probably deleted`,
+				);
+			}
 		}
 	}
 
