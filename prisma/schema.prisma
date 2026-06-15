@@ -406,6 +406,59 @@ enum CourtStatus {
     DISMISSED
 }
 
+model EchoChannel {
+    id          String   @id @default(cuid())
+    guildId     String
+    channelId   String   @unique
+    webhookId   String
+    webhookToken String
+    echoChance      Float?  @default(85)
+    deleteDelayMin  Int?    @default(10000)
+    deleteDelayMax  Int?    @default(300000)
+    echoDelayMin    Int?    @default(0)
+    echoDelayMax    Int?    @default(86400000)
+
+    createdAt DateTime @default(now())
+
+    messages EchoMessage[]
+
+    @@index([guildId])
+}
+
+model EchoMessage {
+    id         String    @id @default(cuid())
+    guildId    String
+    channelId  String
+    // @userid
+    authorId   String
+    content    String
+    deliverAt  DateTime
+    deliveredAt DateTime?
+    createdAt  DateTime   @default(now())
+    originalMessageId String?
+    attachments      Json?
+    poll             Json?
+    embeds           Json?
+
+    channel EchoChannel @relation(fields: [channelId], references: [channelId])
+
+    @@index([deliverAt])
+    @@index([channelId, deliverAt])
+}
+
+model TimeCapsule {
+    id        String    @id @default(cuid())
+    // @userid
+    userId    String
+    content   String
+    sendAt    DateTime
+    sentAt    DateTime?
+    createdAt DateTime  @default(now())
+
+    @@index([sendAt])
+    @@index([userId, sendAt])
+}
+
 model Session {
   id        String   @id @default(cuid())
   sid       String   @unique
@@ -414,4 +467,15 @@ model Session {
   expiresAt DateTime
 
   createdAt DateTime @default(now())
+}
+
+model GuildAnnouncement {
+  guildId      String    @id
+  channelId    String?   // set = subscribed, null = not yet set or unsubscribed
+  webhookId    String?   // webhook for sending broadcast announcements
+  webhookToken String?   // webhook token
+  optedOut     Boolean   @default(false)  // true = user explicitly unsubscribed, stop nagging
+  lastNagged   DateTime? // when we last nagged this guild, null = never nagged
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
