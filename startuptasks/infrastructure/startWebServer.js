@@ -126,8 +126,14 @@ module.exports = {
 		// -----------------------------
 		// BASIC ROUTES
 		// -----------------------------
-		app.get("/", (req, res) => {
-			res.send("bot online");
+		app.get("/", async (req, res) => {
+			const guildCount = client.guilds?.cache?.size ?? "?";
+			let cmdCount = 0;
+			try { cmdCount = await client.db.prisma.userCommandStats.count(); } catch {}
+			const html = fs.readFileSync(path.join(process.cwd(), "views", "landing.html"), "utf8")
+				.replace("{{guildCount}}", guildCount.toString())
+				.replace("{{cmdCount}}", cmdCount.toString());
+			res.send(html);
 		});
 
 		// -----------------------------
@@ -160,11 +166,12 @@ module.exports = {
 		// 404 HANDLER
 		// -----------------------------
 		app.use((req, res) => {
-			log.info(`[404] ${req.method} ${req.path}`);
-			res.status(404).json({
-				ok: false,
-				error: "not found",
-			});
+			const isApi = req.path.startsWith("/api/") || req.path.startsWith("/webhook/");
+			if (isApi) {
+				res.status(404).json({ ok: false, error: "not found" });
+			} else {
+				res.status(404).sendFile(path.join(process.cwd(), "views", "404.html"));
+			}
 		});
 
 		// -----------------------------
