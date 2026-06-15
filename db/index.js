@@ -32,6 +32,20 @@ const guild = {
 			create: { guildId, ...data },
 		});
 	},
+
+	async getPrefix(guildId) {
+		let settings = await prisma.guildSettings.findUnique({
+			where: { guildId },
+			select: { prefix: true },
+		});
+		if (!settings) {
+			settings = await prisma.guildSettings.create({
+				data: { guildId },
+				select: { prefix: true },
+			});
+		}
+		return settings.prefix;
+	},
 };
 const ideas = {
 	async handleVote(userId, ideaId, value) {
@@ -568,6 +582,80 @@ async getChannelAllowLocations(guildId, commandId) {
 };
 
 // ------------------------------------------------------
+// NAMESPACE: announcements (webhook-powered broadcast system)
+// ------------------------------------------------------
+const announcements = {
+	async get(guildId) {
+		let row = await prisma.guildAnnouncement.findUnique({ where: { guildId } });
+		if (!row) {
+			row = await prisma.guildAnnouncement.create({ data: { guildId } });
+		}
+		return row;
+	},
+
+	async subscribe(guildId, channelId, webhookId, webhookToken) {
+		return prisma.guildAnnouncement.upsert({
+			where: { guildId },
+			update: { channelId, webhookId, webhookToken, optedOut: false },
+			create: { guildId, channelId, webhookId, webhookToken, optedOut: false },
+		});
+	},
+
+	async unsubscribe(guildId) {
+		return prisma.guildAnnouncement.upsert({
+			where: { guildId },
+			update: { channelId: null, webhookId: null, webhookToken: null, optedOut: true },
+			create: { guildId, optedOut: true },
+		});
+	},
+
+	/** All guilds that have chosen a channel */
+	async getSubscribed() {
+		return prisma.guildAnnouncement.findMany({
+			where: { channelId: { not: null } },
+		});
+	},
+
+	/** Guilds that joined but never subscribed or unsubscribed (excludes opted-out) */
+	async getUnset() {
+		return prisma.guildAnnouncement.findMany({
+			where: { channelId: null, optedOut: false },
+		});
+	},
+
+	/** Guilds due for a nag: never nagged, or last nagged before cutoff */
+	async getNagDue(cutoff) {
+		return prisma.guildAnnouncement.findMany({
+			where: {
+				channelId: null,
+				optedOut: false,
+				OR: [{ lastNagged: null }, { lastNagged: { lt: cutoff } }],
+			},
+		});
+	},
+
+	/** Guild with the oldest lastNagged (soonest to need nagging next) */
+	async getNextNagDue() {
+		return prisma.guildAnnouncement.findFirst({
+			where: {
+				channelId: null,
+				optedOut: false,
+				lastNagged: { not: null },
+			},
+			orderBy: { lastNagged: "asc" },
+		});
+	},
+
+	/** Mark a guild as nagged right now */
+	async markNagged(guildId) {
+		return prisma.guildAnnouncement.update({
+			where: { guildId },
+			data: { lastNagged: new Date() },
+		});
+	},
+};
+
+// ------------------------------------------------------
 // EXPORT NAMESPACED DB
 // ------------------------------------------------------
 const db = {
@@ -582,6 +670,7 @@ const db = {
 	commandAccess,
 	userPrefix,
 	chatHistory,
+	announcements,
 };
 
 module.exports = db;

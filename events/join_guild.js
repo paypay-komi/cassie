@@ -1,12 +1,14 @@
 const { Events, EmbedBuilder } = require("discord.js");
 const { getLogger } = require("../lib/logger");
+const { findAnnouncementChannel } = require("../lib/findAnnouncementChannel");
 
 module.exports = {
 	name: Events.GuildCreate,
 	async execute(client, guild) {
-		const log = getLogger("GuildJoin-owner dm");
+		const log = getLogger("GuildJoin");
 		// temp to fix
 		
+		const prisma = client.db.prisma;
 		await prisma.guildSettings.upsert({
 			where: { guildId: guild.id },
 			update: {},
@@ -14,6 +16,28 @@ module.exports = {
 				guildId: guild.id,
 			},
 		});
+
+		// ── Announcement channel setup ──
+		try {
+			const existing = await client.db.announcements.get(guild.id);
+			const prefix = await client.db.guild.getPrefix(guild.id);
+			if (!existing.channelId && !existing.optedOut) {
+				const channel = findAnnouncementChannel(guild);
+				if (channel) {
+					await channel.send({
+						content:
+							`👋 **Thanks for adding ${client.user.username}!**\n\n` +
+							`I send important updates here. Want a different channel?\n` +
+							`Run \`${prefix}subscribe #channel\` to pick where announcements go.\n` +
+							`Don't want updates? Run \`${prefix}unsubscribe\` to opt out.`,
+						allowedMentions: { parse: [] },
+					});
+				}
+			}
+		} catch (err) {
+			log.warn(`Announcement nag failed for ${guild.id}: ${err.message}`);
+		}
+
 		// Only DM owners from shard 0 to prevent duplicate DMs
 		if (client.shard && client.shard.ids[0] !== 0) return;
 
