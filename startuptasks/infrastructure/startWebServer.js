@@ -82,8 +82,8 @@ module.exports = {
 		// RATE LIMITING
 		// -----------------------------
 		const generalLimiter = rateLimit({
-			windowMs: 60 * 1000, // 1 minute
-			max: 100,
+			windowMs: 60 * 1000,
+			max: 1000,
 			standardHeaders: true,
 			legacyHeaders: false,
 			message: { ok: false, error: "Too many requests, slow down" },
@@ -92,19 +92,16 @@ module.exports = {
 
 		const apiLimiter = rateLimit({
 			windowMs: 60 * 1000,
-			max: 60,
+			max: 500,
 			standardHeaders: true,
 			legacyHeaders: false,
 			message: { ok: false, error: "Too many requests, slow down" },
 		});
 
-		// Tighter limits on sensitive routes
 		app.use("/api/", apiLimiter);
-		// Webhook limit is generous — bursts of GitHub pushes + listing
-		// vote webhooks are under /api/ so they share the 60/min limit
 		app.use("/webhook/", rateLimit({
 			windowMs: 60 * 1000,
-			max: 30,
+			max: 200,
 			standardHeaders: true,
 			legacyHeaders: false,
 			message: { ok: false, error: "Too many requests" },
@@ -116,16 +113,6 @@ module.exports = {
 		const sessionMiddleware = require("../../dashboard/session");
 		app.use(sessionMiddleware);
 
-		// -----------------------------
-		// ROUTER AUTH MIDDLEWARE
-		// -----------------------------
-		function requireAuth(req, res, next) {
-			if (!req.session.user) return res.redirect("/login");
-			next();
-		}
-
-		// Protect dashboard only
-		app.use("/dashboard", requireAuth);
 		console.log(`${process.env.BASE_URL}/auth/discord/callback`);
 		// CALLBACK → exchange code → session
 

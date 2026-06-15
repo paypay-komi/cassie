@@ -320,6 +320,7 @@ body {
   transition: 0.15s;
 }
 .btn:hover { background: #4752C4; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-green { background: var(--green); }
 .btn-green:hover { background: #218838; }
@@ -425,6 +426,15 @@ body {
 .content::-webkit-scrollbar { width: 8px; }
 .content::-webkit-scrollbar-track { background: transparent; }
 .content::-webkit-scrollbar-thumb { background: #2a2a36; border-radius: 4px; }
+/* ── Confirm Modal ── */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+.modal-box { background: #1a1a22; border-radius: 12px; padding: 24px; width: 380px; max-width: 90vw; text-align: center; position: relative; }
+.confirm-box h2 { margin: 0 0 12px; font-size: 18px; color: var(--text); }
+.confirm-box p { margin: 0; color: var(--secondary); }
+.modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: #888; font-size: 22px; cursor: pointer; }
+.modal-close:hover { color: white; }
+.confirm-box .btn { min-width: 80px; }
+.del-btn[title] { position: relative; }
 </style>
 </head>
 <body>
@@ -450,6 +460,20 @@ body {
     <div class="sidebar-item" data-tab="tags">🏷️ Tags</div>
   </div>
   <div class="content" id="content"></div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box confirm-box">
+    <button class="modal-close" id="confirmClose">&times;</button>
+    <h2 id="confirmTitle">Confirm</h2>
+    <p id="confirmMsg" style="font-size:14px;line-height:1.5"></p>
+    <p id="confirmNote" style="font-size:11px;color:#888;margin-top:8px;display:none"></p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
+      <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button class="btn btn-red" id="confirmOk">Delete</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -480,6 +504,36 @@ function showMsg(inner, type = 'error') {
   el.innerHTML = `<div class="msg msg-${type}">${inner}</div>`;
 }
 
+function confirmAsync(title, msg, note) {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').innerHTML = msg;
+    const noteEl = document.getElementById('confirmNote');
+    if (note) { noteEl.textContent = note; noteEl.style.display = ''; }
+    else { noteEl.style.display = 'none'; }
+    const ok = document.getElementById('confirmOk');
+    const cancel = document.getElementById('confirmCancel');
+    const close = document.getElementById('confirmClose');
+    const done = result => {
+      overlay.style.display = 'none';
+      ok.onclick = cancel.onclick = close.onclick = overlay.onclick = null;
+      resolve(result);
+    };
+    ok.onclick = () => done(true);
+    cancel.onclick = () => done(false);
+    close.onclick = () => done(false);
+    overlay.onclick = e => { if (e.target === overlay) done(false); };
+    overlay.style.display = 'flex';
+    // Keyboard shortcuts
+    const keydown = e => {
+      if (e.key === 'Escape') { done(false); document.removeEventListener('keydown', keydown); }
+      if (e.key === 'Enter') { done(true); document.removeEventListener('keydown', keydown); }
+    };
+    document.addEventListener('keydown', keydown);
+  });
+}
+
 // ── Sidebar ──
 function setActiveTab(tab) {
   document.querySelectorAll('.sidebar-item').forEach(s => {
@@ -490,6 +544,7 @@ function setActiveTab(tab) {
 function switchTab(tab) {
   setActiveTab(tab);
   loadTab(tab);
+  window.location.hash = tab;
 }
 
 document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -627,59 +682,42 @@ async function loadCommands() {
 }
 
 async function toggleCmd(el) {
-  const wasDisabled = el.dataset.disabled === 'true';
-  const newDisabled = !wasDisabled;
   const cmdId = el.dataset.id;
+  const newDisabled = el.dataset.disabled !== 'true';
 
-  // Cascade only when toggling a parent row (has subcommands)
-  const row = el.closest('.command-row');
-  const isParent = row?.classList.contains('parent-row');
-  const parentName = row?.dataset.name || '';
-  const childToggles = isParent
-    ? [...(row.closest('.command-group')?.querySelectorAll('.toggle') || [])]
-        .filter(t => t.dataset.id !== cmdId)
-        .filter(t => {
-          const r = t.closest('.command-row');
-          const n = r?.dataset.name || '';
-          return n.startsWith(parentName + ' ');
-        })
-    : [];
-
-  // Optimistic update — parent
+  // Optimistic toggle
   el.dataset.disabled = String(newDisabled);
-  el.classList.toggle('on', wasDisabled);
-
-  // Optimistic update — children (if parent, cascade visually)
-  if (childToggles.length > 0) {
-    for (const childEl of childToggles) {
-      childEl.dataset.disabled = String(newDisabled);
-      childEl.classList.toggle('on', wasDisabled);
-    }
-  }
+  el.classList.toggle('on', !newDisabled);
 
   const data = await api('/api/data/guild-command-toggle', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ guildId, commandId: cmdId, disabled: newDisabled }),
   });
-  if (!data.ok) {
-    // Revert parent
-    el.dataset.disabled = String(wasDisabled);
-    el.classList.toggle('on', !wasDisabled);
-    // Revert children
-    if (childToggles.length > 0) {
-      for (const childEl of childToggles) {
-        childEl.dataset.disabled = String(wasDisabled);
-        childEl.classList.toggle('on', !wasDisabled);
-      }
+
+  // Always refetch to sync every toggle with the real server state
+  const cmdData = await api(`/api/data/guild-commands?guildId=${guildId}`);
+  if (cmdData.ok) {
+    const disabledMap = {};
+    for (const cmd of cmdData.commands) {
+      disabledMap[cmd.id] = cmd.disabled;
     }
-  }
-  // If API returned extra (subcommands toggled server-side), sync their state
-  else if (data.extra && data.extra.length > 0 && childToggles.length > 0) {
-    // Server-side already handled the cascade; our optimistic update was correct
-    // but if the user had manually changed a child before, the server overwrote it.
-    // Sync the displayed state to match what the server did.
-    // (We already set all children to match the parent, which matches the server cascade.)
+    document.querySelectorAll('.toggle').forEach(t => {
+      const id = t.dataset.id;
+      if (disabledMap[id] !== undefined) {
+        const isDisabled = disabledMap[id];
+        t.dataset.disabled = String(isDisabled);
+        t.classList.toggle('on', !isDisabled);
+      }
+    });
+    // Update cached disabled set for the Overrides tab badges
+    _ovDisabledSet = new Set(
+      cmdData.commands.filter(c => c.disabled).map(c => c.id)
+    );
+  } else if (!data.ok) {
+    // API failed AND refetch failed — revert the optimistic toggle
+    el.dataset.disabled = String(!newDisabled);
+    el.classList.toggle('on', newDisabled);
   }
 }
 
@@ -699,6 +737,18 @@ let targetData = { channels: [], roles: [], members: [] };
 let selectedTargetId = '';
 let _ovDisabledSet = new Set();
 let _ovCmdNames = {};
+let _ovCmdParent = {};
+let _ovChildrenMap = {};
+
+function _fullCmdName(id) {
+  const parts = [];
+  let cur = id;
+  while (cur && _ovCmdNames[cur]) {
+    parts.unshift(_ovCmdNames[cur]);
+    cur = _ovCmdParent[cur];
+  }
+  return parts.join(' ');
+}
 let _memberSearchTimeout = null;
 
 function getTargetName(type, id) {
@@ -733,11 +783,18 @@ async function loadOverrides() {
 
   // Build command lookups
   _ovCmdNames = {};
+  _ovCmdParent = {};
   _ovDisabledSet = new Set();
+  _ovChildrenMap = {};
   if (cmdData.ok) {
     for (const cmd of cmdData.commands) {
       _ovCmdNames[cmd.id] = cmd.name;
       if (cmd.disabled) _ovDisabledSet.add(cmd.id);
+      if (cmd.parentId) {
+        _ovCmdParent[cmd.id] = cmd.parentId;
+        if (!_ovChildrenMap[cmd.parentId]) _ovChildrenMap[cmd.parentId] = [];
+        _ovChildrenMap[cmd.parentId].push(cmd.id);
+      }
     }
   }
 
@@ -756,11 +813,14 @@ async function loadOverrides() {
 
   html += '<div class="section-title">Add Override</div>';
 
-  // Build command options
+  // Build command options (sorted alphabetically by full path)
   let cmdOpts = '<option value="">Select command...</option>';
   if (cmdData.ok) {
-    for (const cmd of cmdData.commands) {
-      cmdOpts += `<option value="${cmd.id}">${escape(cmd.name)}</option>`;
+    const sorted = [...cmdData.commands].sort((a, b) => {
+      return _fullCmdName(a.id).localeCompare(_fullCmdName(b.id));
+    });
+    for (const cmd of sorted) {
+      cmdOpts += `<option value="${cmd.id}">${escape(_fullCmdName(cmd.id))}</option>`;
     }
   }
 
@@ -773,11 +833,13 @@ async function loadOverrides() {
     </div>
     <select id="ov-cmd" style="max-width:200px" onchange="onOvCmdChange()">${cmdOpts}</select>
     <span id="ov-cmd-badge"></span>
+    <label id="ov-include-subs-wrap" style="display:none;font-size:12px"><input type="checkbox" id="ov-include-subs"> Include subcommands</label>
     <label><input type="checkbox" id="ov-allowed" checked> Allow</label>
     <button class="btn" onclick="addOverride()">Add</button>
   </div>`;
 
   html += '<div class="section-title">Existing Overrides</div>';
+  html += '<input type="text" class="search-input" id="ov-search" placeholder="Search overrides..." oninput="filterOverrides()" style="margin-bottom:8px">';
 
   const sections = [
     { label: 'Channel', key: 'channels', idKey: 'channelId', type: 'channel' },
@@ -792,26 +854,78 @@ async function loadOverrides() {
     }
   }
 
+  // Group overrides by (type, target) and build command trees
+  const groups = {};
+  for (const ov of allOverrides) {
+    const key = `${ov.type}:${ov.targetId}`;
+    if (!groups[key]) groups[key] = { type: ov.type, targetId: ov.targetId, label: ov.label, overrides: [] };
+    groups[key].overrides.push(ov);
+  }
+
   if (allOverrides.length === 0) {
     html += '<div style="color:var(--secondary);font-size:13px">No overrides configured.</div>';
   } else {
     html += '<table class="override-table"><thead><tr><th>Type</th><th>Target</th><th>Command</th><th>Access</th><th></th></tr></thead><tbody>';
-    for (const ov of allOverrides) {
-      const cmdName = _ovCmdNames[ov.commandId] || ov.commandId.slice(0, 8) + '...';
-      const tgtName = getTargetName(ov.type, ov.targetId);
+
+    let groupIdx = 0;
+    for (const key in groups) {
+      const group = groups[key];
+      const tgtName = getTargetName(group.type, group.targetId);
       let tgtHtml;
       if (tgtName) {
-        tgtHtml = `<div class="ov-target-name">${escape(tgtName)}</div><div class="ov-target-id">${escape(ov.targetId)}</div>`;
+        tgtHtml = `<div class="ov-target-name">${escape(tgtName)}</div><div class="ov-target-id">${escape(group.targetId)}</div>`;
       } else {
-        tgtHtml = `<span class="ov-target-id">${escape(ov.targetId)}</span>`;
+        tgtHtml = `<span class="ov-target-id">${escape(group.targetId)}</span>`;
       }
-      html += `<tr>
-        <td>${ov.label}</td>
-        <td>${tgtHtml}</td>
-        <td style="font-size:13px">${escape(cmdName)}</td>
-        <td style="color:${ov.allowed ? 'var(--green)' : 'var(--red)'}">${ov.allowed ? 'Allow' : 'Deny'}</td>
-        <td><button class="del-btn" onclick="deleteOverride('${ov.type}','${ov.targetId}','${ov.commandId}')">✕</button></td>
-      </tr>`;
+
+      // Build tree: find root commands (no parent in this group)
+      const cmdIds = new Set(group.overrides.map(o => o.commandId));
+
+      const roots = group.overrides.filter(o => {
+        const parentId = _ovCmdParent[o.commandId];
+        return !parentId || !cmdIds.has(parentId);
+      });
+      roots.sort((a, b) => _fullCmdName(a.commandId).localeCompare(_fullCmdName(b.commandId)));
+
+      // Flatten tree to rows with proper tree-drawing prefixes
+      function flattenChildren(parentOv, depth, ancestorPrefix) {
+        const rows = [];
+        const children = group.overrides
+          .filter(o => _ovCmdParent[o.commandId] === parentOv.commandId)
+          .sort((a, b) => _fullCmdName(a.commandId).localeCompare(_fullCmdName(b.commandId)));
+        for (let i = 0; i < children.length; i++) {
+          const isLast = i === children.length - 1;
+          const connector = isLast ? '└ ' : '├ ';
+          const prefix = ancestorPrefix + connector;
+          rows.push({ ov: children[i], depth: depth + 1, prefix });
+          const childPrefix = ancestorPrefix + (isLast ? '   ' : '│  ');
+          rows.push(...flattenChildren(children[i], depth + 1, childPrefix));
+        }
+        return rows;
+      }
+
+      const treeRows = [];
+      for (const root of roots) {
+        treeRows.push({ ov: root, depth: 0, prefix: '' });
+        treeRows.push(...flattenChildren(root, 0, ''));
+      }
+
+      // Render rows with indentation
+      const bgColor = groupIdx % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02)';
+      groupIdx++;
+
+      for (let i = 0; i < treeRows.length; i++) {
+        const { ov, depth, prefix } = treeRows[i];
+        const name = _fullCmdName(ov.commandId) || ov.commandId.slice(0, 8) + '...';
+
+        html += `<tr data-type="${ov.type}" data-target="${ov.targetId}" data-command="${ov.commandId}" style="${bgColor}">
+          <td>${ov.label}</td>
+          <td>${tgtHtml}</td>
+          <td style="font-size:13px">${depth > 0 ? `<span style="color:#555;font-family:monospace;white-space:pre">${escape(prefix)}</span>` : ''}${escape(name)}</td>
+          <td style="color:${ov.allowed ? 'var(--green)' : 'var(--red)'}">${ov.allowed ? 'Allow' : 'Deny'}</td>
+          <td><button class="del-btn" title="Alt+click to skip confirm" onclick="deleteOverride(event,'${ov.type}','${ov.targetId}','${ov.commandId}')">✕</button></td>
+        </tr>`;
+      }
     }
     html += '</tbody></table>';
   }
@@ -822,9 +936,16 @@ async function loadOverrides() {
 function onOvCmdChange() {
   const badge = document.getElementById('ov-cmd-badge');
   const cmdId = document.getElementById('ov-cmd').value;
-  if (!cmdId) { badge.innerHTML = ''; return; }
+  if (!cmdId) {
+    badge.innerHTML = '';
+    document.getElementById('ov-include-subs-wrap').style.display = 'none';
+    return;
+  }
   const disabled = _ovDisabledSet.has(cmdId);
   badge.innerHTML = `<span class="state-badge ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Disabled' : 'Enabled'}</span>`;
+  // Show "Include subcommands" checkbox if this command has children
+  const hasChildren = _ovChildrenMap[cmdId] && _ovChildrenMap[cmdId].length > 0;
+  document.getElementById('ov-include-subs-wrap').style.display = hasChildren ? '' : 'none';
 }
 
 function onOvTypeChange() {
@@ -921,6 +1042,15 @@ function selectTarget(id, label) {
   document.getElementById('ov-target-list').style.display = 'none';
 }
 
+function _collectDescendants(cmdId, map) {
+  const ids = [];
+  const children = map[cmdId] || [];
+  for (const childId of children) {
+    ids.push(childId, ..._collectDescendants(childId, map));
+  }
+  return ids;
+}
+
 async function addOverride() {
   const type = document.getElementById('ov-type').value;
   const targetId = document.getElementById('ov-target').value;
@@ -928,22 +1058,108 @@ async function addOverride() {
   const allowed = document.getElementById('ov-allowed').checked;
   if (!targetId || !commandId) { showMsg('Select a target and command.', 'error'); return; }
 
-  const data = await api('/api/data/guild-overrides', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, type, targetId, commandId, allowed }),
-  });
-  if (data.ok) loadOverrides();
-  else showMsg('Failed to add override.', 'error');
+  const ids = [commandId];
+  const includeSubs = document.getElementById('ov-include-subs');
+  if (includeSubs.style.display !== 'none' && includeSubs.checked) {
+    ids.push(..._collectDescendants(commandId, _ovChildrenMap));
+  }
+
+  // Show loading state
+  const btn = document.querySelector('.add-override .btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const results = await Promise.all(ids.map(id =>
+    api('/api/data/guild-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildId, type, targetId, commandId: id, allowed }),
+    })
+  ));
+
+  btn.textContent = origText;
+  btn.disabled = false;
+
+  if (results.every(r => r.ok)) loadOverrides();
+  else showMsg('Failed to add some overrides.', 'error');
 }
 
-async function deleteOverride(type, targetId, commandId) {
-  const data = await api('/api/data/guild-overrides-delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, type, targetId, commandId }),
+function filterOverrides() {
+  const q = document.getElementById('ov-search').value.toLowerCase();
+  document.querySelectorAll('.override-table tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
-  if (data.ok) loadOverrides();
+}
+
+async function deleteOverride(ev, type, targetId, commandId) {
+  // Alt+click → skip all confirmations
+  const skipConfirm = ev.altKey;
+
+  // Find child overrides first (before any API calls)
+  const childIds = _collectDescendants(commandId, _ovChildrenMap);
+  const childRows = [];
+  if (childIds.length > 0) {
+    const table = document.querySelector('.override-table');
+    if (table) {
+      for (const row of table.querySelectorAll('tbody tr')) {
+        if (childIds.includes(row.dataset.command) && row.dataset.type === type && row.dataset.target === targetId) {
+          childRows.push(row);
+        }
+      }
+    }
+  }
+
+  const cmdLabel = _fullCmdName(commandId) || commandId.slice(0, 8);
+
+  // Ask both questions before any deletion
+  if (!skipConfirm) {
+    if (!(await confirmAsync('Delete Override', `Remove override for <code style="background:#222;padding:2px 6px;border-radius:4px;font-size:13px">${escape(cmdLabel)}</code>?`, 'Alt+click ✕ to skip confirmations'))) return;
+  }
+
+  let deleteChildren = false;
+  if (!skipConfirm && childRows.length > 0) {
+    deleteChildren = await confirmAsync(
+      'Subcommand Overrides',
+      `Also delete <strong>${childRows.length}</strong> subcommand override${childRows.length > 1 ? 's' : ''} for this target?`,
+      'Click No to keep subcommand overrides'
+    );
+  } else if (skipConfirm && childRows.length > 0) {
+    deleteChildren = true; // Alt+click deletes everything
+  }
+
+  // NOW do all deletions
+  const results = await Promise.all([
+    api('/api/data/guild-overrides-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildId, type, targetId, commandId }),
+    }),
+    ...(deleteChildren ? childRows.map(row =>
+      api('/api/data/guild-overrides-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId, type, targetId, commandId: row.dataset.command }),
+      })
+    ) : []),
+  ]);
+  if (!results[0].ok) return;
+
+  // Remove rows from DOM
+  if (deleteChildren) childRows.forEach(r => r.remove());
+  const mainRow = ev?.target?.closest?.('tr');
+  if (mainRow) mainRow.remove();
+
+  // If last row, show empty state
+  const tbody = document.querySelector('.override-table tbody');
+  if (tbody && !tbody.querySelector('tr')) {
+    const table = tbody.closest('table');
+    const search = table.previousElementSibling;
+    const sectionTitle = search?.previousElementSibling || table.previousElementSibling;
+    table.remove();
+    if (search?.id === 'ov-search') search.remove();
+    sectionTitle.insertAdjacentHTML('afterend', '<div style="color:var(--secondary);font-size:13px">No overrides configured.</div>');
+  }
 }
 
 // ── Tags Tab ──
@@ -1039,7 +1255,9 @@ async function loadTab(tab) {
   }
 }
 
-loadTab('overview');
+const validTabs = ['overview', 'commands', 'overrides', 'tags'];
+const initialTab = validTabs.includes(window.location.hash.replace('#', '')) ? window.location.hash.replace('#', '') : 'overview';
+loadTab(initialTab);
 </script>
 </body>
 </html>
