@@ -271,6 +271,20 @@ const stats = {
 			include: { commands: true },
 		});
 	},
+
+	async getTotalExecutions() {
+		const result = await prisma.globalCommandStats.aggregate({
+			_sum: { count: true },
+		});
+		return result._sum.count ?? 0;
+	},
+
+	async getTotalUsers() {
+		const groups = await prisma.userGlobalCommandStats.groupBy({
+			by: ["userId"],
+		});
+		return groups.length;
+	},
 };
 
 // ------------------------------------------------------

@@ -128,11 +128,18 @@ module.exports = {
 		// -----------------------------
 		app.get("/", async (req, res) => {
 			const guildCount = client.guilds?.cache?.size ?? "?";
+			const memberCount = client.guilds?.cache?.reduce(
+				(sum, g) => sum + (g.memberCount ?? 0), 0
+			) ?? "?";
 			let cmdCount = 0;
-			try { cmdCount = await client.db.prisma.userCommandStats.count(); } catch {}
+			let userCount = 0;
+			try { cmdCount = await client.db.stats.getTotalExecutions(); } catch {}
+			try { userCount = await client.db.stats.getTotalUsers(); } catch {}
 			const html = fs.readFileSync(path.join(process.cwd(), "views", "landing.html"), "utf8")
 				.replace("{{guildCount}}", guildCount.toString())
-				.replace("{{cmdCount}}", cmdCount.toString());
+				.replace("{{cmdCount}}", cmdCount.toString())
+				.replace("{{userCount}}", userCount.toString())
+				.replace("{{memberCount}}", memberCount.toString());
 			res.send(html);
 		});
 

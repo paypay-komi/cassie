@@ -1,12 +1,17 @@
 const { PermissionsBitField } = require("discord.js");
-const { getLogger } = require("../../../../../lib/logger");
+const { getLogger } = require("../../../../lib/logger");
 const fs = require("fs");
 const path = require("path");
 
 module.exports = {
+
+commandId: "52546fdc-31f7-4f21-b6b7-23decf8b0c28",
 	name: "startuptasks",
 	description: "Reloads the startup tasks.",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 	parent: "reload",
 
 	async execute(message) {
@@ -14,8 +19,8 @@ module.exports = {
 		const tasksPath = path.join(process.cwd(), "startuptasks");
 
 		const results = await message.client.shard.broadcastEval(
-	async (client, { tasksPath }) => {
-const fs = require("fs");
+			async (client, { tasksPath }) => {
+				const fs = require("fs");
 				const path = require("path");
 
 				function walk(dir) {

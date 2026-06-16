@@ -276,8 +276,9 @@ footer .links { display: flex; gap: 16px; }
 
   <section class="stats">
     <div class="stat"><div class="num" id="stat-guilds">{{guildCount}}</div><div class="label">Servers</div></div>
+    <div class="stat"><div class="num" id="stat-members">{{memberCount}}</div><div class="label">Members</div></div>
     <div class="stat"><div class="num" id="stat-commands">{{cmdCount}}</div><div class="label">Commands Run</div></div>
-    <div class="stat"><div class="num">24/7</div><div class="label">Uptime</div></div>
+    <div class="stat"><div class="num" id="stat-users">{{userCount}}</div><div class="label">Users</div></div>
   </section>
 
   <footer>
@@ -296,19 +297,21 @@ async function refreshStats() {
     const d = await r.json();
     if (!d.ok) return;
     const guilds = document.getElementById('stat-guilds');
+    const members = document.getElementById('stat-members');
     const cmds = document.getElementById('stat-commands');
-    if (guilds && guilds.textContent !== String(d.guilds)) {
-      guilds.textContent = d.guilds;
-      guilds.style.transition = 'color 0.3s';
-      guilds.style.color = '#3ba55d';
-      setTimeout(() => guilds.style.color = '', 1000);
-    }
-    if (cmds && cmds.textContent !== String(d.commands)) {
-      cmds.textContent = d.commands;
-      cmds.style.transition = 'color 0.3s';
-      cmds.style.color = '#3ba55d';
-      setTimeout(() => cmds.style.color = '', 1000);
-    }
+    const users = document.getElementById('stat-users');
+    const flash = (el, val) => {
+      if (el && el.textContent !== String(val)) {
+        el.textContent = val;
+        el.style.transition = 'color 0.3s';
+        el.style.color = '#3ba55d';
+        setTimeout(() => el.style.color = '', 1000);
+      }
+    };
+    if (guilds) flash(guilds, d.guilds);
+    if (members) flash(members, d.members);
+    if (cmds) flash(cmds, d.commands);
+    if (users) flash(users, d.users);
   } catch {}
 }
 setInterval(refreshStats, 10000);

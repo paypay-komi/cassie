@@ -4,6 +4,8 @@ const fs = require("fs");
 const { getLogger } = require("../../../../lib/logger");
 
 module.exports = {
+
+commandId: "744a5d6e-b306-4028-b4c5-1f53ebff8e25",
 	name: "webserver",
 	description: "Hot-reloads the web server (landing page, routes, 404) without restarting the bot.",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
