@@ -64,6 +64,25 @@ module.exports = {
 			// Get guild settings for prefix
 			const settings = await db.guild.get(guildId);
 
+			// Count disabled commands, overrides, and tags
+			let disabledCmdCount = 0;
+			let overrideCount = 0;
+			let tagCount = 0;
+			try {
+				disabledCmdCount = await db.prisma.guildDisabledCommand.count({ where: { guildId } });
+			} catch {}
+			try {
+				const [chOv, roleOv, userOv] = await Promise.all([
+					db.prisma.guildChannelCommandAccess.count({ where: { guildId } }),
+					db.prisma.guildRoleCommandAccess.count({ where: { guildId } }),
+					db.prisma.guildUserCommandAccess.count({ where: { guildId } }),
+				]);
+				overrideCount = chOv + roleOv + userOv;
+			} catch {}
+			try {
+				tagCount = await db.prisma.guildTag.count({ where: { guildId } });
+			} catch {}
+
 			return res.json({
 				ok: true,
 				stats: {
@@ -73,6 +92,9 @@ module.exports = {
 					channelCount,
 					roleCount,
 					totalCommands: cmdCount,
+					disabledCmdCount,
+					overrideCount,
+					tagCount,
 					prefix: settings.prefix || "c.",
 				},
 			});

@@ -435,14 +435,51 @@ body {
 .modal-close:hover { color: white; }
 .confirm-box .btn { min-width: 80px; }
 .del-btn[title] { position: relative; }
+
+/* ── Mobile sidebar ── */
+.hamburger { display: none; position: fixed; top: 14px; left: 14px; z-index: 100; background: var(--sidebar); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 20px; padding: 6px 10px; cursor: pointer; }
+.sidebar-overlay { display: none; }
+@media (max-width: 700px) {
+  .hamburger { display: block; }
+  .body-wrap .sidebar { position: fixed; top: 0; left: -220px; width: 220px; height: 100vh; z-index: 99; transition: left 0.2s; }
+  .body-wrap .sidebar.open { left: 0; }
+  .sidebar-overlay.open { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 98; }
+  .body-wrap { padding-top: 0; }
+  .header { padding-left: 50px; }
+}
+
+/* ── Settings tab ── */
+.settings-row { margin-bottom: 16px; }
+.settings-row label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--secondary); margin-bottom: 6px; }
+.settings-row input, .settings-row select { background: #22222c; border: 1px solid #333; color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 14px; width: 100%; max-width: 300px; }
+.settings-row input:focus, .settings-row select:focus { outline: none; border-color: var(--accent); }
+.settings-help { font-size: 12px; color: var(--secondary); margin-top: 4px; }
+
+/* ── Setup checklist ── */
+.setup-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+.setup-item .check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #444; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+.setup-item .check.done { border-color: var(--green); background: var(--green); color: #fff; }
+.setup-item .setup-text { font-size: 13px; flex: 1; }
+.setup-item .setup-action { font-size: 12px; }
+
+/* ── Permissions tab ── */
+.perms-group { margin-bottom: 12px; }
+.perms-group-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 6px; padding: 6px 10px; background: rgba(88,101,242,0.08); border-radius: 6px; }
+.perms-row { display: flex; align-items: center; gap: 8px; padding: 4px 10px; font-size: 13px; }
+.perms-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.perms-dot.green { background: var(--green); }
+.perms-dot.red { background: var(--red); }
+.perms-dot.yellow { background: #f1c40f; }
 </style>
 </head>
 <body>
 
 <div class="header">
+  <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">☰</button>
   <div style="display:flex;align-items:center;gap:12px">
     <a href="/dashboard" class="back-btn">← Dashboard</a>
     <h1>Cassie</h1>
+    <a href="/" style="color:#555;font-size:11px;text-decoration:none">Home</a>
     <a href="/privacy" style="color:#555;font-size:11px;text-decoration:none">Privacy</a>
     <a href="/terms" style="color:#555;font-size:11px;text-decoration:none">Terms</a>
   </div>
@@ -453,12 +490,15 @@ body {
 </div>
 
 <div class="body-wrap">
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-item active" data-tab="overview">📊 Overview</div>
     <div class="sidebar-item" data-tab="commands">⚙️ Commands</div>
     <div class="sidebar-item" data-tab="overrides">🔐 Overrides</div>
+    <div class="sidebar-item" data-tab="permissions">👥 Permissions</div>
     <div class="sidebar-item" data-tab="tags">🏷️ Tags</div>
+    <div class="sidebar-item" data-tab="settings">⚡ Settings</div>
   </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <div class="content" id="content"></div>
 </div>
 
@@ -553,7 +593,32 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   });
 });
 
-// Close autocomplete on outside click
+// ── Mobile sidebar toggle ──
+document.addEventListener('click', (e) => {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const hamburger = document.getElementById('hamburger');
+  if (e.target === hamburger || e.target.closest('#hamburger')) {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+    return;
+  }
+  if (e.target === overlay || e.target.closest('.sidebar-overlay')) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+});
+
+// Close sidebar when a tab is selected on mobile
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.sidebar-item');
+  if (item && window.innerWidth <= 700) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+});
+
+// ── Close autocomplete on outside click ──
 document.addEventListener('click', (e) => {
   const wrap = document.getElementById('ov-target-list');
   if (wrap && !e.target.closest('.autocomplete-wrap')) {
@@ -592,7 +657,10 @@ async function loadOverview() {
     { label: 'Members', value: s.memberCount.toLocaleString() },
     { label: 'Channels', value: s.channelCount.toLocaleString() },
     { label: 'Roles', value: s.roleCount.toLocaleString() },
-    { label: 'Commands Used', value: s.totalCommands.toLocaleString() },
+    { label: 'Commands Used', value: (s.totalCommands || 0).toLocaleString() },
+    { label: 'Disabled Cmds', value: (s.disabledCmdCount || 0).toLocaleString() },
+    { label: 'Overrides', value: (s.overrideCount || 0).toLocaleString() },
+    { label: 'Tags', value: (s.tagCount || 0).toLocaleString() },
   ];
   for (const st of stats) {
     html += `<div class="stat-card"><div class="stat-label">${st.label}</div><div class="stat-value">${st.value}</div></div>`;
@@ -606,6 +674,20 @@ async function loadOverview() {
       <button class="btn" onclick="savePrefix()">Save</button>
       <span class="status" id="prefix-status">Saved</span>
     </div>`;
+
+  // Setup checklist
+  html += '<div class="section-title" style="margin-top:24px">Getting Started</div>';
+  const checks = [
+    { label: 'Set your custom prefix', check: s.prefix !== 'c.', tip: 'Change it below' },
+    { label: 'Configure command permissions', check: s.overrideCount > 0, tip: 'Use the Overrides tab' },
+    { label: 'Create your first tag', check: s.tagCount > 0, tip: 'Use the Tags tab' },
+    { label: 'Disable unwanted commands', check: s.disabledCmdCount > 0, tip: 'Use the Commands tab' },
+  ];
+  for (const c of checks) {
+    html += `<div class="setup-item"><div class="check ${c.check ? 'done' : ''}">${c.check ? '✓' : ''}</div>
+      <span class="setup-text">${c.label}</span>
+      <span class="setup-action" style="color:var(--secondary);font-size:12px">${c.check ? '' : c.tip}</span></div>`;
+  }
 
   el.innerHTML = html;
 }
@@ -1232,13 +1314,139 @@ async function saveTagEdit(name) {
 }
 
 async function deleteTag(name) {
-  if (!confirm(`Delete tag "${name}"?`)) return;
+  if (!(await confirmAsync('Delete Tag', `Remove tag <code style="background:#222;padding:2px 6px;border-radius:4px">${escape(name)}</code> permanently?`))) return;
   const data = await api('/api/data/guild-tags-delete', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ guildId, name }),
   });
   if (data.ok) loadTags();
+}
+
+// ── Permissions Tab ──
+async function loadPermissions() {
+  const el = document.getElementById('content');
+  el.innerHTML = '<div class="loading">Loading permissions...</div>';
+
+  const [tgtData, cmdData] = await Promise.all([
+    api(`/api/data/guild-targets?guildId=${guildId}`),
+    api(`/api/data/guild-commands?guildId=${guildId}`),
+  ]);
+  if (!tgtData.ok) { showMsg('Failed to load targets.'); return; }
+
+  // Build disabled set
+  const disabled = {};
+  if (cmdData.ok) {
+    for (const cmd of cmdData.commands) {
+      if (cmd.disabled) disabled[cmd.id] = true;
+    }
+  }
+
+  let html = '<div class="section-title">Role Permissions</div>';
+  html += '<div class="info-card">This shows which commands are available to each role by default. Use the <a onclick="switchTab(\'overrides\')">Overrides</a> tab to create per-role, per-channel, or per-user exceptions.</div>';
+
+  if (tgtData.roles.length === 0) {
+    html += '<div style="color:var(--secondary)">No roles found.</div>';
+  } else {
+    // Build disabled commands tree
+    let disabledHtml = '<div class="section-title">Disabled Commands</div>';
+    const disabledCmds = cmdData.ok ? cmdData.commands.filter(c => c.disabled) : [];
+    if (disabledCmds.length === 0) {
+      disabledHtml += '<div style="color:var(--secondary);font-size:13px;margin-bottom:12px">All commands are enabled server-wide.</div>';
+    } else {
+      disabledHtml += '<div style="color:var(--secondary);font-size:13px;margin-bottom:12px">These commands are disabled for everyone, regardless of role:</div>';
+      for (const cmd of disabledCmds) {
+        disabledHtml += `<div class="perms-row"><span class="perms-dot red"></span> ${escape(cmd.name)}</div>`;
+      }
+    }
+    html = disabledHtml + html;
+
+    html += '<div style="margin-top:12px">';
+    for (const role of tgtData.roles) {
+      const color = role.color && role.color !== '#000000' ? role.color : 'var(--secondary)';
+      html += `<div class="perms-group">
+        <div class="perms-group-title"><span style="color:${color};margin-right:6px">●</span> ${escape(role.name)}</div>`;
+      // Show first 10 commands and a note about overrides
+      const cmdSample = cmdData.ok ? cmdData.commands.slice(0, 8) : [];
+      for (const cmd of cmdSample) {
+        const isDisabled = disabled[cmd.id];
+        html += `<div class="perms-row"><span class="perms-dot ${isDisabled ? 'red' : 'green'}"></span> ${escape(cmd.name)}</div>`;
+      }
+      if (cmdData.ok && cmdData.commands.length > 8) {
+        html += `<div class="perms-row" style="color:var(--muted);font-size:12px">… and ${cmdData.commands.length - 8} more</div>`;
+      }
+      html += `<div class="perms-row" style="color:var(--muted);font-size:11px">Use the Overrides tab to customize permissions per-role</div>`;
+      html += `</div>`;
+    }
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Settings Tab ──
+async function loadSettings() {
+  const el = document.getElementById('content');
+  el.innerHTML = '<div class="loading">Loading settings...</div>';
+
+  const [statsData] = await Promise.all([
+    api(`/api/data/guild-stats?guildId=${guildId}`),
+  ]);
+  if (!statsData.ok) { showMsg('Failed to load settings.'); return; }
+
+  const prefix = statsData.stats?.prefix || 'c.';
+
+  let html = '<div class="section-title">Server Settings</div>';
+
+  // Prefix
+  html += `<div class="settings-row">
+    <label>Command Prefix</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="settings-prefix" value="${escape(prefix)}" maxlength="10" style="max-width:100px">
+      <button class="btn" onclick="saveSettingsPrefix()">Save</button>
+      <span class="status" id="settings-prefix-status" style="font-size:12px;color:var(--green);opacity:0;transition:0.2s">Saved</span>
+    </div>
+    <div class="settings-help">The prefix used to invoke Cassie commands in this server (default: <code>c.</code>)</div>
+  </div>`;
+
+  // Echo Chamber
+  html += `<div class="settings-row" style="margin-top:24px">
+    <label>Echo Chamber</label>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font-size:13px;color:var(--secondary);margin-bottom:8px">
+        Echo Chamber auto-deletes and re-posts messages with a configurable delay. Configure this in your server using <code>${escape(prefix)}echochamber</code> commands.
+      </div>
+      <a class="btn btn-sm" href="https://discord.com/channels/${guildId}" target="_blank" style="text-decoration:none">Open Discord</a>
+    </div>
+  </div>`;
+
+  // Announcements
+  html += `<div class="settings-row" style="margin-top:24px">
+    <label>Announcement Subscriptions</label>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font-size:13px;color:var(--secondary);margin-bottom:8px">
+        Cassie broadcasts announcements to subscribed servers. Manage your subscription using <code>${escape(prefix)}announce subscribe</code> or <code>${escape(prefix)}announce unsubscribe</code>.
+      </div>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+async function saveSettingsPrefix() {
+  const input = document.getElementById('settings-prefix');
+  const status = document.getElementById('settings-prefix-status');
+  const prefix = input.value.trim();
+  if (!prefix) return;
+  const data = await api('/api/data/guild-settings-update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ guildId, prefix }),
+  });
+  if (data.ok) {
+    status.style.opacity = '1';
+    setTimeout(() => status.style.opacity = '0', 2000);
+  }
 }
 
 // ── Router ──
@@ -1249,13 +1457,15 @@ async function loadTab(tab) {
     else if (tab === 'commands') await loadCommands();
     else if (tab === 'overrides') await loadOverrides();
     else if (tab === 'tags') await loadTags();
+    else if (tab === 'permissions') await loadPermissions();
+    else if (tab === 'settings') await loadSettings();
   } catch (e) {
     console.error(e);
     showMsg('An error occurred.', 'error');
   }
 }
 
-const validTabs = ['overview', 'commands', 'overrides', 'tags'];
+const validTabs = ['overview', 'commands', 'overrides', 'permissions', 'tags', 'settings'];
 const initialTab = validTabs.includes(window.location.hash.replace('#', '')) ? window.location.hash.replace('#', '') : 'overview';
 loadTab(initialTab);
 </script>

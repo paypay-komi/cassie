@@ -9,8 +9,8 @@ function buildLoginPage(client) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nekomi Dashboard</title>
-<meta property="og:title" content="Nekomi Dashboard">
+<title>Cassie Dashboard</title>
+<meta property="og:title" content="Cassie Dashboard">
 <meta property="og:description" content="Manage your Cassie bot settings — server configuration, command overrides, tags, and more.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nekomi.tailef6033.ts.net/dashboard">
@@ -33,7 +33,7 @@ function buildLoginPage(client) {
 </head>
 <body>
 <div class="card">
-  <h1>Nekomi Dashboard</h1>
+  <h1>Cassie Dashboard</h1>
   <p>Manage command permissions and server settings.</p>
   <a class="btn" href="/login">Login with Discord</a>
 </div>
