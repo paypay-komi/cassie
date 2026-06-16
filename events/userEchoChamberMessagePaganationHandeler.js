@@ -44,7 +44,33 @@ module.exports = {
 					flags: MessageFlags.IsComponentsV2,
 				});
 				break;
-
+			case "changePage":
+				const newSkip = parseInt(args[0]);
+				if (newSkip < 0) {
+					return interaction.reply({
+						content: "you're already on the first page",
+						flags: MessageFlags.Ephemeral,
+					});
+				}
+				const pageMessages = await db.prisma.echoMessage.findMany({
+					where: {
+						deliveredAt: null,
+						authorId,
+					},
+					orderBy: { createdAt: "desc" },
+					skip: newSkip,
+				});
+				if (!pageMessages.length) {
+					return interaction.reply({
+						content: "no more messages",
+						flags: MessageFlags.Ephemeral,
+					});
+				}
+				interaction.update({
+					components: [render(pageMessages, newSkip, 5, authorId)],
+					flags: MessageFlags.IsComponentsV2,
+				});
+				break;
 			default:
 				log.warn(`invalid action: ${action}`);
 				interaction.reply({
