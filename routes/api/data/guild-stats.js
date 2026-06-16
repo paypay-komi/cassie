@@ -83,6 +83,16 @@ module.exports = {
 				tagCount = await db.prisma.guildTag.count({ where: { guildId } });
 			} catch {}
 
+			let echoChamberCount = 0;
+			let announcementSubscribed = false;
+			try {
+				echoChamberCount = await db.prisma.echoChannel.count({ where: { guildId } });
+			} catch {}
+			try {
+				const announceRow = await db.prisma.guildAnnouncement.findUnique({ where: { guildId } });
+				announcementSubscribed = !!announceRow?.channelId;
+			} catch {}
+
 			return res.json({
 				ok: true,
 				stats: {
@@ -95,6 +105,8 @@ module.exports = {
 					disabledCmdCount,
 					overrideCount,
 					tagCount,
+					echoChamberCount,
+					announcementSubscribed,
 					prefix: settings.prefix || "c.",
 				},
 			});
