@@ -2,8 +2,7 @@ const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 const db = require("../../../db");
 
 module.exports = {
-
-commandId: "e2e8254b-6c8a-4308-8e47-97899486e8a9",
+	commandId: "e2e8254b-6c8a-4308-8e47-97899486e8a9",
 	name: "status",
 	description: "Show echo chamber channels and pending messages",
 	requiredBotPermissions: [
@@ -24,7 +23,9 @@ commandId: "e2e8254b-6c8a-4308-8e47-97899486e8a9",
 		});
 
 		if (channels.length === 0) {
-			return message.reply("No echo chambers set up in this server. Use `c.echochamber create` in a channel to make one.");
+			return message.reply(
+				"No echo chambers set up in this server. Use `c.echochamber create` in a channel to make one.",
+			);
 		}
 
 		const lines = await Promise.all(
@@ -52,9 +53,7 @@ commandId: "e2e8254b-6c8a-4308-8e47-97899486e8a9",
 
 		if (nextMsg) {
 			const ts = Math.floor(nextMsg.deliverAt.getTime() / 1000);
-			lines.push(
-				`\n**Next echo** <t:${ts}:R> — <#${nextMsg.channelId}>`,
-			);
+			lines.push(`\n**Next echo** <t:${ts}:R> — <#${nextMsg.channelId}>`);
 			embed.setDescription(lines.join("\n"));
 		}
 
