@@ -248,7 +248,7 @@ function showInviteModal(guild) {
   document.getElementById('modalTitle').textContent = `Invite to ${guild.name}`;
   document.getElementById('modalText').textContent = 'Cassie isn\'t in this server yet. Click below to invite her.';
   document.getElementById('inviteBtn').onclick = () => {
-    window.open(`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${perms}&scope=bot&guild_id=${guild.id}`, '_blank', 'noopener');
+    window.open(`/invite?ref=dashboard&perms=${perms}&guild_id=${guild.id}`, '_blank', 'noopener');
     document.getElementById('inviteModal').style.display = 'none';
     document.getElementById('refreshBtn').style.display = '';
   };

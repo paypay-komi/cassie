@@ -48,7 +48,9 @@ module.exports = {
 			const perms = parseInt(req.query.perms, 10);
 			const permInt =
 				!isNaN(perms) && perms >= 0 ? perms : Number(defaultPerms);
-			const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands`;
+			const guildId = req.query.guild_id || "";
+			const guildParam = guildId ? `&guild_id=${encodeURIComponent(guildId)}` : "";
+			const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}`;
 
 			res.redirect(302, inviteUrl);
 		} catch (err) {
@@ -59,9 +61,11 @@ module.exports = {
 			const perms = parseInt(req.query.perms, 10);
 			const permInt =
 				!isNaN(perms) && perms >= 0 ? perms : Number(defaultPerms);
+			const guildId = req.query.guild_id || "";
+			const guildParam = guildId ? `&guild_id=${encodeURIComponent(guildId)}` : "";
 			res.redirect(
 				302,
-				`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands`,
+				`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}`,
 			);
 		}
 	},
