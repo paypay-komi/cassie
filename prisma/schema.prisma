@@ -479,3 +479,13 @@ model GuildAnnouncement {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
+
+model InviteClick {
+  id        Int      @id @default(autoincrement())
+  ref       String   @default("unknown")
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([ref])
+}
