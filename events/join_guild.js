@@ -17,6 +17,27 @@ module.exports = {
 			},
 		});
 
+		// Try to match this join to a recent invite click
+		try {
+			const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+			const click = await prisma.inviteClick.findFirst({
+				where: {
+					guildId: null,
+					createdAt: { gte: tenMinAgo },
+				},
+				orderBy: { createdAt: "desc" },
+			});
+			if (click) {
+				await prisma.inviteClick.update({
+					where: { id: click.id },
+					data: { guildId: guild.id, matchedAt: new Date() },
+				});
+				log.info(`Matched invite click ${click.id} (ref: ${click.ref}) to guild ${guild.id}`);
+			}
+		} catch (err) {
+			log.warn(`Failed to match invite click: ${err.message}`);
+		}
+
 		// ── Announcement channel setup ──
 		try {
 			const existing = await client.db.announcements.get(guild.id);

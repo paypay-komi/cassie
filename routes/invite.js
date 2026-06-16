@@ -23,6 +23,14 @@ module.exports = {
 		];
 		const defaultPerms = BOT_PERMS.reduce((a, b) => a | b, 0n);
 		try {
+			// Clean up stale unmatched clicks older than 1 hour
+			try {
+				const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+				await db.prisma.inviteClick.deleteMany({
+					where: { guildId: null, createdAt: { lt: oneHourAgo } },
+				});
+			} catch {}
+
 			const ref = (req.query.ref || "").trim().slice(0, 100) || "unknown";
 			const ip =
 				req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||

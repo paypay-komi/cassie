@@ -481,11 +481,15 @@ model GuildAnnouncement {
 }
 
 model InviteClick {
-  id        Int      @id @default(autoincrement())
-  ref       String   @default("unknown")
+  id        Int       @id @default(autoincrement())
+  ref       String    @default("unknown")
   ip        String?
   userAgent String?
-  createdAt DateTime @default(now())
+  guildId   String?
+  matchedAt DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([ref])
+  @@index([guildId])
+  @@index([createdAt])
 }
