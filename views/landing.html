@@ -284,7 +284,7 @@ footer .links { display: flex; gap: 16px; }
   <section style="text-align:center;padding:20px 0 40px;font-size:14px;color:var(--muted)">
     <a href="/dashboard" style="color:var(--accent);text-decoration:none;font-weight:600">Dashboard</a>
     <span style="margin:0 12px;color:#444">·</span>
-    <a href="https://discord.gg/cassie" target="_blank" style="color:var(--accent);text-decoration:none">Support Server</a>
+    <a id="support-link" href="#" target="_blank" style="color:var(--accent);text-decoration:none">Support Server</a>
     <span style="margin:0 12px;color:#444">·</span>
     <a href="/privacy" style="color:var(--accent);text-decoration:none">Privacy</a>
     <span style="margin:0 12px;color:#444">·</span>
@@ -326,6 +326,11 @@ async function refreshStats() {
 }
 setInterval(refreshStats, 10000);
 refreshStats();
+
+// Load support link
+fetch('/api/invite/support')
+  .then(r => r.json())
+  .then(d => { if (d.ok) document.getElementById('support-link').href = d.url; });
 </script>
 </body>
 </html>

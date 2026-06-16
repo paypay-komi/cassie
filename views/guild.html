@@ -482,6 +482,7 @@ body {
     <a href="/" style="color:#555;font-size:11px;text-decoration:none">Home</a>
     <a href="/privacy" style="color:#555;font-size:11px;text-decoration:none">Privacy</a>
     <a href="/terms" style="color:#555;font-size:11px;text-decoration:none">Terms</a>
+    <a id="guild-support" href="#" style="color:#555;font-size:11px;text-decoration:none">Support</a>
   </div>
   <div id="guild-header">
     <span id="guild-name">Loading...</span>
@@ -1468,6 +1469,11 @@ async function loadTab(tab) {
 const validTabs = ['overview', 'commands', 'overrides', 'permissions', 'tags', 'settings'];
 const initialTab = validTabs.includes(window.location.hash.replace('#', '')) ? window.location.hash.replace('#', '') : 'overview';
 loadTab(initialTab);
+
+// Load support link
+fetch('/api/invite/support')
+  .then(r => r.json())
+  .then(d => { if (d.ok) document.getElementById('guild-support').href = d.url; });
 </script>
 </body>
 </html>

@@ -278,11 +278,16 @@ function escape(str) {
 }
 </script>
 <div style="padding:12px 24px;text-align:center;border-top:1px solid var(--border);flex-shrink:0;font-size:12px;color:var(--muted)">
-  <a href="/privacy" style="color:var(--muted);text-decoration:none">Privacy Policy</a>
-  <span style="margin:0 8px;color:#444">&middot;</span>
-  <a href="/terms" style="color:var(--muted);text-decoration:none">Terms of Service</a>
-  <span style="margin:0 8px;color:#444">&middot;</span>
   <a href="/" style="color:var(--muted);text-decoration:none">Home</a>
+  <span style="margin:0 8px;color:#444">&middot;</span>
+  <a href="/privacy" style="color:var(--muted);text-decoration:none">Privacy</a>
+  <span style="margin:0 8px;color:#444">&middot;</span>
+  <a href="/terms" style="color:var(--muted);text-decoration:none">Terms</a>
+  <span style="margin:0 8px;color:#444">&middot;</span>
+  <a id="foot-support" href="#" target="_blank" style="color:var(--muted);text-decoration:none">Support</a>
 </div>
+<script>
+fetch('/api/invite/support').then(r=>r.json()).then(d=>{if(d.ok)document.getElementById('foot-support').href=d.url;});
+</script>
 </body>
 </html>
