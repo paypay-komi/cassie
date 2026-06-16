@@ -193,8 +193,10 @@ module.exports = {
 		client.app = app;
 	},
 
-	cleanup() {
-		if (this.server) this.server.close();
+	async cleanup() {
+		if (this.server) {
+			await new Promise((resolve) => this.server.close(resolve));
+		}
 		this.server = null;
 		this.app = null;
 	},

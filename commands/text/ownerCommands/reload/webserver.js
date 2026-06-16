@@ -3,6 +3,20 @@ const path = require("path");
 const fs = require("fs");
 const { getLogger } = require("../../../../lib/logger");
 
+function walk(dir) {
+	const entries = fs.readdirSync(dir);
+	let out = [];
+	for (const entry of entries) {
+		const full = path.join(dir, entry);
+		if (fs.statSync(full).isDirectory()) {
+			out = out.concat(walk(full));
+		} else if (entry.endsWith(".js")) {
+			out.push(full);
+		}
+	}
+	return out;
+}
+
 module.exports = {
 
 commandId: "744a5d6e-b306-4028-b4c5-1f53ebff8e25",
@@ -18,6 +32,21 @@ commandId: "744a5d6e-b306-4028-b4c5-1f53ebff8e25",
 		const results = await message.client.shard.broadcastEval(async (client) => {
 			const path = require("path");
 			const fs = require("fs");
+
+			function walk(dir) {
+				const entries = fs.readdirSync(dir);
+				let out = [];
+				for (const entry of entries) {
+					const full = path.join(dir, entry);
+					if (fs.statSync(full).isDirectory()) {
+						out = out.concat(walk(full));
+					} else if (entry.endsWith(".js")) {
+						out.push(full);
+					}
+				}
+				return out;
+			}
+
 			const tasksPath = path.join(process.cwd(), "startuptasks", "infrastructure", "startWebServer.js");
 
 			// 1. Cleanup OLD web server (before clearing cache so we can close the port)
@@ -29,12 +58,11 @@ commandId: "744a5d6e-b306-4028-b4c5-1f53ebff8e25",
 				}
 			}
 
-			// 2. Clear route module cache
+			// 2. Clear ALL route module caches recursively
 			const routesDir = path.join(process.cwd(), "routes");
-			fs.readdirSync(routesDir).filter(f => f.endsWith(".js")).forEach(file => {
-				const fullPath = path.join(routesDir, file);
-				delete require.cache[require.resolve(fullPath)];
-			});
+			for (const filePath of walk(routesDir)) {
+				delete require.cache[require.resolve(filePath)];
+			}
 
 			// 3. Reload the web server startup task (fresh module = fresh app)
 			delete require.cache[require.resolve(tasksPath)];
