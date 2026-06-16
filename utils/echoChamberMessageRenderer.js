@@ -60,7 +60,7 @@ function render(messages, skip, max, authorId) {
 					)
 					.setEmoji("➡️")
 					.setStyle(ButtonStyle.Primary)
-					.setDisabled(max > i),
+					.setDisabled(max >= i),
 			),
 		);
 	return group;
