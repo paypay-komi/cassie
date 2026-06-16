@@ -21,7 +21,7 @@ function render(messages, skip, max, authorId) {
 		}
 		if (current.embeds) {
 			finalString +=
-				"has embeds (Unable to Dissplay them  At this time)\n";
+				"has embeds (Unable to Display them  At this time)\n";
 		}
 		if (current.attachments) {
 			finalString += `has attachments (I will add an api endpoint to show the files at some point for now this won't work)\n`;
