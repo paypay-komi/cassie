@@ -201,7 +201,7 @@ footer .links { display: flex; gap: 16px; }
 <body>
 <div class="wrap">
   <header>
-    <img src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64" alt="Cassie">
+    <img id="bot-avatar-small" src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64" alt="Cassie">
     <h1>Cassie</h1>
     <nav>
       <a href="/dashboard">Dashboard</a>
@@ -211,7 +211,7 @@ footer .links { display: flex; gap: 16px; }
   </header>
 
   <section class="hero">
-    <img src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512" alt="Cassie avatar">
+    <img id="bot-avatar-large" src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512" alt="Cassie avatar">
     <h2>Your multipurpose Discord companion</h2>
     <p>Tags, reminders, AI chat, idea wall with voting, games, announcements, echo chambers, and a full web dashboard — all in one bot.</p>
     <div class="btns">
@@ -331,6 +331,19 @@ refreshStats();
 fetch('/api/invite/support')
   .then(r => r.json())
   .then(d => { if (d.ok) document.getElementById('support-link').href = d.url; });
+
+// Load bot avatar
+fetch('/api/bot/avatar')
+  .then(r => r.json())
+  .then(d => {
+    if (!d.ok) return;
+    document.querySelectorAll('meta[property="og:image"]').forEach(m => m.content = d.url);
+    document.querySelectorAll('link[rel="icon"]').forEach(l => l.href = d.url.replace('?size=512', '?size=64'));
+    const sm = document.getElementById('bot-avatar-small');
+    const lg = document.getElementById('bot-avatar-large');
+    if (sm) sm.src = d.url.replace('?size=512', '?size=64');
+    if (lg) lg.src = d.url;
+  });
 </script>
 </body>
 </html>

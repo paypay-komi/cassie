@@ -65,5 +65,12 @@ body {
   <p>This page doesn't exist. Maybe it never did. Maybe it was deleted. Either way, you shouldn't be here.</p>
   <a class="btn" href="/">Go Home</a>
 </div>
+<script>
+fetch('/api/bot/avatar').then(r=>r.json()).then(d=>{
+  if(!d.ok)return;
+  document.querySelectorAll('meta[property="og:image"]').forEach(m=>m.content=d.url);
+  document.querySelectorAll('link[rel="icon"]').forEach(l=>l.href=d.url.replace('?size=512','?size=64'));
+});
+</script>
 </body>
 </html>

@@ -4,6 +4,9 @@ function buildLoginPage(client) {
 	const avatarUrl = client?.user
 		? `https://cdn.discordapp.com/avatars/${client.user.id}/${client.user.avatar}.png?size=512`
 		: "https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512";
+	const iconUrl = client?.user
+		? `https://cdn.discordapp.com/avatars/${client.user.id}/${client.user.avatar}.png?size=64`
+		: "https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64";
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +22,7 @@ function buildLoginPage(client) {
 <meta property="og:image:height" content="512">
 <meta name="theme-color" content="#5865F2">
 <meta name="twitter:card" content="summary">
-<link rel="icon" type="image/png" href="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64">
+<link rel="icon" type="image/png" href="${iconUrl}">
 <meta name="description" content="Manage your Cassie bot settings — server configuration, command overrides, tags, and more.">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
