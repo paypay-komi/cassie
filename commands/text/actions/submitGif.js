@@ -172,6 +172,7 @@ const BASE = (
 const GIF_DIR = "L:\\reactiongifs";
 
 module.exports = {
+	commandId: "ebc2cdfe-f6d3-4011-9839-7628217d9bde",
 	name: "submit",
 	description:
 		"submits a gif for review — owners bypass pending, tags optional",
@@ -247,16 +248,16 @@ module.exports = {
 
 		try {
 			// ── download with live progress ──
-			const res = await axios({
+			const axiosRes = await axios({
 				method: "get",
 				url: sourceUrl,
 				responseType: "stream",
 				timeout: 30000,
 			});
-			const total = parseInt(res.headers["content-length"], 10);
+			const total = parseInt(axiosRes.headers["content-length"], 10);
 			const writer = fs.createWriteStream(tmp);
 			let received = 0;
-			res.data.on("data", (chunk) => {
+			axiosRes.data.on("data", (chunk) => {
 				received += chunk.length;
 				if (total) {
 					const pct = Math.min(
@@ -268,10 +269,10 @@ module.exports = {
 					);
 				}
 			});
-			await new Promise((res, rej) => {
-				writer.on("finish", res);
-				writer.on("error", rej);
-				res.data.pipe(writer);
+			await new Promise((resolve, reject) => {
+				writer.on("finish", resolve);
+				writer.on("error", reject);
+				axiosRes.data.pipe(writer);
 			});
 			await msg.edit(
 				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashing…        ${progressBar(90)}`,
@@ -294,10 +295,12 @@ module.exports = {
 				where: { hash: exactHash },
 				select: { id: true },
 			});
-			const existingSubmitted = existing ? null : await db.prisma.submittedReactonGif.findUnique({
-				where: { hash: exactHash },
-				select: { id: true },
-			});
+			const existingSubmitted = existing
+				? null
+				: await db.prisma.submittedReactonGif.findUnique({
+						where: { hash: exactHash },
+						select: { id: true },
+					});
 			const dup = existing || existingSubmitted;
 			if (dup) {
 				return msg.edit(
@@ -340,7 +343,10 @@ module.exports = {
 
 			// ── save to L drive ──
 			fs.mkdirSync(GIF_DIR, { recursive: true });
-			fs.copyFileSync(tmp, path.join(GIF_DIR, `${record.id}.${record.fileType}`));
+			fs.copyFileSync(
+				tmp,
+				path.join(GIF_DIR, `${record.id}.${record.fileType}`),
+			);
 
 			if (config.owners.includes(message.author.id)) {
 				await msg.edit(
