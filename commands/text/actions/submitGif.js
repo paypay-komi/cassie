@@ -285,20 +285,20 @@ module.exports = {
 			const total = parseInt(axiosRes.headers["content-length"], 10);
 			const writer = fs.createWriteStream(tmp);
 			let received = 0;
-			let lastPct = -1;
+			let lastUpdate = 0;
 			axiosRes.data.on("data", (chunk) => {
 				received += chunk.length;
 				if (total) {
+					const now = Date.now();
+					if (now - lastUpdate < 1000) return;
+					lastUpdate = now;
 					const pct = Math.min(
 						Math.round((received / total) * 90),
 						90,
 					);
-					if (pct !== lastPct) {
-						lastPct = pct;
-						msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
-							() => {},
-						);
-					}
+					msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
+						() => {},
+					);
 				}
 			});
 			await new Promise((resolve, reject) => {
