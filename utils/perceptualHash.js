@@ -1,5 +1,15 @@
 const sharp = require("sharp");
 
+const MAX_SIGNED_64 = 1n << 63n; // 2^63
+
+/**
+ * Convert an unsigned 64-bit BigInt to signed 64-bit (PostgreSQL BIGINT range).
+ */
+function toSigned64(val) {
+	if (val >= MAX_SIGNED_64) return val - (MAX_SIGNED_64 << 1n);
+	return val;
+}
+
 /**
  * Read the first frame of a GIF as a PNG buffer.
  * Falls through for non-GIF files (returns null).
@@ -46,14 +56,14 @@ async function hashImage(filePath) {
 	}
 
 	const hex = bits.toString(16).padStart(16, "0");
-	return { hex, bigint: bits };
+	return { hex, bigint: toSigned64(bits) };
 }
 
 /**
  * Convert a 16-char hex perceptual hash to BigInt.
  */
 function hexToBigInt(hex) {
-	return BigInt("0x" + hex);
+	return toSigned64(BigInt("0x" + hex));
 }
 
 /**
@@ -65,7 +75,7 @@ function hexToBigInt(hex) {
  * @returns {Promise<{ id: string, hash: string }|null>}
  */
 async function findNearDuplicate(db, hash, threshold = 10) {
-	const val = typeof hash === "string" ? BigInt("0x" + hash) : hash.bigint;
+	const val = typeof hash === "string" ? toSigned64(BigInt("0x" + hash)) : hash.bigint;
 	const rows = await db.$queryRaw`
     SELECT id, hash, BIT_COUNT(("mediaHash" # ${val})::bit(64)) AS distance
     FROM (
@@ -84,4 +94,5 @@ module.exports = {
 	hashImage,
 	hexToBigInt,
 	findNearDuplicate,
+	toSigned64,
 };

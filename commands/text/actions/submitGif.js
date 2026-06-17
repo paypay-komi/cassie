@@ -177,7 +177,13 @@ function sniffRealType(filePath) {
 	if (ftyp === "ftyp") return "mp4";
 
 	// WebM / Matroska EBML header
-	if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return "webm";
+	if (
+		buf[0] === 0x1a &&
+		buf[1] === 0x45 &&
+		buf[2] === 0xdf &&
+		buf[3] === 0xa3
+	)
+		return "webm";
 
 	return null;
 }
@@ -234,7 +240,10 @@ module.exports = {
 		}
 
 		// Tenor URLs need .gif appended — they serve MP4s otherwise
-		if (/tenor\.com/i.test(sourceUrl) && !path.extname(sourceUrl.split("?")[0])) {
+		if (
+			/tenor\.com/i.test(sourceUrl) &&
+			!path.extname(sourceUrl.split("?")[0])
+		) {
 			sourceUrl = sourceUrl.replace(/\/?(\?.*)?$/, ".gif$1");
 		}
 
@@ -313,7 +322,9 @@ module.exports = {
 			// ── verify actual file type via magic bytes ──
 			const realType = sniffRealType(tmp);
 			if (!realType) {
-				return msg.edit("⚠️ unrecognized file format — only GIF is supported");
+				return msg.edit(
+					"⚠️ unrecognized file format — only GIF is supported",
+				);
 			}
 			if (realType !== "gif") {
 				return msg.edit(
