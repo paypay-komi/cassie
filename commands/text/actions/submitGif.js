@@ -285,6 +285,7 @@ module.exports = {
 			const total = parseInt(axiosRes.headers["content-length"], 10);
 			const writer = fs.createWriteStream(tmp);
 			let received = 0;
+			let lastPct = -1;
 			axiosRes.data.on("data", (chunk) => {
 				received += chunk.length;
 				if (total) {
@@ -292,9 +293,12 @@ module.exports = {
 						Math.round((received / total) * 90),
 						90,
 					);
-					msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
-						() => {},
-					);
+					if (pct !== lastPct) {
+						lastPct = pct;
+						msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
+							() => {},
+						);
+					}
 				}
 			});
 			await new Promise((resolve, reject) => {
