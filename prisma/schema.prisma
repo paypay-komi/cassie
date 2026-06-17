@@ -495,3 +495,12 @@ model InviteClick {
     @@index([createdAt])
     @@index([state])
 }
+
+model ReactionGif {
+    id String @id @default(uuid())
+
+    actions String[]
+
+    fileType  String
+    createdAt DateTime @default(now())
+}
