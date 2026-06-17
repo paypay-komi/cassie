@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Idea" ADD COLUMN "vote_score" INTEGER NOT NULL DEFAULT 0;
