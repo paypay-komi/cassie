@@ -9,9 +9,12 @@ async function gifToPngBuffer(filePath) {
 	const gifFrames = require("gif-frames");
 	const frames = await gifFrames({ url: filePath, frames: 0, outputType: "png" });
 	const stream = frames[0].getImage();
-	const chunks = [];
-	for await (const chunk of stream) chunks.push(chunk);
-	return Buffer.concat(chunks);
+	return new Promise((resolve, reject) => {
+		const chunks = [];
+		stream.on("data", (chunk) => chunks.push(chunk));
+		stream.on("end", () => resolve(Buffer.concat(chunks)));
+		stream.on("error", reject);
+	});
 }
 
 /**
