@@ -75,13 +75,14 @@ function isVideo(filePath) {
 
 /**
  * Generate a perceptual hash for any supported media file.
- * Routes GIF to imghash, video to ffmpeg + imghash.
+ * Routes static images to imghash, GIFs/videos to ffmpeg + imghash.
+ * (imghash's underlying canvas/image doesn't support GIF)
  *
  * @param {string} filePath - Path to the media file on disk
  * @returns {Promise<{ hex: string, bigint: bigint }>}
  */
 async function hashMedia(filePath) {
-	if (isVideo(filePath)) return await hashVideo(filePath);
+	if (/\.gif$/i.test(filePath) || isVideo(filePath)) return await hashVideo(filePath);
 	return await hashImage(filePath);
 }
 
