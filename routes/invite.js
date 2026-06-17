@@ -56,7 +56,7 @@ module.exports = {
 			const guildParam = guildId ? `&guild_id=${encodeURIComponent(guildId)}` : "";
 			const baseUrl = process.env.BASE_URL || `https://nekomi.tailef6033.ts.net`;
 			const redirectUri = `${baseUrl}/invite/callback`;
-			const inviteUrl = `https://discord.com/oauth2/authorize?response_type=code&client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands%20identify${guildParam}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&prompt=consent`;
+			const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=bot%20applications.commands&response_type=code&state=${state}${guildParam}`;
 
 			res.redirect(302, inviteUrl);
 		} catch (err) {
@@ -74,7 +74,7 @@ module.exports = {
 			const stateParam = state ? `&state=${state}` : "";
 			res.redirect(
 				302,
-				`https://discord.com/oauth2/authorize?response_type=code&client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands%20identify${guildParam}&redirect_uri=${encodeURIComponent(redirectUri)}${stateParam}&prompt=consent`,
+				`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=bot%20applications.commands&response_type=code${stateParam}${guildParam}`,
 			);
 		}
 	},
