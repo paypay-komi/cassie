@@ -23,6 +23,16 @@ const VALID_ACTIONS = [
 	"pounce",
 ];
 
+function progressBar(pct) {
+	const filled = Math.round(pct / 10);
+	const empty = 10 - filled;
+	return "[" + "\u2588".repeat(filled) + "\u2591".repeat(empty) + `] ${pct}%`;
+}
+
+const BASE = (
+	process.env.BASE_URL || "https://nekomi.tailef6033.ts.net"
+).replace(/\/+$/, "");
+
 module.exports = {
 	name: "submit",
 	description:
@@ -38,28 +48,44 @@ module.exports = {
 	 * @param {string[]} args
 	 */
 	async execute(message, args) {
-		const attachment = message.attachments?.first();
-		if (!attachment) {
-			return message.reply("please attach a GIF or MP4");
+		// Pull source URL from args or attachment
+		let sourceUrl = null;
+		const actionArgs = [];
+		for (const a of args) {
+			if (!sourceUrl && /^https?:\/\//i.test(a)) {
+				sourceUrl = a;
+			} else {
+				actionArgs.push(a);
+			}
 		}
 
-		const ext = path
-			.extname(attachment.name || attachment.url)
-			.toLowerCase();
+		if (!sourceUrl) {
+			const att = message.attachments?.first();
+			if (att) sourceUrl = att.url;
+		}
+
+		if (!sourceUrl) {
+			return message.reply(
+				"attach a file or pass a URL: `c.submit <url> <action>…`",
+			);
+		}
+
+		const ext =
+			path.extname(sourceUrl.split("?")[0].split("#")[0]).toLowerCase() ||
+			".gif";
 		if (![".gif", ".mp4", ".webm"].includes(ext)) {
 			return message.reply("only GIF, MP4, or WebM files are supported");
 		}
 		const fileType = ext.slice(1);
 
-		// Parse action tags from args
-		const actions = args.length
-			? args
+		const actions = actionArgs.length
+			? actionArgs
 					.filter((a) => VALID_ACTIONS.includes(a.toLowerCase()))
 					.map((a) => a.toLowerCase())
 			: ["hug"];
 		if (!actions.length) {
 			return message.reply(
-				`no valid actions found. Valid: ${VALID_ACTIONS.join(", ")}`,
+				`no valid actions. Valid: ${VALID_ACTIONS.join(", ")}`,
 			);
 		}
 
@@ -68,11 +94,14 @@ module.exports = {
 			`sub_gif_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`,
 		);
 
+		// Send initial progress message
+		const msg = await message.reply(`⬇️ Downloading… ${progressBar(10)}`);
+
 		try {
-			// Download attachment
+			// ── download ──
 			const res = await axios({
 				method: "get",
-				url: attachment.url,
+				url: sourceUrl,
 				responseType: "stream",
 				timeout: 30000,
 			});
@@ -82,8 +111,11 @@ module.exports = {
 				writer.on("error", rej);
 				res.data.pipe(writer);
 			});
+			await msg.edit(
+				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashing…        ${progressBar(30)}`,
+			);
 
-			// Compute exact hash (SHA256) for the `hash` field
+			// ── exact hash ──
 			const exactHash = await new Promise((res, rej) => {
 				const h = crypto.createHash("sha256");
 				fs.createReadStream(tmp)
@@ -91,31 +123,36 @@ module.exports = {
 					.on("end", () => res(h.digest("hex")))
 					.on("error", rej);
 			});
+			await msg.edit(
+				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(50)}`,
+			);
 
-			// Check for exact duplicate (unique constraint catches it too, but gives a nicer message)
+			// ── exact duplicate check ──
 			const existing = await db.prisma.reactionGif.findUnique({
 				where: { hash: exactHash },
-				select: { id: true },
+				select: { hash: true },
 			});
 			if (existing) {
-				return message.reply(
-					"that exact file is already in the collection",
+				return msg.edit(
+					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(70)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${existing.hash}`,
 				);
 			}
 
-			// Compute perceptual hash and check for near-duplicates
+			// ── perceptual hash + near-duplicate check ──
 			const phash = await hashMedia(tmp);
+			await msg.edit(
+				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(70)}`,
+			);
 
-			// Check both tables for near-duplicate
-			const nearDup = await findNearDuplicate(db.prisma, phash);
-			if (nearDup) {
-				return message.reply(
-					`that's a near-duplicate of \`${nearDup}\``,
+			const nearDupHash = await findNearDuplicate(db.prisma, phash);
+			if (nearDupHash) {
+				return msg.edit(
+					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(80)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDupHash}`,
 				);
 			}
 
+			// ── insert ──
 			if (config.owners.includes(message.author.id)) {
-				// Owner — insert directly to ReactionGif, skip pending
 				await db.prisma.reactionGif.create({
 					data: {
 						hash: exactHash,
@@ -124,27 +161,28 @@ module.exports = {
 						mediaHash: phash.bigint,
 					},
 				});
-				return message.reply(
-					`added \`${exactHash.slice(0, 12)}…\` for actions: ${actions.join(", ")}`,
+				await msg.edit(
+					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
+				);
+			} else {
+				await db.prisma.submittedReactonGif.create({
+					data: {
+						hash: exactHash,
+						actions,
+						fileType,
+						mediaHash: phash.bigint,
+						submittedBy: message.author.id,
+					},
+				});
+				await msg.edit(
+					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checked         ${progressBar(90)}\n✅ Submitted for review! ${progressBar(100)}`,
 				);
 			}
-
-			// Non-owner — submit for review
-			await db.prisma.submittedReactonGif.create({
-				data: {
-					hash: exactHash,
-					actions,
-					fileType,
-					mediaHash: phash.bigint,
-					submittedBy: message.author.id,
-				},
-			});
-			return message.reply(
-				"submitted for review! an owner will approve it soon.",
-			);
 		} catch (err) {
 			console.error(err);
-			return message.reply("something went wrong processing that file");
+			await msg
+				.edit("❌ something went wrong processing that file")
+				.catch(() => {});
 		} finally {
 			fs.unlink(tmp, () => {});
 		}
