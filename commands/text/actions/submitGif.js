@@ -169,6 +169,8 @@ const BASE = (
 	process.env.BASE_URL || "https://nekomi.tailef6033.ts.net"
 ).replace(/\/+$/, "");
 
+const GIF_DIR = "L:\\reactiongifs";
+
 module.exports = {
 	name: "submit",
 	description:
@@ -176,6 +178,7 @@ module.exports = {
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,
+		PermissionsBitField.Flags.EmbedLinks,
 	],
 	parent: "action",
 	aliases: ["add"],
@@ -286,30 +289,36 @@ module.exports = {
 				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checking dupes… ${progressBar(90)}`,
 			);
 
-			// ── exact duplicate check ──
+			// ── exact duplicate check (both tables) ──
 			const existing = await db.prisma.reactionGif.findUnique({
 				where: { hash: exactHash },
-				select: { hash: true },
+				select: { id: true },
 			});
-			if (existing) {
+			const existingSubmitted = existing ? null : await db.prisma.submittedReactonGif.findUnique({
+				where: { hash: exactHash },
+				select: { id: true },
+			});
+			const dup = existing || existingSubmitted;
+			if (dup) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${existing.hash}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${dup.id}`,
 				);
 			}
 
 			// ── perceptual hash + near-duplicate check ──
 			const phash = await hashMedia(tmp);
 
-			const nearDupHash = await findNearDuplicate(db.prisma, phash);
-			if (nearDupHash) {
+			const nearDup = await findNearDuplicate(db.prisma, phash);
+			if (nearDup) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDupHash}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDup.id}`,
 				);
 			}
 
 			// ── insert ──
+			let record;
 			if (config.owners.includes(message.author.id)) {
-				await db.prisma.reactionGif.create({
+				record = await db.prisma.reactionGif.create({
 					data: {
 						hash: exactHash,
 						actions,
@@ -317,11 +326,8 @@ module.exports = {
 						mediaHash: phash.bigint,
 					},
 				});
-				await msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
-				);
 			} else {
-				await db.prisma.submittedReactonGif.create({
+				record = await db.prisma.submittedReactonGif.create({
 					data: {
 						hash: exactHash,
 						actions,
@@ -330,6 +336,17 @@ module.exports = {
 						submittedBy: message.author.id,
 					},
 				});
+			}
+
+			// ── save to L drive ──
+			fs.mkdirSync(GIF_DIR, { recursive: true });
+			fs.copyFileSync(tmp, path.join(GIF_DIR, `${record.id}.${record.fileType}`));
+
+			if (config.owners.includes(message.author.id)) {
+				await msg.edit(
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
+				);
+			} else {
 				await msg.edit(
 					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Submitted for review! ${progressBar(100)}`,
 				);

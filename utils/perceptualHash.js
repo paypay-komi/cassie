@@ -93,22 +93,22 @@ async function hashMedia(filePath) {
  * @param {import("@prisma/client").PrismaClient} db - Prisma client
  * @param {string | { hex: string, bigint: bigint }} hash - Perceptual hash (hex string or object from hashMedia)
  * @param {number} [threshold=10] - Max Hamming distance (lower = stricter)
- * @returns {Promise<string|null>} The exact hash of the closest match, or null
+ * @returns {Promise<{ id: string, hash: string }|null>} The id and hash of the closest match, or null
  */
 async function findNearDuplicate(db, hash, threshold = 10) {
 	const val = typeof hash === "string" ? BigInt("0x" + hash) : hash.bigint;
 	const rows = await db.$queryRaw`
-    SELECT hash, BIT_COUNT(("mediaHash" # ${val})::bit(64)) AS distance
+    SELECT id, hash, BIT_COUNT(("mediaHash" # ${val})::bit(64)) AS distance
     FROM (
-      SELECT hash, "mediaHash" FROM "ReactionGif" WHERE "mediaHash" IS NOT NULL
+      SELECT id, hash, "mediaHash" FROM "ReactionGif" WHERE "mediaHash" IS NOT NULL
       UNION ALL
-      SELECT hash, "mediaHash" FROM "SubmittedReactonGif" WHERE "mediaHash" IS NOT NULL
+      SELECT id, hash, "mediaHash" FROM "SubmittedReactonGif" WHERE "mediaHash" IS NOT NULL
     ) combined
     WHERE BIT_COUNT(("mediaHash" # ${val})::bit(64)) <= ${threshold}
     ORDER BY distance
     LIMIT 1
   `;
-	return rows?.[0]?.hash || null;
+	return rows?.[0] ? { id: rows[0].id, hash: rows[0].hash } : null;
 }
 
 module.exports = {
