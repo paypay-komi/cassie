@@ -7,7 +7,7 @@ const axios = require("axios");
 const db = require("../../../db");
 const config = require("../../../config.json");
 const {
-	hashMedia,
+	hashImage,
 	findNearDuplicate,
 } = require("../../../utils/perceptualHash");
 
@@ -309,7 +309,7 @@ module.exports = {
 			}
 
 			// ── perceptual hash + near-duplicate check ──
-			const phash = await hashMedia(tmp);
+			const phash = await hashImage(tmp);
 
 			const nearDup = await findNearDuplicate(db.prisma, phash);
 			if (nearDup) {

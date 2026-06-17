@@ -33,6 +33,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "pg": "^8.21.0",
+    "sharp": "^0.35.1",
     "topgg-autoposter": "^2.0.2",
     "vm2": "^3.11.5"
   },
