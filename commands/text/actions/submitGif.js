@@ -233,6 +233,11 @@ module.exports = {
 			);
 		}
 
+		// Tenor URLs need .gif appended — they serve MP4s otherwise
+		if (/tenor\.com/i.test(sourceUrl) && !path.extname(sourceUrl.split("?")[0])) {
+			sourceUrl = sourceUrl.replace(/\/?(\?.*)?$/, ".gif$1");
+		}
+
 		const ext =
 			path.extname(sourceUrl.split("?")[0].split("#")[0]).toLowerCase() ||
 			".gif";
