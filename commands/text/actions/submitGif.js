@@ -30,7 +30,6 @@ const VALID_ACTIONS = [
 	"punch",
 	"kick",
 	"choke",
-	"strangle",
 	"drown",
 	"burn",
 	"freeze",
@@ -38,7 +37,6 @@ const VALID_ACTIONS = [
 	"crush",
 	"headpat",
 	"headrub",
-	"earscratch",
 	"backrub",
 	"footrub",
 	"massage",
@@ -51,7 +49,6 @@ const VALID_ACTIONS = [
 	"highfive",
 	"fistbump",
 	"handshake",
-	"brofist",
 	"dance",
 	"spin",
 	"twirl",
@@ -76,13 +73,11 @@ const VALID_ACTIONS = [
 	"cry",
 	"sob",
 	"scream",
-	"panik",
 	"calm",
 	"relaxed",
 	"sleep",
 	"yawn",
 	"poke",
-	"prod",
 	"nudge",
 	"tap",
 	"squish",
@@ -114,7 +109,6 @@ const VALID_ACTIONS = [
 	"magic",
 	"levitate",
 	"tpose",
-	"orangejustice",
 	"crab",
 	"shuffle",
 	"moonwalk",
@@ -130,6 +124,40 @@ const VALID_ACTIONS = [
 	"dry",
 	"blowkiss",
 ];
+
+/**
+ * Levenshtein edit distance between two strings
+ */
+function levenshtein(a, b) {
+	const dp = Array(b.length + 1)
+		.fill()
+		.map(() => Array(a.length + 1).fill(0));
+	for (let i = 0; i <= b.length; i++) dp[i][0] = i;
+	for (let j = 0; j <= a.length; j++) dp[0][j] = j;
+	for (let i = 1; i <= b.length; i++) {
+		for (let j = 1; j <= a.length; j++) {
+			if (b[i - 1] === a[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+			else
+				dp[i][j] =
+					1 + Math.min(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j]);
+		}
+	}
+	return dp[b.length][a.length];
+}
+
+/**
+ * Find up to `count` closest matches from candidates
+ */
+function suggestActions(input, candidates, count = 3) {
+	const scored = candidates
+		.map((c) => ({
+			candidate: c,
+			dist: levenshtein(input.toLowerCase(), c.toLowerCase()),
+		}))
+		.sort((a, b) => a.dist - b.dist)
+		.slice(0, count);
+	return scored;
+}
 
 function progressBar(pct) {
 	const filled = Math.round(pct / 10);
@@ -186,14 +214,26 @@ module.exports = {
 		}
 		const fileType = ext.slice(1);
 
-		const actions = actionArgs
-			.filter((a) => VALID_ACTIONS.includes(a.toLowerCase()))
-			.map((a) => a.toLowerCase());
-		if (!actions.length) {
+		const raw = actionArgs.map((a) => a.toLowerCase());
+		const valid = raw.filter((a) => VALID_ACTIONS.includes(a));
+		const invalid = raw.filter((a) => !VALID_ACTIONS.includes(a));
+
+		if (invalid.length) {
+			const lines = invalid.map((a) => {
+				const suggestions = suggestActions(a, VALID_ACTIONS);
+				return `\`${a}\` → ${suggestions.map((s) => `\`${s.candidate}\`?`).join(", ")}`;
+			});
+			return message.reply(`unknown action tags:\n${lines.join("\n")}`);
+		}
+
+		if (!valid.length) {
 			return message.reply(
-				`specify at least one action tag. Valid: ${VALID_ACTIONS.join(", ")}`,
+				`specify at least one action tag.\nValid: ${VALID_ACTIONS.join(", ")}`,
 			);
 		}
+
+		/** @type {string[]} */
+		const actions = valid;
 
 		const tmp = path.join(
 			os.tmpdir(),
