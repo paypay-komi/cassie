@@ -78,14 +78,12 @@ module.exports = {
 		}
 		const fileType = ext.slice(1);
 
-		const actions = actionArgs.length
-			? actionArgs
-					.filter((a) => VALID_ACTIONS.includes(a.toLowerCase()))
-					.map((a) => a.toLowerCase())
-			: ["hug"];
+		const actions = actionArgs
+			.filter((a) => VALID_ACTIONS.includes(a.toLowerCase()))
+			.map((a) => a.toLowerCase());
 		if (!actions.length) {
 			return message.reply(
-				`no valid actions. Valid: ${VALID_ACTIONS.join(", ")}`,
+				`specify at least one action tag. Valid: ${VALID_ACTIONS.join(", ")}`,
 			);
 		}
 
@@ -94,25 +92,38 @@ module.exports = {
 			`sub_gif_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`,
 		);
 
-		// Send initial progress message
-		const msg = await message.reply(`⬇️ Downloading… ${progressBar(10)}`);
+		const msg = await message.reply(`⬇️ Downloading… ${progressBar(0)}`);
 
 		try {
-			// ── download ──
+			// ── download with live progress ──
 			const res = await axios({
 				method: "get",
 				url: sourceUrl,
 				responseType: "stream",
 				timeout: 30000,
 			});
+			const total = parseInt(res.headers["content-length"], 10);
 			const writer = fs.createWriteStream(tmp);
+			let received = 0;
+			res.data.on("data", (chunk) => {
+				received += chunk.length;
+				if (total) {
+					const pct = Math.min(
+						Math.round((received / total) * 90),
+						90,
+					);
+					msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
+						() => {},
+					);
+				}
+			});
 			await new Promise((res, rej) => {
 				writer.on("finish", res);
 				writer.on("error", rej);
 				res.data.pipe(writer);
 			});
 			await msg.edit(
-				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashing…        ${progressBar(30)}`,
+				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashing…        ${progressBar(90)}`,
 			);
 
 			// ── exact hash ──
@@ -124,7 +135,7 @@ module.exports = {
 					.on("error", rej);
 			});
 			await msg.edit(
-				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(50)}`,
+				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checking dupes… ${progressBar(90)}`,
 			);
 
 			// ── exact duplicate check ──
@@ -134,20 +145,17 @@ module.exports = {
 			});
 			if (existing) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(70)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${existing.hash}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${existing.hash}`,
 				);
 			}
 
 			// ── perceptual hash + near-duplicate check ──
 			const phash = await hashMedia(tmp);
-			await msg.edit(
-				`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(70)}`,
-			);
 
 			const nearDupHash = await findNearDuplicate(db.prisma, phash);
 			if (nearDupHash) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checking dupes… ${progressBar(80)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDupHash}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDupHash}`,
 				);
 			}
 
@@ -162,7 +170,7 @@ module.exports = {
 					},
 				});
 				await msg.edit(
-					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
 				);
 			} else {
 				await db.prisma.submittedReactonGif.create({
@@ -175,7 +183,7 @@ module.exports = {
 					},
 				});
 				await msg.edit(
-					`⬇️ Downloaded      ${progressBar(30)}\n🔍 Hashed          ${progressBar(50)}\n📦 Checked         ${progressBar(90)}\n✅ Submitted for review! ${progressBar(100)}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Submitted for review! ${progressBar(100)}`,
 				);
 			}
 		} catch (err) {
