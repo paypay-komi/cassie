@@ -67,49 +67,49 @@ model reminder {
 // Guild-Level Settings
 // ------------------------------------------------------
 model GuildSettings {
-	guildId String  @id
-	prefix  String  @default("c.")
+    guildId String @id
+    prefix  String @default("c.")
 
-    channels              ChannelSettings[]
-    userSettings          GuildUserSettings[]
-    disabledCommands      GuildDisabledCommand[]
-    channelCommandAccess   GuildChannelCommandAccess[]
-    roleCommandAccess     GuildRoleCommandAccess[]
-    userCommandAccess     GuildUserCommandAccess[]
+    channels             ChannelSettings[]
+    userSettings         GuildUserSettings[]
+    disabledCommands     GuildDisabledCommand[]
+    channelCommandAccess GuildChannelCommandAccess[]
+    roleCommandAccess    GuildRoleCommandAccess[]
+    userCommandAccess    GuildUserCommandAccess[]
 }
 
 model UserPrefix {
-	// @userid
-	userId String @id
-	prefix String
+    // @userid
+    userId String @id
+    prefix String
 }
 
 model GuildTag {
-	id        String   @id @default(cuid())
-	guildId   String
-	name      String
-	content   String
-	// @userid
-	creatorId String
-	uses      Int      @default(0)
-	createdAt DateTime @default(now())
-	updatedAt DateTime @updatedAt
+    id        String   @id @default(cuid())
+    guildId   String
+    name      String
+    content   String
+    // @userid
+    creatorId String
+    uses      Int      @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-	@@unique([guildId, name])
-	@@index([guildId])
+    @@unique([guildId, name])
+    @@index([guildId])
 }
 
 model ChatMessage {
-	id        String   @id @default(cuid())
-	// @userid
-	userId    String
-	guildId   String?
-	channelId String?
-	role      String
-	content   String
-	createdAt DateTime @default(now())
+    id        String   @id @default(cuid())
+    // @userid
+    userId    String
+    guildId   String?
+    channelId String?
+    role      String
+    content   String
+    createdAt DateTime @default(now())
 
-	@@index([userId, createdAt])
+    @@index([userId, createdAt])
 }
 
 model GlobalAfkUser {
@@ -160,8 +160,8 @@ model GlobalAfkMention {
 // Channel-Level Settings (per guild)
 // ------------------------------------------------------
 model ChannelSettings {
-    id               Int    @id @default(autoincrement())
-    channelId        String
+    id        Int    @id @default(autoincrement())
+    channelId String
 
     guild   GuildSettings @relation(fields: [guildId], references: [guildId])
     guildId String
@@ -171,12 +171,12 @@ model ChannelSettings {
 // Per-User Settings (per guild)
 // ------------------------------------------------------
 model GuildUserSettings {
-	id      Int    @id @default(autoincrement())
-	guildId String
-	// @userid
-	userId  String
+    id      Int    @id @default(autoincrement())
+    guildId String
+    // @userid
+    userId  String
 
-	statTracking     Boolean @default(true)
+    statTracking Boolean @default(true)
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId])
 
@@ -359,7 +359,7 @@ model GuildChannelCommandAccess {
     guildId   String
     channelId String
     commandId String
-    allowed   Boolean @default(false)  // true = allow override, false = deny
+    allowed   Boolean @default(false) // true = allow override, false = deny
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
@@ -374,7 +374,7 @@ model GuildRoleCommandAccess {
     guildId   String
     roleId    String
     commandId String
-    allowed   Boolean  // true = allowed (bypasses guild/channel disable), false = denied
+    allowed   Boolean // true = allowed (bypasses guild/channel disable), false = denied
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
@@ -387,10 +387,10 @@ model GuildRoleCommandAccess {
 model GuildUserCommandAccess {
     id        String  @id @default(cuid())
     guildId   String
-	// @userid
+    // @userid
     userId    String
     commandId String
-    allowed   Boolean  // true = allowed (bypasses guild/channel/role disable), false = denied
+    allowed   Boolean // true = allowed (bypasses guild/channel/role disable), false = denied
 
     guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
@@ -407,16 +407,16 @@ enum CourtStatus {
 }
 
 model EchoChannel {
-    id          String   @id @default(cuid())
-    guildId     String
-    channelId   String   @unique
-    webhookId   String
-    webhookToken String
-    echoChance      Float?  @default(85)
-    deleteDelayMin  Int?    @default(10000)
-    deleteDelayMax  Int?    @default(300000)
-    echoDelayMin    Int?    @default(0)
-    echoDelayMax    Int?    @default(86400000)
+    id             String @id @default(cuid())
+    guildId        String
+    channelId      String @unique
+    webhookId      String
+    webhookToken   String
+    echoChance     Float? @default(85)
+    deleteDelayMin Int?   @default(10000)
+    deleteDelayMax Int?   @default(300000)
+    echoDelayMin   Int?   @default(0)
+    echoDelayMax   Int?   @default(86400000)
 
     createdAt DateTime @default(now())
 
@@ -426,19 +426,19 @@ model EchoChannel {
 }
 
 model EchoMessage {
-    id         String    @id @default(cuid())
-    guildId    String
-    channelId  String
+    id                String    @id @default(cuid())
+    guildId           String
+    channelId         String
     // @userid
-    authorId   String
-    content    String
-    deliverAt  DateTime
-    deliveredAt DateTime?
-    createdAt  DateTime   @default(now())
+    authorId          String
+    content           String
+    deliverAt         DateTime
+    deliveredAt       DateTime?
+    createdAt         DateTime  @default(now())
     originalMessageId String?
-    attachments      Json?
-    poll             Json?
-    embeds           Json?
+    attachments       Json?
+    poll              Json?
+    embeds            Json?
 
     channel EchoChannel @relation(fields: [channelId], references: [channelId])
 
@@ -460,38 +460,38 @@ model TimeCapsule {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  sid       String   @unique
+    id  String @id @default(cuid())
+    sid String @unique
 
-  data      String
-  expiresAt DateTime
+    data      String
+    expiresAt DateTime
 
-  createdAt DateTime @default(now())
+    createdAt DateTime @default(now())
 }
 
 model GuildAnnouncement {
-  guildId      String    @id
-  channelId    String?   // set = subscribed, null = not yet set or unsubscribed
-  webhookId    String?   // webhook for sending broadcast announcements
-  webhookToken String?   // webhook token
-  optedOut     Boolean   @default(false)  // true = user explicitly unsubscribed, stop nagging
-  lastNagged   DateTime? // when we last nagged this guild, null = never nagged
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+    guildId      String    @id
+    channelId    String? // set = subscribed, null = not yet set or unsubscribed
+    webhookId    String? // webhook for sending broadcast announcements
+    webhookToken String? // webhook token
+    optedOut     Boolean   @default(false) // true = user explicitly unsubscribed, stop nagging
+    lastNagged   DateTime? // when we last nagged this guild, null = never nagged
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
 }
 
 model InviteClick {
-  id        Int       @id @default(autoincrement())
-  state     String?   @unique
-  ref       String    @default("unknown")
-  ip        String?
-  userAgent String?
-  guildId   String?
-  matchedAt DateTime?
-  createdAt DateTime  @default(now())
+    id        Int       @id @default(autoincrement())
+    state     String?   @unique
+    ref       String    @default("unknown")
+    ip        String?
+    userAgent String?
+    guildId   String?
+    matchedAt DateTime?
+    createdAt DateTime  @default(now())
 
-  @@index([ref])
-  @@index([guildId])
-  @@index([createdAt])
-  @@index([state])
+    @@index([ref])
+    @@index([guildId])
+    @@index([createdAt])
+    @@index([state])
 }
