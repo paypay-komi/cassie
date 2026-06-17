@@ -159,6 +159,29 @@ function suggestActions(input, candidates, count = 3) {
 	return scored;
 }
 
+/**
+ * Sniff the first few bytes of a file to confirm it's actually a GIF.
+ * Tenor and similar sites serve MP4s disguised with .gif URLs.
+ * Returns the real file type ("gif", "mp4", "webm") or null if unrecognized.
+ */
+function sniffRealType(filePath) {
+	const fd = fs.openSync(filePath, "r");
+	const buf = Buffer.alloc(12);
+	fs.readSync(fd, buf, 0, 12, 0);
+	fs.closeSync(fd);
+
+	const header = buf.toString("ascii", 0, 6);
+	if (header === "GIF87a" || header === "GIF89a") return "gif";
+
+	const ftyp = buf.toString("ascii", 4, 8);
+	if (ftyp === "ftyp") return "mp4";
+
+	// WebM / Matroska EBML header
+	if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return "webm";
+
+	return null;
+}
+
 function progressBar(pct) {
 	const filled = Math.round(pct / 10);
 	const empty = 10 - filled;
@@ -213,8 +236,8 @@ module.exports = {
 		const ext =
 			path.extname(sourceUrl.split("?")[0].split("#")[0]).toLowerCase() ||
 			".gif";
-		if (![".gif", ".mp4", ".webm"].includes(ext)) {
-			return message.reply("only GIF, MP4, or WebM files are supported");
+		if (![".gif"].includes(ext)) {
+			return message.reply("only GIF files are supported");
 		}
 		const fileType = ext.slice(1);
 
@@ -277,6 +300,17 @@ module.exports = {
 			await msg.edit(
 				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashing…        ${progressBar(90)}`,
 			);
+
+			// ── verify actual file type via magic bytes ──
+			const realType = sniffRealType(tmp);
+			if (!realType) {
+				return msg.edit("⚠️ unrecognized file format — only GIF is supported");
+			}
+			if (realType !== "gif") {
+				return msg.edit(
+					`⚠️ URL points to a ${realType.toUpperCase()} file, not a GIF — Tenor etc. serve MP4s as .gif URLs`,
+				);
+			}
 
 			// ── exact hash ──
 			const exactHash = await new Promise((res, rej) => {
