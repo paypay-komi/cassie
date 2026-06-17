@@ -46,6 +46,6 @@ module.exports = {
 			log.warn(`Invite callback error: ${err.message}`);
 		}
 
-		res.redirect("/");
+		res.redirect("/thank-you");
 	},
 };
