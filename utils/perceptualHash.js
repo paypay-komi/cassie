@@ -1,6 +1,20 @@
 const sharp = require("sharp");
 
 /**
+ * Read the first frame of a GIF as a PNG buffer.
+ * Falls through for non-GIF files (returns null).
+ */
+async function gifToPngBuffer(filePath) {
+	if (!/\.gif$/i.test(filePath)) return null;
+	const gifFrames = require("gif-frames");
+	const frames = await gifFrames({ url: filePath, frames: 0, outputType: "png" });
+	const stream = frames[0].getImage();
+	const chunks = [];
+	for await (const chunk of stream) chunks.push(chunk);
+	return Buffer.concat(chunks);
+}
+
+/**
  * Average hash (aHash) — resize to 8×8 grayscale, compute mean,
  * produce a 64-bit binary hash as 16 hex chars.
  *
@@ -8,7 +22,10 @@ const sharp = require("sharp");
  * @returns {Promise<{ hex: string, bigint: bigint }>}
  */
 async function hashImage(filePath) {
-	const { data } = await sharp(filePath)
+	const buf = await gifToPngBuffer(filePath);
+	const input = buf || filePath;
+
+	const { data } = await sharp(input)
 		.resize(8, 8, { fit: "fill" })
 		.grayscale()
 		.raw()
