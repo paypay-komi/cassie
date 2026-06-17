@@ -497,10 +497,27 @@ model InviteClick {
 }
 
 model ReactionGif {
-    id String @id @default(uuid())
-
-    actions String[]
-
+    id        String   @id @default(uuid())
+    hash      String   @unique
+    actions   String[]
     fileType  String
     createdAt DateTime @default(now())
+
+    @@index([hash, actions])
+}
+
+model SubmittedReactonGif {
+    id          String    @id @default(uuid())
+    actions     String[]
+    hash        String    @unique
+    fileType    String
+    createdAt   DateTime  @default(now())
+    approvedAt  DateTime?
+    pending     Boolean   @default(true)
+    // @userid
+    submittedBy String
+    // @userid
+    approvedBy  String?
+
+    @@index([hash, actions])
 }

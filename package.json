@@ -26,6 +26,7 @@
     "express-rate-limit": "^8.5.2",
     "express-session": "^1.19.0",
     "fastest-levenshtein": "^1.0.16",
+    "imghash": "^1.1.4",
     "jsonwebtoken": "^9.0.3",
     "luxon": "^3.7.2",
     "module-alias": "^2.3.4",
