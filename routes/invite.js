@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const db = require("../db");
 const { PermissionsBitField } = require("discord.js");
 
@@ -22,6 +23,7 @@ module.exports = {
 			PermissionsBitField.Flags.CreatePrivateThreads,
 		];
 		const defaultPerms = BOT_PERMS.reduce((a, b) => a | b, 0n);
+		let state;
 		try {
 			// Clean up stale unmatched clicks older than 1 hour
 			try {
@@ -39,8 +41,10 @@ module.exports = {
 			const userAgent =
 				(req.headers["user-agent"] || "").slice(0, 300) || null;
 
+			// Generate a state parameter for OAuth2 callback tracking
+			state = crypto.randomUUID();
 			await db.prisma.inviteClick.create({
-				data: { ref, ip, userAgent },
+				data: { ref, ip, userAgent, state },
 			});
 
 			const client = req.app?.locals?.client;
@@ -50,7 +54,9 @@ module.exports = {
 				!isNaN(perms) && perms >= 0 ? perms : Number(defaultPerms);
 			const guildId = req.query.guild_id || "";
 			const guildParam = guildId ? `&guild_id=${encodeURIComponent(guildId)}` : "";
-			const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}`;
+			const baseUrl = process.env.BASE_URL || `https://nekomi.tailef6033.ts.net`;
+			const redirectUri = `${baseUrl}/invite/callback`;
+			const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
 
 			res.redirect(302, inviteUrl);
 		} catch (err) {
@@ -63,9 +69,12 @@ module.exports = {
 				!isNaN(perms) && perms >= 0 ? perms : Number(defaultPerms);
 			const guildId = req.query.guild_id || "";
 			const guildParam = guildId ? `&guild_id=${encodeURIComponent(guildId)}` : "";
+			const baseUrl = process.env.BASE_URL || `https://nekomi.tailef6033.ts.net`;
+			const redirectUri = `${baseUrl}/invite/callback`;
+			const stateParam = state ? `&state=${state}` : "";
 			res.redirect(
 				302,
-				`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}`,
+				`https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${permInt}&scope=bot%20applications.commands${guildParam}&redirect_uri=${encodeURIComponent(redirectUri)}${stateParam}`,
 			);
 		}
 	},
