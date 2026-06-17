@@ -5,39 +5,33 @@ const path = require("path");
 const os = require("os");
 
 /**
- * Split a 64-bit hex perceptual hash into two 32-bit integers.
- * PostgreSQL BIT_COUNT operates on 32-bit integers, so we split the hash
- * for efficient in-database Hamming distance computation.
+ * Convert a 16-char hex perceptual hash to a single BigInt.
  *
- * @param {string} hexHash - 16-char hex string from imghash (64-bit perceptual hash)
- * @returns {{ low: number, high: number }} Two 32-bit signed integers
+ * @param {string} hex - 16-char hex string from imghash
+ * @returns {bigint}
  */
-function hashToInts(hexHash) {
-	const half = hexHash.length / 2;
-	return {
-		low: parseInt(hexHash.slice(0, half), 16),
-		high: parseInt(hexHash.slice(half), 16),
-	};
+function hexToBigInt(hex) {
+	return BigInt("0x" + hex);
 }
 
 /**
  * Generate a perceptual hash for a static image or GIF.
- * Uses imghash (pHash algorithm) under the hood.
  *
  * @param {string} filePath - Path to the image/GIF on disk
- * @returns {Promise<string>} 64-bit perceptual hash as a 16-char hex string
+ * @returns {Promise<{ hex: string, bigint: bigint }>}
  */
 async function hashImage(filePath) {
-	return await imghash.hash(filePath, 16, "hex");
+	const hex = await imghash.hash(filePath, 16, "hex");
+	return { hex, bigint: hexToBigInt(hex) };
 }
 
 /**
  * Generate a perceptual hash for a video file (MP4, WebM, etc.).
  * Extracts a single scaled frame via ffmpeg, then hashes that frame.
- * Temp frame file is cleaned up in the finally block.
+ * Temp file is cleaned up in the finally block.
  *
  * @param {string} filePath - Path to the video file on disk
- * @returns {Promise<string>} 64-bit perceptual hash as a 16-char hex string
+ * @returns {Promise<{ hex: string, bigint: bigint }>}
  */
 async function hashVideo(filePath) {
 	const tmp = path.join(
@@ -62,7 +56,8 @@ async function hashVideo(filePath) {
 				(err) => (err ? rej(err) : res()),
 			),
 		);
-		return await imghash.hash(tmp, 16, "hex");
+		const hex = await imghash.hash(tmp, 16, "hex");
+		return { hex, bigint: hexToBigInt(hex) };
 	} finally {
 		fs.unlink(tmp, () => {});
 	}
@@ -72,7 +67,7 @@ async function hashVideo(filePath) {
  * Check if a file path points to a video format.
  *
  * @param {string} filePath - File path or URL
- * @returns {boolean} True if the extension matches a known video format
+ * @returns {boolean}
  */
 function isVideo(filePath) {
 	return /\.(mp4|webm|mov|avi|mkv)$/i.test(filePath);
@@ -80,10 +75,10 @@ function isVideo(filePath) {
 
 /**
  * Generate a perceptual hash for any supported media file.
- * Automatically detects GIF vs video and routes to the correct hasher.
+ * Routes GIF to imghash, video to ffmpeg + imghash.
  *
  * @param {string} filePath - Path to the media file on disk
- * @returns {Promise<string>} 64-bit perceptual hash as a 16-char hex string
+ * @returns {Promise<{ hex: string, bigint: bigint }>}
  */
 async function hashMedia(filePath) {
 	if (isVideo(filePath)) return await hashVideo(filePath);
@@ -91,29 +86,25 @@ async function hashMedia(filePath) {
 }
 
 /**
- * Search both ReactionGif and SubmittedReactonGif tables for a perceptual
- * near-duplicate of the given hash. Uses PostgreSQL BIT_COUNT across two
- * 32-bit Int columns for efficient Hamming distance at the database level.
+ * Search ReactionGif and SubmittedReactonGif for a perceptual near-duplicate.
+ * Uses PostgreSQL BIT_COUNT on a single bit(64) column — can't be done with
+ * Prisma's standard query builder since bitwise ops are database-specific.
  *
- * @param {import("@prisma/client").PrismaClient} db - Prisma client instance
- * @param {string} hexHash - 16-char perceptual hash from hashMedia/hashImage/hashVideo
- * @param {number} [threshold=10] - Max Hamming distance to consider a match (lower = stricter)
- * @returns {Promise<string|null>} The exact hash of the closest match, or null if none found
+ * @param {import("@prisma/client").PrismaClient} db - Prisma client
+ * @param {string | { hex: string, bigint: bigint }} hash - Perceptual hash (hex string or object from hashMedia)
+ * @param {number} [threshold=10] - Max Hamming distance (lower = stricter)
+ * @returns {Promise<string|null>} The exact hash of the closest match, or null
  */
-async function findNearDuplicate(db, hexHash, threshold = 10) {
-	const { low, high } = hashToInts(hexHash);
+async function findNearDuplicate(db, hash, threshold = 10) {
+	const val = typeof hash === "string" ? BigInt("0x" + hash) : hash.bigint;
 	const rows = await db.$queryRaw`
-    SELECT hash, BIT_COUNT((("mediaHashHigh" # ${high})::bit(32))) +
-                BIT_COUNT((("mediaHashLow"  # ${low})::bit(32))) AS distance
+    SELECT hash, BIT_COUNT(("mediaHash" # ${val})::bit(64)) AS distance
     FROM (
-      SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "ReactionGif"
-      WHERE "mediaHashLow" IS NOT NULL
+      SELECT hash, "mediaHash" FROM "ReactionGif" WHERE "mediaHash" IS NOT NULL
       UNION ALL
-      SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "SubmittedReactonGif"
-      WHERE "mediaHashLow" IS NOT NULL
+      SELECT hash, "mediaHash" FROM "SubmittedReactonGif" WHERE "mediaHash" IS NOT NULL
     ) combined
-    WHERE BIT_COUNT((("mediaHashHigh" # ${high})::bit(32))) +
-          BIT_COUNT((("mediaHashLow"  # ${low})::bit(32))) <= ${threshold}
+    WHERE BIT_COUNT(("mediaHash" # ${val})::bit(64)) <= ${threshold}
     ORDER BY distance
     LIMIT 1
   `;
@@ -124,6 +115,6 @@ module.exports = {
 	hashMedia,
 	hashImage,
 	hashVideo,
-	hashToInts,
+	hexToBigInt,
 	findNearDuplicate,
 };
