@@ -358,7 +358,7 @@ module.exports = {
 			const dup = existing || existingSubmitted;
 			if (dup) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${dup.id}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${dup.id}.gif`,
 				);
 			}
 
@@ -368,7 +368,7 @@ module.exports = {
 			const nearDup = await findNearDuplicate(db.prisma, phash);
 			if (nearDup) {
 				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDup.id}`,
+					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDup.id}.gif`,
 				);
 			}
 

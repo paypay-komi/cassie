@@ -13,13 +13,17 @@ const MIME_TYPES = {
 };
 
 module.exports = {
-	path: "/reactiongifs/:id",
+	path: "/reactiongifs/:id.:ext",
 	method: "get",
 
 	handler: async (req, res) => {
 		try {
-			const { id } = req.params;
-			if (!id) return res.status(400).send("missing id");
+			const { id, ext } = req.params;
+			if (!id || !ext) return res.status(400).send("missing id or extension");
+
+			if (!MIME_TYPES[ext]) {
+				return res.status(400).send(`unsupported extension: ${ext}`);
+			}
 
 			const client = req.app?.locals?.client;
 			if (!client) return res.status(503).send("client not available");
@@ -33,13 +37,17 @@ module.exports = {
 
 			if (!record) return res.status(404).send("not found");
 
+			// verify extension matches actual file type
+			if (record.fileType !== ext) {
+				return res.status(400).send(`file is ${record.fileType}, not ${ext}`);
+			}
+
 			const filePath = path.join(GIF_DIR, `${id}.${record.fileType}`);
 			if (!fs.existsSync(filePath)) {
 				return res.status(404).send("file not found on disk");
 			}
 
-			const mime = MIME_TYPES[record.fileType] || "application/octet-stream";
-			res.set("Content-Type", mime);
+			res.set("Content-Type", MIME_TYPES[ext]);
 			res.set("Cache-Control", "public, max-age=31536000, immutable");
 			res.sendFile(filePath);
 		} catch (err) {
