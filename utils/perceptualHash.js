@@ -4,7 +4,13 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const FRAME_SIZE = 32;
+function hashToInts(hexHash) {
+  const half = hexHash.length / 2;
+  return {
+    low: parseInt(hexHash.slice(0, half), 16),
+    high: parseInt(hexHash.slice(half), 16),
+  };
+}
 
 async function hashImage(filePath) {
   return await imghash.hash(filePath, 16, "hex");
@@ -17,23 +23,18 @@ async function hashVideo(filePath) {
       execFile("ffmpeg", [
         "-i", filePath,
         "-vframes", "1",
-        "-vf", `scale=${FRAME_SIZE}:${FRAME_SIZE}`,
+        "-vf", "scale=32:32",
         "-y", tmp,
       ], { timeout: 15000 }, (err) => err ? rej(err) : res())
     );
-    const hash = await imghash.hash(tmp, 16, "hex");
-    return hash;
+    return await imghash.hash(tmp, 16, "hex");
   } finally {
     fs.unlink(tmp, () => {});
   }
 }
 
-function isVideo(path) {
-  return /\.(mp4|webm|mov|avi|mkv)$/i.test(path);
-}
-
-function isGif(path) {
-  return /\.gif$/i.test(path);
+function isVideo(filePath) {
+  return /\.(mp4|webm|mov|avi|mkv)$/i.test(filePath);
 }
 
 async function hashMedia(filePath) {
@@ -41,18 +42,24 @@ async function hashMedia(filePath) {
   return await hashImage(filePath);
 }
 
-function hammingDistance(a, b) {
-  if (a.length !== b.length) return -1;
-  let d = 0;
-  for (let i = 0; i < a.length; i++) {
-    const xor = parseInt(a[i], 16) ^ parseInt(b[i], 16);
-    d += (xor.toString(2).match(/1/g) || []).length;
-  }
-  return d;
+async function findNearDuplicate(db, hexHash, threshold = 10) {
+  const { low, high } = hashToInts(hexHash);
+  const rows = await db.$queryRawUnsafe(`
+    SELECT hash, BIT_COUNT((("mediaHashHigh" # $1)::bit(32))) +
+                BIT_COUNT((("mediaHashLow"  # $2)::bit(32))) AS distance
+    FROM (
+      SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "ReactionGif"
+      WHERE "mediaHashLow" IS NOT NULL
+      UNION ALL
+      SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "SubmittedReactonGif"
+      WHERE "mediaHashLow" IS NOT NULL
+    ) combined
+    WHERE BIT_COUNT((("mediaHashHigh" # $1)::bit(32))) +
+          BIT_COUNT((("mediaHashLow"  # $2)::bit(32))) <= $3
+    ORDER BY distance
+    LIMIT 1
+  `, high, low, threshold);
+  return rows?.[0]?.hash || null;
 }
 
-function findDuplicates(hashes, currentHash, threshold = 10) {
-  return hashes.filter(h => h.mediaHash && hammingDistance(h.mediaHash, currentHash) <= threshold);
-}
-
-module.exports = { hashMedia, hashImage, hashVideo, hammingDistance, findDuplicates };
+module.exports = { hashMedia, hashImage, hashVideo, hashToInts, findNearDuplicate };
