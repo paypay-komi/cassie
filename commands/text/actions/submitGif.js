@@ -19,7 +19,7 @@ module.exports = {
 	async execute(message, args) {
 		if (config.owners.includes(message.author.id)) {
 			// skip pending approval stage
-			i like this
+
 		}
 	},
 };

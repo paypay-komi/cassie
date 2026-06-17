@@ -44,9 +44,9 @@ async function hashMedia(filePath) {
 
 async function findNearDuplicate(db, hexHash, threshold = 10) {
   const { low, high } = hashToInts(hexHash);
-  const rows = await db.$queryRawUnsafe(`
-    SELECT hash, BIT_COUNT((("mediaHashHigh" # $1)::bit(32))) +
-                BIT_COUNT((("mediaHashLow"  # $2)::bit(32))) AS distance
+  const rows = await db.$queryRaw`
+    SELECT hash, BIT_COUNT((("mediaHashHigh" # ${high})::bit(32))) +
+                BIT_COUNT((("mediaHashLow"  # ${low})::bit(32))) AS distance
     FROM (
       SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "ReactionGif"
       WHERE "mediaHashLow" IS NOT NULL
@@ -54,11 +54,11 @@ async function findNearDuplicate(db, hexHash, threshold = 10) {
       SELECT hash, "mediaHashLow", "mediaHashHigh" FROM "SubmittedReactonGif"
       WHERE "mediaHashLow" IS NOT NULL
     ) combined
-    WHERE BIT_COUNT((("mediaHashHigh" # $1)::bit(32))) +
-          BIT_COUNT((("mediaHashLow"  # $2)::bit(32))) <= $3
+    WHERE BIT_COUNT((("mediaHashHigh" # ${high})::bit(32))) +
+          BIT_COUNT((("mediaHashLow"  # ${low})::bit(32))) <= ${threshold}
     ORDER BY distance
     LIMIT 1
-  `, high, low, threshold);
+  `;
   return rows?.[0]?.hash || null;
 }
 
