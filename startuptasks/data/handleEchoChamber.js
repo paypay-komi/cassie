@@ -44,8 +44,16 @@ module.exports = {
 				for (const ch of channels) {
 					if (!ch.messages.length) continue;
 
-					const guild = await client.guilds.fetch(ch.guildId).catch(() => null);
-					if (!guild) continue;
+				const guild = await client.guilds.fetch(ch.guildId).catch(() => null);
+				if (!guild) {
+					// Bot was kicked or guild deleted — mark all undelivered as delivered so the loop stops spinning every 1s
+					await db.prisma.echoMessage.updateMany({
+						where: { channelId: ch.channelId, deliveredAt: null },
+						data: { deliveredAt: new Date() },
+					});
+					log.warn(`guild ${ch.guildId} not found, marked ${ch.messages.length} messages as delivered`);
+					continue;
+				}
 
 					let wh = new WebhookClient({ token: ch.webhookToken, id: ch.webhookId });
 

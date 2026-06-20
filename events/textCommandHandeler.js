@@ -1,10 +1,12 @@
 const { Events, PermissionsBitField, Message, Client } = require("discord.js");
 const { getLogger } = require("../lib/logger");
 const didYouMean = require("../utils/didyoumean.js");
+const { levenshtein } = require("../utils/didyoumean.js");
 /**
- * Show available subcommands when parent is called
+ * Show available subcommands when parent is called.
+ * If `unmatched` is provided, uses fuzzy matching to suggest close alternatives.
  */
-function showSubcommandHelp(command, message) {
+function showSubcommandHelp(command, message, unmatched) {
 	const subs = command.subcommands ?? {};
 
 	// Only list direct subcommands of this command
@@ -18,6 +20,24 @@ function showSubcommandHelp(command, message) {
 
 	if (!names.length) {
 		return message.reply("This command has no subcommands.");
+	}
+
+	// If the user tried something specific, suggest close matches
+	if (unmatched) {
+		const scored = names
+			.map((name) => ({
+				name,
+				dist: levenshtein(unmatched.toLowerCase(), name.toLowerCase()),
+			}))
+			.sort((a, b) => a.dist - b.dist)
+			.slice(0, 3)
+			.filter((s) => s.dist <= 3);
+
+		if (scored.length > 0) {
+			return message.reply(
+				`"${unmatched}" is not a valid subcommand. Did you mean: ${scored.map((s) => s.name).join(", ")}?`,
+			);
+		}
 	}
 
 	return message.reply(
@@ -36,6 +56,7 @@ function showSubcommandHelp(command, message) {
 function resolveNested(command, args) {
 	let current = command;
 	const path = [current.name];
+	let unmatched = null;
 
 	while (args.length && current.subcommands) {
 		const input = args[0].toLowerCase();
@@ -46,14 +67,17 @@ function resolveNested(command, args) {
 				sc.aliases?.includes(input),
 			);
 
-		if (!next) break;
+		if (!next) {
+			unmatched = input;
+			break;
+		}
 
 		args.shift();
 		current = next;
 		path.push(current.name);
 	}
 
-	return { command: current, path };
+	return { command: current, path, unmatched };
 }
 
 /**
@@ -251,7 +275,7 @@ module.exports = {
 		// ---------------------------
 		// Resolve nested subcommands
 		// ---------------------------
-		const { command: finalCommand, path } = resolveNested(command, args);
+		const { command: finalCommand, path, unmatched } = resolveNested(command, args);
 
 	// ---------------------------
 	// Use location (dm vs guild) — cheapest check first
@@ -349,7 +373,7 @@ module.exports = {
 	// ---------------------------
 	async function runCommandChain(cmd, remArgs, pathSoFar) {
 		if (typeof cmd.execute !== "function") {
-			return showSubcommandHelp(cmd, message);
+			return showSubcommandHelp(cmd, message, remArgs[0] || null);
 		}
 
 		// next() lets intermediate commands continue subcommand resolution
@@ -361,7 +385,7 @@ module.exports = {
 			);
 
 			if (sub === cmd || typeof sub.execute !== "function") {
-				return showSubcommandHelp(sub, message);
+				return showSubcommandHelp(sub, message, remainingArgs[0] || null);
 			}
 
 			// Append new segments to the existing path

@@ -72,3 +72,4 @@ function didYouMean(input, textCommands) {
 }
 
 module.exports = didYouMean;
+module.exports.levenshtein = levenshtein;

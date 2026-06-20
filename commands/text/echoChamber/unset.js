@@ -34,6 +34,11 @@ commandId: "0e534d0a-0645-45af-bd55-a4083e90757d",
 			// webhook might already be deleted, that's fine
 		}
 
+		// Delete pending messages first (foreign key constraint)
+		await db.prisma.echoMessage.deleteMany({
+			where: { channelId: message.channel.id },
+		});
+
 		await db.prisma.echoChannel.delete({
 			where: { id: found.id },
 		});

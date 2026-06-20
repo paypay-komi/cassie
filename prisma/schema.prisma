@@ -440,7 +440,7 @@ model EchoMessage {
     poll              Json?
     embeds            Json?
 
-    channel EchoChannel @relation(fields: [channelId], references: [channelId])
+    channel EchoChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 
     @@index([deliverAt])
     @@index([channelId, deliverAt])

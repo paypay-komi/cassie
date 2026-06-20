@@ -39,6 +39,14 @@ commandId: "12379f7f-7dbd-46d6-acbb-e2ccbb0acb1c",
 				webhookToken: webhookToken,
 			},
 		});
-		message.reply("this channel is now an echo chamber");
+		message.reply({
+			content: "this channel is now an echo chamber",
+			embeds: [{
+				color: 0x9b59b6,
+				description:
+					"It deletes messages out of order randomly and reposts them via webhook with a random delay, making it look like the original author said them — creating funny out of context moments and confusion.\n\n" +
+					"Use `c.echochamber configure` to adjust the echo chance, delete delay, and echo delay.",
+			}],
+		});
 	},
 };
