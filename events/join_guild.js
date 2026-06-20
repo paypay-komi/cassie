@@ -11,9 +11,10 @@ module.exports = {
 		const prisma = client.db.prisma;
 		await prisma.guildSettings.upsert({
 			where: { guildId: guild.id },
-			update: {},
+			update: { leftAt: null },
 			create: {
 				guildId: guild.id,
+				leftAt: null,
 			},
 		});
 
@@ -58,9 +59,6 @@ module.exports = {
 		} catch (err) {
 			log.warn(`Announcement nag failed for ${guild.id}: ${err.message}`);
 		}
-
-		// Only DM owners from shard 0 to prevent duplicate DMs
-		if (client.shard && client.shard.ids[0] !== 0) return;
 
 		log.info(`Joined guild: ${guild.name} (${guild.id})`);
 

@@ -7,8 +7,15 @@ module.exports = {
 	async execute(client, guild) {
 		const log = getLogger("GuildLeave");
 
-		// Only DM owners from shard 0 to prevent duplicate DMs
-		if (client.shard && client.shard.ids[0] !== 0) return;
+		// Mark guild as left (runs on all shards)
+		try {
+			await client.db.prisma.guildSettings.update({
+				where: { guildId: guild.id },
+				data: { leftAt: new Date() },
+			});
+		} catch (err) {
+			log.warn(`Failed to mark guild ${guild.id} as left: ${err.message}`);
+		}
 
 		log.info(`Left guild: ${guild.name} (${guild.id})`);
 

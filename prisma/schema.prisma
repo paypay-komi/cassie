@@ -67,8 +67,9 @@ model reminder {
 // Guild-Level Settings
 // ------------------------------------------------------
 model GuildSettings {
-    guildId String @id
-    prefix  String @default("c.")
+    guildId String    @id
+    prefix  String    @default("c.")
+    leftAt  DateTime?
 
     channels             ChannelSettings[]
     userSettings         GuildUserSettings[]
@@ -76,6 +77,9 @@ model GuildSettings {
     channelCommandAccess GuildChannelCommandAccess[]
     roleCommandAccess    GuildRoleCommandAccess[]
     userCommandAccess    GuildUserCommandAccess[]
+    tags                 GuildTag[]
+    echoChannels         EchoChannel[]
+    announcement         GuildAnnouncement?
 }
 
 model UserPrefix {
@@ -85,15 +89,16 @@ model UserPrefix {
 }
 
 model GuildTag {
-    id        String   @id @default(cuid())
-    guildId   String
-    name      String
-    content   String
+    id            String        @id @default(cuid())
+    guildId       String
+    name          String
+    content       String
     // @userid
-    creatorId String
-    uses      Int      @default(0)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    creatorId     String
+    uses          Int           @default(0)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+    guildSettings GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
     @@unique([guildId, name])
     @@index([guildId])
@@ -163,7 +168,7 @@ model ChannelSettings {
     id        Int    @id @default(autoincrement())
     channelId String
 
-    guild   GuildSettings @relation(fields: [guildId], references: [guildId])
+    guild   GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
     guildId String
 }
 
@@ -178,7 +183,7 @@ model GuildUserSettings {
 
     statTracking Boolean @default(true)
 
-    guild GuildSettings @relation(fields: [guildId], references: [guildId])
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
     @@unique([guildId, userId])
     @@index([guildId])
@@ -421,7 +426,9 @@ model EchoChannel {
     createdAt DateTime @default(now())
 
     messages EchoMessage[]
+    guild    GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 
+    @@unique([channelId, guildId])
     @@index([guildId])
 }
 
@@ -440,7 +447,7 @@ model EchoMessage {
     poll              Json?
     embeds            Json?
 
-    channel EchoChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+    channel EchoChannel @relation(fields: [channelId, guildId], references: [channelId, guildId], onDelete: Cascade)
 
     @@index([deliverAt])
     @@index([channelId, deliverAt])
@@ -478,6 +485,8 @@ model GuildAnnouncement {
     lastNagged   DateTime? // when we last nagged this guild, null = never nagged
     createdAt    DateTime  @default(now())
     updatedAt    DateTime  @updatedAt
+
+    guild GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
 }
 
 model InviteClick {
