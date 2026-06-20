@@ -31,6 +31,12 @@ module.exports = {
 
 				if (missingIds.length === 0) return;
 
+				// Ensure GuildSettings rows exist first (FK constraint)
+				await client.db.prisma.guildSettings.createMany({
+					data: missingIds.map((guildId) => ({ guildId })),
+					skipDuplicates: true,
+				});
+
 				await client.db.prisma.guildAnnouncement.createMany({
 					data: missingIds.map((guildId) => ({ guildId })),
 					skipDuplicates: true,
