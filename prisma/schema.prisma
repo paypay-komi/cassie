@@ -513,8 +513,21 @@ model ReactionGif {
     mediaHash BigInt?
     createdAt DateTime @default(now())
 
+    reports ReactionGifReport[]
+
     @@index([hash, actions])
     @@index([mediaHash])
+}
+
+model ReactionGifReport {
+    gifId  String
+    action String
+    userId String
+
+    gif ReactionGif @relation(fields: [gifId], references: [id], onDelete: Cascade)
+
+    @@id([gifId, action, userId])
+    @@index([action])
 }
 
 model SubmittedReactonGif {

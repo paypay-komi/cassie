@@ -13,129 +13,6 @@ const {
 const { ALL_ACTIONS } = require("../../../utils/actionGroups");
 
 const VALID_ACTIONS = ALL_ACTIONS;
-	"kick",
-	"choke",
-	"drown",
-	"burn",
-	"freeze",
-	"explode",
-	"crush",
-	"headpat",
-	"headrub",
-	"backrub",
-	"footrub",
-	"massage",
-	"handhold",
-	"snuggle",
-	"nuzzle",
-	"kisscheek",
-	"bless",
-	"wave",
-	"highfive",
-	"fistbump",
-	"handshake",
-	"dance",
-	"spin",
-	"twirl",
-	"dip",
-	"lift",
-	"carry",
-	"piggyback",
-	"stare",
-	"glare",
-	"wink",
-	"smirk",
-	"blush",
-	"sweat",
-	"facepalm",
-	"laugh",
-	"smile",
-	"grin",
-	"cheer",
-	"celebrate",
-	"happy",
-	"excited",
-	"cry",
-	"sob",
-	"scream",
-	"calm",
-	"relaxed",
-	"sleep",
-	"yawn",
-	"poke",
-	"nudge",
-	"tap",
-	"squish",
-	"pinch",
-	"tickle",
-	"point",
-	"beckon",
-	"shoo",
-	"shush",
-	"glomp",
-	"tackle",
-	"ambush",
-	"hide",
-	"peek",
-	"creep",
-	"sneak",
-	"bow",
-	"curtsy",
-	"kneel",
-	"propose",
-	"beg",
-	"salute",
-	"flip",
-	"backflip",
-	"cartwheel",
-	"somersault",
-	"juggle",
-	"balance",
-	"magic",
-	"levitate",
-	"tpose",
-	"crab",
-	"shuffle",
-	"moonwalk",
-	"tea",
-	"coffee",
-	"cook",
-	"bake",
-	"feed",
-	"pet",
-	"walk",
-	"brush",
-	"wash",
-	"dry",
-	"blowkiss",
-	"burp",
-	// ── new ──
-	"mad",
-	"crashout",
-	"rage",
-	"snap",
-	"wreck",
-	"smash",
-	"destroy",
-	"slam",
-	"yeet",
-	"trash",
-	"tease",
-	"dab",
-	"flex",
-	"shrug",
-	"gasp",
-	"faint",
-	"swoon",
-	"shiver",
-	"cower",
-	"run",
-	"slide",
-	"hop",
-	"skip",
-	"jump",
-	"dodge",
-];
 
 /**
  * Levenshtein edit distance between two strings
@@ -158,17 +35,36 @@ function levenshtein(a, b) {
 }
 
 /**
- * Find up to `count` closest matches from candidates
+ * Character multiset — returns a sorted string of chars for anagram comparison
  */
-function suggestActions(input, candidates, count = 3) {
-	const scored = candidates
-		.map((c) => ({
-			candidate: c,
-			dist: levenshtein(input.toLowerCase(), c.toLowerCase()),
-		}))
-		.sort((a, b) => a.dist - b.dist)
-		.slice(0, count);
-	return scored;
+function charSet(s) {
+	return [...s].sort().join("");
+}
+
+/**
+ * Find up to `count` closest matches from candidates, combining all strategies
+ */
+function suggestActions(input, candidates, count = 5) {
+	const lower = input.toLowerCase();
+	const inputChars = charSet(lower);
+	const scored = [];
+
+	for (const c of candidates) {
+		const cl = c.toLowerCase();
+		let dist = levenshtein(lower, cl);
+
+		// Exact character-set match (transpositions like "cheekkiss" → "kisscheek")
+		if (charSet(cl) === inputChars) dist = 0;
+
+		// Substring match
+		if (cl.includes(lower) || lower.includes(cl)) {
+			dist = Math.min(dist, 1);
+		}
+
+		scored.push({ candidate: c, dist });
+	}
+
+	return scored.sort((a, b) => a.dist - b.dist).slice(0, count);
 }
 
 /**

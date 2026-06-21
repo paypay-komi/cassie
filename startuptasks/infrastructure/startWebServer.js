@@ -99,13 +99,16 @@ module.exports = {
 		});
 
 		app.use("/api/", apiLimiter);
-		app.use("/webhook/", rateLimit({
-			windowMs: 60 * 1000,
-			max: 200,
-			standardHeaders: true,
-			legacyHeaders: false,
-			message: { ok: false, error: "Too many requests" },
-		}));
+		app.use(
+			"/webhook/",
+			rateLimit({
+				windowMs: 60 * 1000,
+				max: 200,
+				standardHeaders: true,
+				legacyHeaders: false,
+				message: { ok: false, error: "Too many requests" },
+			}),
+		);
 
 		// -----------------------------
 		// SESSION MIDDLEWARE (Prisma)
@@ -128,14 +131,24 @@ module.exports = {
 		// -----------------------------
 		app.get("/", async (req, res) => {
 			const guildCount = client.guilds?.cache?.size ?? "?";
-			const memberCount = client.guilds?.cache?.reduce(
-				(sum, g) => sum + (g.memberCount ?? 0), 0
-			) ?? "?";
+			const memberCount =
+				client.guilds?.cache?.reduce(
+					(sum, g) => sum + (g.memberCount ?? 0),
+					0,
+				) ?? "?";
 			let cmdCount = 0;
 			let userCount = 0;
-			try { cmdCount = await client.db.stats.getTotalExecutions(); } catch {}
-			try { userCount = await client.db.stats.getTotalUsers(); } catch {}
-			const html = fs.readFileSync(path.join(process.cwd(), "views", "landing.html"), "utf8")
+			try {
+				cmdCount = await client.db.stats.getTotalExecutions();
+			} catch {}
+			try {
+				userCount = await client.db.stats.getTotalUsers();
+			} catch {}
+			const html = fs
+				.readFileSync(
+					path.join(process.cwd(), "views", "landing.html"),
+					"utf8",
+				)
 				.replace("{{guildCount}}", guildCount.toString())
 				.replace("{{cmdCount}}", cmdCount.toString())
 				.replace("{{userCount}}", userCount.toString())
@@ -173,11 +186,15 @@ module.exports = {
 		// 404 HANDLER
 		// -----------------------------
 		app.use((req, res) => {
-			const isApi = req.path.startsWith("/api/") || req.path.startsWith("/webhook/");
+			const isApi =
+				req.path.startsWith("/api/") ||
+				req.path.startsWith("/webhook/");
 			if (isApi) {
 				res.status(404).json({ ok: false, error: "not found" });
 			} else {
-				res.status(404).sendFile(path.join(process.cwd(), "views", "404.html"));
+				res.status(404).sendFile(
+					path.join(process.cwd(), "views", "404.html"),
+				);
 			}
 		});
 

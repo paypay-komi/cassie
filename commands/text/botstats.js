@@ -52,8 +52,13 @@ commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 			totalChannels = client.channels.cache.size;
 		}
 
-		// ----- uptime -----
-		const uptimeMs = client.readyAt ? Date.now() - client.readyAt.getTime() : 0;
+		// ----- uptime (from manager start time) -----
+		const mgrStart = process.env.MANAGER_START_TIME;
+		const uptimeMs = mgrStart
+			? Date.now() - Number(mgrStart)
+			: client.readyAt
+				? Date.now() - client.readyAt.getTime()
+				: 0;
 		const uptimeStr = uptimeMs ? msToTime(uptimeMs) : "N/A";
 
 		// ----- ping -----

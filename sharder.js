@@ -5,6 +5,8 @@ require("dotenv/config");
 const GUILDS_PER_SHARD = 4500;
 
 (async () => {
+	process.env.MANAGER_START_TIME = String(Date.now());
+
 	const token = process.env.DISCORD_TOKEN;
 	if (!token) {
 		console.error("DISCORD_TOKEN not set in .env");
@@ -49,6 +51,15 @@ const GUILDS_PER_SHARD = 4500;
 		};
 
 		attachLogs();
+
+		shard.on("message", (message) => {
+			if (message?.type === "restartAll") {
+				console.log(
+					`[ShardManager] Restart requested by shard ${shard.id}, respawning all shards...`,
+				);
+				manager.respawnAll();
+			}
+		});
 	});
 
 	await manager.spawn({ timeout: -1 });

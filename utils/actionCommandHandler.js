@@ -3,10 +3,12 @@ const {
 	TextDisplayBuilder,
 	MediaGalleryBuilder,
 	MediaGalleryItemBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 	MessageFlags,
 } = require("discord.js");
 const { getRandomActionGif } = require("./randomActionGif");
-
 async function handleActionCommand(message, args, command) {
 	const action = command.name;
 	const result = await getRandomActionGif(action);
@@ -54,8 +56,15 @@ async function handleActionCommand(message, args, command) {
 		}
 	}
 
-	return message.channel.send({
-		components: [container],
+	const reportBtn = new ButtonBuilder()
+		.setCustomId(`report_${result.id}_${action}`)
+		.setLabel("\u26A0 Wrong action? Report")
+		.setStyle(ButtonStyle.Secondary);
+
+	const row = new ActionRowBuilder().addComponents(reportBtn);
+
+	await message.channel.send({
+		components: [container, row],
 		flags: MessageFlags.IsComponentsV2,
 	});
 }
