@@ -68,7 +68,7 @@ module.exports = {
 		const allCommands = [...textCommands.values()].sort((a, b) =>
 			a.name.localeCompare(b.name),
 		);
-		const pageSize = 3;
+		const pageSize = 10;
 		const totalPages = Math.max(
 			1,
 			Math.ceil(allCommands.length / pageSize),
@@ -84,9 +84,11 @@ module.exports = {
 				.setTitle("Available Commands")
 				.setDescription(
 					slice
-						.map((c, i) =>
-							renderCommand(c, 0, i === slice.length - 1),
-						)
+						.map((c) => {
+							const aliasText = c.aliases?.length ? ` *(aliases: ${c.aliases.join(", ")})*` : "";
+							const subCount = c.subcommands ? ` (${Object.keys(c.subcommands).length} subcommands)` : "";
+							return `${prefix}${c.name}${aliasText}${subCount} — ${c.description || ""}`;
+						})
 						.join("\n"),
 				)
 				.setColor("#00AEEF")
