@@ -17,12 +17,12 @@ const REELS = [
 	{ sym: "🔔", weight: 8 },
 	{ sym: "💎", weight: 4 },
 	{ sym: "7️⃣", weight: 3 },
-	{ sym: NUKE, weight: 10 },
+	{ sym: NUKE, weight: 20 },
 ];
 
 const PAYOUTS = {
-	"🍒": { multi: 2, half: true },
-	"🍋": { multi: 4, half: true },
+	"🍒": { multi: 2, half: 4 },
+	"🍋": { multi: 4, half: false },
 	"🍊": { multi: 6, half: false },
 	"🍇": { multi: 12, half: false },
 	"🔔": { multi: 24, half: false },
@@ -107,16 +107,7 @@ function pick() {
 	return REELS[REELS.length - 1].sym;
 }
 
-function v2(text) {
-	return {
-		components: [
-			new ContainerBuilder().addTextDisplayComponents(
-				new TextDisplayBuilder().setContent(text),
-			),
-		],
-		flags: MessageFlags.IsComponentsV2,
-	};
-}
+
 
 module.exports = {
 	commandId: "abea06f4-75ce-41b3-bcbd-2a7a31e2ce45",
@@ -166,26 +157,21 @@ module.exports = {
 		for (const line of PAYLINES) {
 			const syms = line.cells.map(([r, c]) => finalGrid[r][c]);
 			if (syms.includes(NUKE)) {
-				nuked.push(line.name);
+				const filtered = syms.filter((s) => s !== NUKE);
+				if (filtered.length === 2 && filtered[0] === filtered[1] && PAYOUTS[filtered[0]]?.half) {
+					nuked.push({ name: line.name, sym: filtered[0] });
+				}
 				continue;
 			}
 			if (syms.every((s) => s === syms[0])) {
-				hits.push({
-					name: line.name,
-					sym: syms[0],
-					multi: PAYOUTS[syms[0]]?.multi ?? 1,
-				});
+				hits.push({ name: line.name, sym: syms[0], multi: PAYOUTS[syms[0]]?.multi ?? 1 });
 				continue;
 			}
 			const counts = {};
 			for (const s of syms) counts[s] = (counts[s] || 0) + 1;
 			const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
 			if (best[1] === 2 && PAYOUTS[best[0]]?.half) {
-				hits.push({
-					name: line.name,
-					sym: best[0],
-					multi: PAYOUTS[best[0]].multi / 2,
-				});
+				hits.push({ name: line.name, sym: best[0], multi: PAYOUTS[best[0]].multi / PAYOUTS[best[0]].half });
 			}
 		}
 
@@ -226,7 +212,7 @@ module.exports = {
 			resultText += `\n${hits.map((h) => `${h.sym} ${h.name} (x${h.multi})`).join(" | ")}`;
 		}
 		if (nuked.length) {
-			resultText += `\n💀 Nuked: ${nuked.join(", ")}`;
+			resultText += `\n💀 Nuked: ${nuked.map((n) => `${n.sym} ${n.name}`).join(" | ")}`;
 		}
 		resultText += `\nBalance: ${sym}${newBal.toLocaleString()} ${plural}`;
 
