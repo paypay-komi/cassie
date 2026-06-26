@@ -16,7 +16,10 @@ module.exports = {
 		try {
 			// 1. Reset funnel
 			await reply.edit("🔄 Resetting Tailscale funnel...");
-			execSync("tailscale funnel reset", { timeout: 15000, windowsHide: true });
+			execSync("tailscale funnel reset", {
+				timeout: 15000,
+				windowsHide: true,
+			});
 
 			// 2. Restart Tailscale via CLI (no admin needed)
 			await reply.edit("🔄 Restarting Tailscale...");
@@ -29,9 +32,14 @@ module.exports = {
 
 			// 3. Start funnel on port 3000
 			await reply.edit("🔄 Starting funnel on port 3000...");
-			execSync("tailscale funnel --bg 3000", { timeout: 15000, windowsHide: true });
+			execSync("tailscale funnel --bg 3000", {
+				timeout: 15000,
+				windowsHide: true,
+			});
 
-			await reply.edit("✅ Tailscale restarted. Funnel should be active on port 3000.");
+			await reply.edit(
+				"✅ Tailscale restarted. Funnel should be active on port 3000.",
+			);
 			log.info("Tailscale restart complete");
 		} catch (err) {
 			log.error("Tailscale restart failed:", err);

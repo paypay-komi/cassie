@@ -12,11 +12,20 @@ module.exports = {
 
 		const guildId = req.query.guildId;
 		if (!guildId) {
-			return res.status(400).json({ ok: false, error: "missing guildId" });
+			return res
+				.status(400)
+				.json({ ok: false, error: "missing guildId" });
 		}
 
-		const guard = await requireGuildAccess(req.session, guildId, req.app?.locals?.client);
-		if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
+		const guard = await requireGuildAccess(
+			req.session,
+			guildId,
+			req.app?.locals?.client,
+		);
+		if (!guard.ok)
+			return res
+				.status(guard.status)
+				.json({ ok: false, error: guard.error });
 
 		try {
 			const row = await db.announcements.get(guildId);

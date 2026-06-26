@@ -40,3 +40,4 @@ server/geo.js
 server/middleware.js
 pgdata/
 start-bot.ps1
+backups/

@@ -1,7 +1,9 @@
 const { getLogger } = require("../../lib/logger");
-const { findAnnouncementChannel } = require("../../lib/findAnnouncementChannel");
+const {
+	findAnnouncementChannel,
+} = require("../../lib/findAnnouncementChannel");
 
-const NAG_INTERVAL_MS = 24 * 60 * 60 * 1000; // once per day per guild
+const NAG_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // once per week per guild
 const MIN_DELAY_MS = 1000; // never schedule less than 1s out
 const BATCH_DELAY_MS = 500; // stagger between guilds within a batch
 
@@ -22,12 +24,15 @@ module.exports = {
 				const allGuildIds = client.guilds.cache.map((g) => g.id);
 				if (allGuildIds.length === 0) return;
 
-				const existingRows = await client.db.prisma.guildAnnouncement.findMany({
-					where: { guildId: { in: allGuildIds } },
-					select: { guildId: true },
-				});
+				const existingRows =
+					await client.db.prisma.guildAnnouncement.findMany({
+						where: { guildId: { in: allGuildIds } },
+						select: { guildId: true },
+					});
 				const existingIds = new Set(existingRows.map((r) => r.guildId));
-				const missingIds = allGuildIds.filter((id) => !existingIds.has(id));
+				const missingIds = allGuildIds.filter(
+					(id) => !existingIds.has(id),
+				);
 
 				if (missingIds.length === 0) return;
 
@@ -41,7 +46,9 @@ module.exports = {
 					data: missingIds.map((guildId) => ({ guildId })),
 					skipDuplicates: true,
 				});
-				log.info(`Backfilled GuildAnnouncement rows for ${missingIds.length} existing guilds`);
+				log.info(
+					`Backfilled GuildAnnouncement rows for ${missingIds.length} existing guilds`,
+				);
 			} catch (err) {
 				log.error(`Backfill failed: ${err.message}`);
 			}
@@ -107,23 +114,31 @@ module.exports = {
 				module.exports.timer = null;
 			}
 
-			client.db.announcements.getNextNagDue().then((next) => {
-				let delay;
+			client.db.announcements
+				.getNextNagDue()
+				.then((next) => {
+					let delay;
 
-				if (next?.lastNagged) {
-					delay = new Date(next.lastNagged).getTime() + NAG_INTERVAL_MS - Date.now();
-				}
+					if (next?.lastNagged) {
+						delay =
+							new Date(next.lastNagged).getTime() +
+							NAG_INTERVAL_MS -
+							Date.now();
+					}
 
-				if (!delay || delay < MIN_DELAY_MS) {
-					delay = NAG_INTERVAL_MS;
-				}
+					if (!delay || delay < MIN_DELAY_MS) {
+						delay = NAG_INTERVAL_MS;
+					}
 
-				module.exports.timer = setTimeout(runTask, delay);
-				log.info(`Next announcement nag in ${Math.round(delay / 1000 / 60)}m`);
-			}).catch((err) => {
-				log.error("scheduleNext error:", err);
-				module.exports.timer = setTimeout(runTask, NAG_INTERVAL_MS);
-			});
+					module.exports.timer = setTimeout(runTask, delay);
+					log.info(
+						`Next announcement nag in ${Math.round(delay / 1000 / 60)}m`,
+					);
+				})
+				.catch((err) => {
+					log.error("scheduleNext error:", err);
+					module.exports.timer = setTimeout(runTask, NAG_INTERVAL_MS);
+				});
 		}
 
 		// ── Startup: backfill then kick off first cycle ──

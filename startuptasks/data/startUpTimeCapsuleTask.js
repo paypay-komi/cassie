@@ -11,7 +11,7 @@ module.exports = {
 
 		const runTask = async () => {
 			const now = new Date();
-			const capsules = await client.db.prisma.timeCapsule.findMany({
+			const capsules = await client.db.prisma.TimeCapsule.findMany({
 				where: {
 					sendAt: { lte: now },
 					sentAt: null,
