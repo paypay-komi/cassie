@@ -134,6 +134,7 @@ async function checkOllama(idea) {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			model: "qwen3:8b",
+			keep_alive: "0s",
 			stream: false,
 			options: {
 				temperature: 0.1,

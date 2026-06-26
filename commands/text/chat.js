@@ -69,6 +69,7 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					model: "llama3.1:latest",
+					keep_alive: "0s",
 					messages: convo,
 					stream: true,
 				}),

@@ -5,6 +5,7 @@ async function getBadAdvice(userQuestion) {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			model: "dolphin-llama3:8b",
+			keep_alive: "0s",
 			messages: [
 				{
 					role: "system",
