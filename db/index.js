@@ -669,6 +669,8 @@ const announcements = {
 	},
 };
 
+const economy = require("./economy");
+
 // ------------------------------------------------------
 // EXPORT NAMESPACED DB
 // ------------------------------------------------------
@@ -685,6 +687,7 @@ const db = {
 	userPrefix,
 	chatHistory,
 	announcements,
+	economy,
 };
 
 module.exports = db;

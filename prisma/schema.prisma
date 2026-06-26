@@ -547,3 +547,85 @@ model SubmittedReactonGif {
     @@index([hash, actions])
     @@index([mediaHash])
 }
+
+// ------------------------------------------------------
+// Economy System (bare bones — balance, daily, work, pay)
+// ------------------------------------------------------
+
+model GuildEconomy {
+    guildId            String @id
+    currencyName       String @default("Cass Bit")
+    currencyNamePlural String @default("Cass Bits")
+    currencySymbol     String @default("🐰")
+
+    // Daily
+    dailyBase        Int @default(100)
+    dailyStreakBonus Int @default(25)
+    dailyCap         Int @default(1000)
+    streakResetDays  Int @default(1)
+
+    // Work
+    workMin               Int @default(10)
+    workMax               Int @default(50)
+    workCooldown          Int @default(60)
+    workStreakBonus       Int @default(1)
+    workStreakDecayInterval Int @default(1800)
+
+    // Tax (% taken from transfers, 0–100, destroyed not collected)
+    taxRate Int @default(0)
+
+    // Economy channel lock (optional)
+    economyChannel String?
+
+    // Master toggle
+    enabled Boolean @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    users GuildEconomyUser[]
+}
+
+model GuildEconomyUser {
+    guildEconomy GuildEconomy @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+    guildId      String
+    // @userid
+    userId       String
+
+    balance     Int @default(0)
+    totalEarned Int @default(0)
+    totalSpent  Int @default(0)
+
+    lastDaily DateTime?
+    lastWork  DateTime?
+
+    workStreak Int @default(0)
+    streakDays Int @default(0)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    transactions GuildEconomyTransaction[]
+
+    @@id([guildId, userId])
+    @@index([guildId])
+}
+
+model GuildEconomyTransaction {
+    id          String   @id @default(cuid())
+    guildId     String
+    // @userid
+    userId      String
+    type        String   // daily | work | pay_in | pay_out | admin_add | admin_remove
+    amount      Int      // positive = gained, negative = lost
+    balanceAfter Int
+    // @userid
+    relatedUserId String?
+    description  String?
+    createdAt    DateTime @default(now())
+
+    user GuildEconomyUser @relation(fields: [guildId, userId], references: [guildId, userId], onDelete: Cascade)
+
+    @@index([guildId, userId])
+    @@index([guildId, createdAt])
+}
