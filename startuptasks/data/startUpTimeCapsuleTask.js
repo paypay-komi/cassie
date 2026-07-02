@@ -48,6 +48,12 @@ module.exports = {
 
 			if (nextCapsule) {
 				const delay = new Date(nextCapsule.sendAt) - new Date();
+				if (delay > 2_147_483_647) {
+					log.warn(
+						"next delay is bigger the the max safe int for a time out setting time out to the bigest value possable and it will recheck after that ",
+					);
+					return (this.timer = setTimeout(runTask, 2_147_483_647));
+				}
 				this.timer = setTimeout(runTask, Math.max(1000, delay));
 			} else {
 				this.timer = setTimeout(runTask, 60 * 1000);
