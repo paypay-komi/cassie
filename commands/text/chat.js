@@ -14,12 +14,13 @@ const EDIT_INTERVAL = 1000; // throttle edits (ms) — Discord is ~1/sec per mes
 const DISCORD_LIMIT = 2000;
 
 module.exports = {
-
-commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
+	commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 	name: "chat",
 	description: "Chat with AI (streaming, formatted)",
-	args: ArgsBuilder.create()
-		.string("message", { required: true, description: "Message for the AI" }),
+	args: ArgsBuilder.create().string("message", {
+		required: true,
+		description: "Message for the AI",
+	}),
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,
@@ -58,7 +59,11 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 
 		// Save user message to DB immediately
 		await message.client.db.chatHistory.add(
-			userId, "user", userInput, guildId, channelId,
+			userId,
+			"user",
+			userInput,
+			guildId,
+			channelId,
 		);
 
 		try {
@@ -85,8 +90,8 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 
 			// ---------- streaming helpers ----------
 
-			let lastFinalized = 0;   // chars already written to complete messages
-			let activeMsg = null;   // message currently being edited
+			let lastFinalized = 0; // chars already written to complete messages
+			let activeMsg = null; // message currently being edited
 
 			/**
 			 * Edit the active message with whatever we have so far.
@@ -141,7 +146,9 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 				} else {
 					const split = splitPoint(activeContent, DISCORD_LIMIT);
 
-					await activeMsg.edit(pingSafeMesage(activeContent.slice(0, split)));
+					await activeMsg.edit(
+						pingSafeMesage(activeContent.slice(0, split)),
+					);
 					lastFinalized += split;
 
 					const rest = activeContent.slice(split).trimStart();
@@ -212,9 +219,12 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 
 			// Persist assistant response to DB
 			await message.client.db.chatHistory.add(
-				userId, "assistant", fullResponse, guildId, channelId,
+				userId,
+				"assistant",
+				fullResponse,
+				guildId,
+				channelId,
 			);
-
 		} catch (err) {
 			log.error("Streaming error:", err);
 			message.reply(
@@ -230,7 +240,10 @@ commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 function detectLoop(text) {
 	if (text.length < 800) return false;
 
-	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+	const lines = text
+		.split("\n")
+		.map((l) => l.trim())
+		.filter(Boolean);
 	if (lines.length < 12) return false;
 
 	// 1. Same short line repeated 12+ times — clearly stuck
