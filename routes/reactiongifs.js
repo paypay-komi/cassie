@@ -50,6 +50,8 @@ const MIME_TYPES = {
 	rar: "application/vnd.rar",
 	"7z": "application/x-7z-compressed",
 	txt: "text/plain",
+	sh: "text/plain",
+	ps1: "text/plain",
 	css: "text/css",
 	html: "text/html",
 	js: "text/javascript",
