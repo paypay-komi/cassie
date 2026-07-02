@@ -1,4 +1,8 @@
-const { PermissionsBitField, EmbedBuilder, version: djsVersion } = require("discord.js");
+const {
+	PermissionsBitField,
+	EmbedBuilder,
+	version: djsVersion,
+} = require("discord.js");
 
 function msToTime(ms) {
 	const days = Math.floor(ms / 86_400_000);
@@ -16,10 +20,9 @@ function msToTime(ms) {
 }
 
 module.exports = {
-
-commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
+	commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 	name: "botstats",
-	aliases: ["stats", "about"],
+	aliases: ["stats", "about", "status"],
 	description: "Show bot statistics and status.",
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
@@ -40,7 +43,9 @@ commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 		if (isSharded) {
 			const [guildCounts, userCounts, channelCounts] = await Promise.all([
 				client.shard.broadcastEval((c) => c.guilds.cache.size),
-				client.shard.broadcastEval((c) => c.guilds.cache.reduce((t, g) => t + g.memberCount, 0)),
+				client.shard.broadcastEval((c) =>
+					c.guilds.cache.reduce((t, g) => t + g.memberCount, 0),
+				),
 				client.shard.broadcastEval((c) => c.channels.cache.size),
 			]);
 			totalGuilds = guildCounts.reduce((a, b) => a + b, 0);
@@ -48,7 +53,10 @@ commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 			totalChannels = channelCounts.reduce((a, b) => a + b, 0);
 		} else {
 			totalGuilds = client.guilds.cache.size;
-			totalUsers = client.guilds.cache.reduce((a, g) => a + g.memberCount, 0);
+			totalUsers = client.guilds.cache.reduce(
+				(a, g) => a + g.memberCount,
+				0,
+			);
 			totalChannels = client.channels.cache.size;
 		}
 
@@ -79,7 +87,8 @@ commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 		function countCmds(tree) {
 			for (const cmd of tree.values()) {
 				if (cmd.execute) commandCount++;
-				if (cmd.subcommands) countCmds(new Map(Object.entries(cmd.subcommands)));
+				if (cmd.subcommands)
+					countCmds(new Map(Object.entries(cmd.subcommands)));
 			}
 		}
 		countCmds(client.textCommands || new Map());
@@ -88,20 +97,39 @@ commandId: "b7d9f3e1-6a2c-4f8b-9d0e-5c1a7b3d2f8e",
 		const embed = new EmbedBuilder()
 			.setTitle(`${botUser.username} — Bot Statistics`)
 			.setThumbnail(botUser.displayAvatarURL())
-			.setColor(0x57F287)
+			.setColor(0x57f287)
 			.addFields(
-				{ name: "Servers", value: totalGuilds.toLocaleString(), inline: true },
-				{ name: "Users", value: totalUsers.toLocaleString(), inline: true },
-				{ name: "Channels", value: totalChannels.toLocaleString(), inline: true },
+				{
+					name: "Servers",
+					value: totalGuilds.toLocaleString(),
+					inline: true,
+				},
+				{
+					name: "Users",
+					value: totalUsers.toLocaleString(),
+					inline: true,
+				},
+				{
+					name: "Channels",
+					value: totalChannels.toLocaleString(),
+					inline: true,
+				},
 				{ name: "Commands", value: String(commandCount), inline: true },
 				{ name: "Uptime", value: uptimeStr, inline: true },
 				{ name: "API Ping", value: `${apiPing}ms`, inline: true },
 				{ name: "Memory (RSS)", value: `${rss} MB`, inline: true },
-				{ name: "Heap", value: `${heapUsed} MB / ${heapTotal} MB`, inline: true },
-				{ name: "Shard", value: `${shardId} / ${totalShards}`, inline: true },
+				{
+					name: "Heap",
+					value: `${heapUsed} MB / ${heapTotal} MB`,
+					inline: true,
+				},
+				{
+					name: "Shard",
+					value: `${shardId + 1} / ${totalShards}`,
+					inline: true,
+				},
 				{ name: "Node.js", value: nodeVer, inline: true },
 				{ name: "Discord.js", value: `v${djsVersion}`, inline: true },
-				{ name: "Bot Version", value: `v${pkg.version || "?"}`, inline: true },
 			)
 			.setFooter({ text: `ID: ${botUser.id}` })
 			.setTimestamp();
