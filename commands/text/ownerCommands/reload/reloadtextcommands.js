@@ -1,4 +1,4 @@
-const { PermissionsBitField } = require("discord.js");
+const { PermissionsBitField, Message } = require("discord.js");
 const path = require("path");
 const { postCommandsToDbl } = require("../../../../startuptasks/listings/dbl/postCommandsToDbl");
 const deploySlashCommands = require("../../../../startuptasks/commands/deploySlashCommands");
@@ -11,7 +11,7 @@ commandId: "fb3f0eea-3ea7-4cf1-b269-994152953a1c",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	permissions: ["botOwner"],
 	parent: "reload",
-
+ /** @param {Message}} message */
 	async execute(message) {
 		const filePath = path.join(
 			process.cwd(),
