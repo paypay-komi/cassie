@@ -89,7 +89,7 @@ async function checkPermissions(command, client, message) {
 
 	const isGuild = message.inGuild();
 	const isGuildOwner =
-		isGuild && message.author.id === message.guild.ownerId;
+		isGuild && message.author?.id === message.guild?.ownerId;
 
 	// SAFE: only fetch member in guilds
 	const clientMember = isGuild ? await message.guild.members.fetchMe() : null;
