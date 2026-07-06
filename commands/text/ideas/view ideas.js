@@ -12,6 +12,7 @@ const {
 	ContainerBuilder,
 } = require("discord.js");
 const db = require("../../../db");
+const actionUserCommand = require("../../../utils/actionUserCommand");
 /**
  * @param {number} page
  * @param {(data: import('discord.js').InteractionReplyOptions) => Promise<void>} responder
@@ -21,7 +22,7 @@ const db = require("../../../db");
 async function makeIdeaStuff(page, source) {
 	const userId = source.user?.id ?? source.author?.id;
 
-const {
+	const {
 		ideas,
 		page: safePage,
 		totalPages,
@@ -44,45 +45,50 @@ const {
 	);
 
 	const ideaContainers = ideas.map((idea, i) => {
+		const maxPreviewLength = 1024;
 		const content =
-			idea.content.length > 1024
-				? idea.content.slice(0, 1021) + "..."
+			idea.content.length > maxPreviewLength
+				? idea.content.slice(0, maxPreviewLength - 3) + "..."
 				: idea.content;
 		const userVote = idea.votes?.find((v) => v.userId === userId);
 		const userUpvoted = userVote?.value === 1;
 		const userDownvoted = userVote?.value === -1;
 
-		return new ContainerBuilder()
-			.addTextDisplayComponents(
-				new TextDisplayBuilder().setContent(
-					`**Idea #${(safePage - 1) * 7 + i + 1}** votes: ${idea.vote_score}\n${content}`,
+		const container = new ContainerBuilder().addTextDisplayComponents(
+			new TextDisplayBuilder().setContent(
+				`**Idea #${(safePage - 1) * 7 + i + 1}** votes: ${idea.vote_score}\n${content}`,
+			),
+		);
+		const actionRow = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId(
+					`ideaViewer_${userId}_upvote_${safePage}_${idea.id}`,
+				)
+				.setLabel("👍")
+				.setStyle(
+					userUpvoted ? ButtonStyle.Success : ButtonStyle.Secondary,
 				),
-			)
-
-			.addActionRowComponents(
-				new ActionRowBuilder().addComponents(
-					new ButtonBuilder()
-						.setCustomId(
-							`ideaViewer_${userId}_upvote_${safePage}_${idea.id}`,
-						)
-						.setLabel("👍")
-						.setStyle(
-							userUpvoted
-								? ButtonStyle.Success
-								: ButtonStyle.Secondary,
-						),
-					new ButtonBuilder()
-						.setCustomId(
-							`ideaViewer_${userId}_downvote_${safePage}_${idea.id}`,
-						)
-						.setLabel("👎")
-						.setStyle(
-							userDownvoted
-								? ButtonStyle.Danger
-								: ButtonStyle.Secondary,
-						),
+			new ButtonBuilder()
+				.setCustomId(
+					`ideaViewer_${userId}_downvote_${safePage}_${idea.id}`,
+				)
+				.setLabel("👎")
+				.setStyle(
+					userDownvoted ? ButtonStyle.Danger : ButtonStyle.Secondary,
 				),
+		);
+		if (idea.content.length > maxPreviewLength) {
+			actionRow.addComponents(
+				new ButtonBuilder()
+					.setCustomId(
+						`ideaViewer_${userId}_viewFull_${safePage}_${idea.id}`,
+					)
+					.setLabel("View full idea")
+					.setStyle(ButtonStyle.Secondary),
 			);
+		}
+		container.addActionRowComponents(actionRow);
+		return container;
 	});
 	ideaContainers.push(
 		new ContainerBuilder().addTextDisplayComponents(
@@ -105,7 +111,10 @@ module.exports = {
 	commandId: "f200ef06-ef2c-4124-bbb6-17703f3da8fa",
 	name: "view",
 	description: "Browse and vote on submitted ideas",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 	parent: "idea",
 	/**
 	 * @param {import("discord.js").Message} message
@@ -149,6 +158,31 @@ module.exports = {
 			if (action == "downvote") {
 				const [IdeaId] = args;
 				await db.ideas.handleVote(interaction.user.id, IdeaId, -1);
+			}
+			if (action == "viewFull") {
+				const [IdeaId] = args;
+				const idea = await db.prisma.idea.findUnique({
+					where: { id: IdeaId },
+				});
+				const container =
+					new ContainerBuilder().addTextDisplayComponents(
+						new TextDisplayBuilder().setContent(
+							`# Idea ${IdeaId}\n ${idea.content}`,
+						),
+					);
+				const actionRow = new ActionRowBuilder().addComponents(
+					new ButtonBuilder()
+						.setCustomId(`ideaViewer_${authorid}_back_${page}`)
+						.setLabel("Back To Ideas")
+						.setStyle(ButtonStyle.Danger),
+				);
+				return interaction.update({
+					flags: MessageFlags.IsComponentsV2,
+					components: [container, actionRow],
+				});
+			}
+			if (action == "back") {
+				// theroeticly i shouldnt have to do anything as it will just make the embed with the page and go back to where it was below
 			}
 			ideastuff = await makeIdeaStuff(page, message);
 			interaction.update({
