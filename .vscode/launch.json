@@ -8,6 +8,9 @@
     "skipFiles": [
         "<node_internals>/**"
     ],
+	  "runtimeArgs": [
+    "--max-old-space-size=1024"
+  ],
     "type": "node"
 },
 
@@ -24,3 +27,4 @@
     }
   ]
 }
+ 
