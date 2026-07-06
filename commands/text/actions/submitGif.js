@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const axios = require("axios");
+const { spawn } = require("child_process");
+
 const db = require("../../../db");
 const config = require("../../../config.json");
 const {
@@ -14,318 +16,277 @@ const { ALL_ACTIONS } = require("../../../utils/actionGroups");
 
 const VALID_ACTIONS = ALL_ACTIONS;
 
-/**
- * Levenshtein edit distance between two strings
- */
-function levenshtein(a, b) {
-	const dp = Array(b.length + 1)
-		.fill()
-		.map(() => Array(a.length + 1).fill(0));
-	for (let i = 0; i <= b.length; i++) dp[i][0] = i;
-	for (let j = 0; j <= a.length; j++) dp[0][j] = j;
-	for (let i = 1; i <= b.length; i++) {
-		for (let j = 1; j <= a.length; j++) {
-			if (b[i - 1] === a[j - 1]) dp[i][j] = dp[i - 1][j - 1];
-			else
-				dp[i][j] =
-					1 + Math.min(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j]);
-		}
-	}
-	return dp[b.length][a.length];
-}
-
-/**
- * Character multiset — returns a sorted string of chars for anagram comparison
- */
-function charSet(s) {
-	return [...s].sort().join("");
-}
-
-/**
- * Find up to `count` closest matches from candidates, combining all strategies
- */
-function suggestActions(input, candidates, count = 5) {
-	const lower = input.toLowerCase();
-	const inputChars = charSet(lower);
-	const scored = [];
-
-	for (const c of candidates) {
-		const cl = c.toLowerCase();
-		let dist = levenshtein(lower, cl);
-
-		// Exact character-set match (transpositions like "cheekkiss" → "kisscheek")
-		if (charSet(cl) === inputChars) dist = 0;
-
-		// Substring match
-		if (cl.includes(lower) || lower.includes(cl)) {
-			dist = Math.min(dist, 1);
-		}
-
-		scored.push({ candidate: c, dist });
-	}
-
-	return scored.sort((a, b) => a.dist - b.dist).slice(0, count);
-}
-
-/**
- * Sniff the first few bytes of a file to confirm it's actually a GIF.
- * Tenor and similar sites serve MP4s disguised with .gif URLs.
- * Returns the real file type ("gif", "mp4", "webm") or null if unrecognized.
- */
-function sniffRealType(filePath) {
-	const fd = fs.openSync(filePath, "r");
-	const buf = Buffer.alloc(12);
-	fs.readSync(fd, buf, 0, 12, 0);
-	fs.closeSync(fd);
-
-	const header = buf.toString("ascii", 0, 6);
-	if (header === "GIF87a" || header === "GIF89a") return "gif";
-
-	const ftyp = buf.toString("ascii", 4, 8);
-	if (ftyp === "ftyp") return "mp4";
-
-	// WebM / Matroska EBML header
-	if (
-		buf[0] === 0x1a &&
-		buf[1] === 0x45 &&
-		buf[2] === 0xdf &&
-		buf[3] === 0xa3
-	)
-		return "webm";
-
-	return null;
-}
+/* =========================================================
+   UX
+   ========================================================= */
 
 function progressBar(pct) {
 	const filled = Math.round(pct / 10);
 	const empty = 10 - filled;
-	return "[" + "\u2588".repeat(filled) + "\u2591".repeat(empty) + `] ${pct}%`;
+	return "[" + "█".repeat(filled) + "░".repeat(empty) + `] ${pct}%`;
 }
 
-const BASE = (
-	process.env.BASE_URL || "https://nekomi.tailef6033.ts.net"
-).replace(/\/+$/, "");
+/* =========================================================
+   EMBED RESOLVER (Discord-style)
+   ========================================================= */
 
-const GIF_DIR = "L:\\reactiongifs";
+function extractFromDiscordMessage(message) {
+	if (message.attachments?.size) {
+		return message.attachments.first().url;
+	}
+
+	if (message.embeds?.length) {
+		const e = message.embeds[0];
+		if (e.video?.url) return e.video.url;
+		if (e.image?.url) return e.image.url;
+		if (e.thumbnail?.url) return e.thumbnail.url;
+		if (e.url) return e.url;
+	}
+
+	return null;
+}
+
+async function fetchHTML(url) {
+	try {
+		const res = await axios.get(url, {
+			timeout: 20000,
+			maxRedirects: 5,
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122",
+				Accept:
+					"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+				Referer: url,
+			},
+		});
+		return res.data;
+	} catch {
+		return null;
+	}
+}
+
+function extractMediaUrl(html) {
+	if (!html) return null;
+
+	let m =
+		html.match(/property="og:video:secure_url" content="([^"]+)"/i) ||
+		html.match(/property="og:video:url" content="([^"]+)"/i) ||
+		html.match(/property="og:video" content="([^"]+)"/i);
+
+	if (m?.[1]) return m[1];
+
+	m = html.match(/property="og:image" content="([^"]+)"/i);
+	if (m?.[1]) return m[1];
+
+	m = html.match(/"contentUrl"\s*:\s*"(https?:\/\/[^"]+\.(gif|mp4|webm)[^"]*)"/i);
+	if (m?.[1]) return m[1];
+
+	m = html.match(/https?:\/\/[^\s"'<>]+\.(gif|mp4|webm)/i);
+	if (m?.[0]) return m[0];
+
+	return null;
+}
+
+async function resolveMedia(url) {
+	if (!url) return null;
+	if (/\.(gif|mp4|webm)(\?|$)/i.test(url)) return url;
+
+	const html = await fetchHTML(url);
+	return extractMediaUrl(html) || url;
+}
+
+/* =========================================================
+   FFmpeg CONVERSION
+   ========================================================= */
+
+function convertToGif(input, output) {
+	return new Promise((resolve, reject) => {
+		const ff = spawn("ffmpeg", [
+			"-y",
+			"-i",
+			input,
+			"-vf",
+			"fps=15,scale=512:-1:flags=lanczos",
+			"-loop",
+			"0",
+			output,
+		]);
+
+		ff.on("error", reject);
+
+		ff.on("close", (code) => {
+			if (code === 0) resolve();
+			else reject(new Error("ffmpeg failed: " + code));
+		});
+	});
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
 
 module.exports = {
 	commandId: "ebc2cdfe-f6d3-4011-9839-7628217d9bde",
 	name: "submit",
-	description:
-		"submits a gif for review — owners bypass pending, tags optional",
+	parent: "action",
+	aliases: ["add"],
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,
 		PermissionsBitField.Flags.EmbedLinks,
 	],
-	parent: "action",
-	aliases: ["add"],
-	/**
-	 * @param {import("discord.js").Message} message
-	 * @param {string[]} args
-	 */
+
 	async execute(message, args) {
-		// Pull source URL from args or attachment
-		let sourceUrl = null;
+		let sourceUrl = extractFromDiscordMessage(message);
 		const actionArgs = [];
+
 		for (const a of args) {
-			if (!sourceUrl && /^https?:\/\//i.test(a)) {
-				sourceUrl = a;
-			} else {
-				actionArgs.push(a);
+			if (/^https?:\/\//i.test(a)) {
+				if (!sourceUrl) sourceUrl = a;
+				continue;
 			}
+			actionArgs.push(a);
 		}
 
 		if (!sourceUrl) {
-			const att = message.attachments?.first();
-			if (att) sourceUrl = att.url;
+			return message.reply("attach a file or URL");
 		}
 
-		if (!sourceUrl) {
-			return message.reply(
-				"attach a file or pass a URL: `c.submit <url> <action>…`",
-			);
-		}
+		sourceUrl = await resolveMedia(sourceUrl);
 
-		// Tenor URLs need .gif appended — they serve MP4s otherwise
-		if (
-			/tenor\.com/i.test(sourceUrl) &&
-			!path.extname(sourceUrl.split("?")[0])
-		) {
-			sourceUrl = sourceUrl.replace(/\/?(\?.*)?$/, ".gif$1");
-		}
+		const raw = actionArgs
+			.map((a) => a.toLowerCase().trim())
+			.filter((a) => !a.includes("://"));
 
-		const ext =
-			path.extname(sourceUrl.split("?")[0].split("#")[0]).toLowerCase() ||
-			".gif";
-		if (![".gif"].includes(ext)) {
-			return message.reply("only GIF files are supported");
-		}
-		const fileType = ext.slice(1);
-
-		const raw = actionArgs.map((a) => a.toLowerCase());
 		const valid = raw.filter((a) => VALID_ACTIONS.includes(a));
 		const invalid = raw.filter((a) => !VALID_ACTIONS.includes(a));
 
 		if (invalid.length) {
-			const lines = invalid.map((a) => {
-				const suggestions = suggestActions(a, VALID_ACTIONS);
-				return `\`${a}\` → ${suggestions.map((s) => `\`${s.candidate}\`?`).join(", ")}`;
-			});
-			return message.reply(`unknown action tags:\n${lines.join("\n")}`);
-		}
-
-		if (!valid.length) {
 			return message.reply(
-				`specify at least one action tag.\nValid: ${VALID_ACTIONS.join(", ")}`,
+				`unknown action tags:\n` +
+					invalid.map((a) => `\`${a}\``).join("\n"),
 			);
 		}
 
-		/** @type {string[]} */
-		const actions = valid;
+		if (!valid.length) {
+			return message.reply("missing action tags");
+		}
 
-		const tmp = path.join(
-			os.tmpdir(),
-			`sub_gif_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`,
-		);
+		/* =====================================================
+		   DOWNLOAD
+		   ===================================================== */
+
+		const tmp = path.join(os.tmpdir(), `gif_${Date.now()}`);
+		const converted = tmp + "_converted.gif";
 
 		const msg = await message.reply(`⬇️ Downloading… ${progressBar(0)}`);
 
 		try {
-			// ── download with live progress ──
-			const axiosRes = await axios({
+			const res = await axios({
 				method: "get",
 				url: sourceUrl,
 				responseType: "stream",
 				timeout: 30000,
+				headers: {
+					"User-Agent": "Mozilla/5.0",
+					Referer: new URL(sourceUrl).origin,
+				},
 			});
-			const total = parseInt(axiosRes.headers["content-length"], 10);
+
 			const writer = fs.createWriteStream(tmp);
-			let received = 0;
-			let lastUpdate = 0;
-			axiosRes.data.on("data", (chunk) => {
-				received += chunk.length;
-				if (total) {
-					const now = Date.now();
-					if (now - lastUpdate < 1000) return;
-					lastUpdate = now;
-					const pct = Math.min(
-						Math.round((received / total) * 90),
-						90,
-					);
-					msg.edit(`⬇️ Downloading… ${progressBar(pct)}`).catch(
-						() => {},
-					);
-				}
-			});
+
 			await new Promise((resolve, reject) => {
+				res.data.pipe(writer);
 				writer.on("finish", resolve);
 				writer.on("error", reject);
-				axiosRes.data.pipe(writer);
 			});
+
 			await msg.edit(
-				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashing…        ${progressBar(90)}`,
+				`⬇️ Downloaded ${progressBar(90)}\n🎞️ Converting…`,
 			);
 
-			// ── verify actual file type via magic bytes ──
-			const realType = sniffRealType(tmp);
-			if (!realType) {
-				return msg.edit(
-					"⚠️ unrecognized file format — only GIF is supported",
-				);
-			}
-			if (realType !== "gif") {
-				return msg.edit(
-					`⚠️ URL points to a ${realType.toUpperCase()} file, not a GIF — Tenor etc. serve MP4s as .gif URLs`,
-				);
-			}
+			/* =====================================================
+			   FFmpeg CONVERT (FIX FOR SHARP ERROR)
+			   ===================================================== */
 
-			// ── exact hash ──
-			const exactHash = await new Promise((res, rej) => {
+			await convertToGif(tmp, converted);
+
+			await msg.edit(
+				`⬇️ Downloaded ${progressBar(90)}\n🎞️ Converted ${progressBar(90)}\n🔍 Hashing…`,
+			);
+
+			/* =====================================================
+			   HASH (ONLY SAFE GIF NOW)
+			   ===================================================== */
+
+			const hash = await new Promise((res, rej) => {
 				const h = crypto.createHash("sha256");
-				fs.createReadStream(tmp)
+				fs.createReadStream(converted)
 					.on("data", (d) => h.update(d))
 					.on("end", () => res(h.digest("hex")))
 					.on("error", rej);
 			});
-			await msg.edit(
-				`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checking dupes… ${progressBar(90)}`,
-			);
 
-			// ── exact duplicate check (both tables) ──
-			const existing = await db.prisma.reactionGif.findUnique({
-				where: { hash: exactHash },
-				select: { id: true },
-			});
-			const existingSubmitted = existing
-				? null
-				: await db.prisma.submittedReactonGif.findUnique({
-						where: { hash: exactHash },
-						select: { id: true },
-					});
-			const dup = existing || existingSubmitted;
-			if (dup) {
-				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Exact duplicate: ${BASE}/reactiongifs/${dup.id}.gif`,
-				);
+			const existing =
+				(await db.prisma.reactionGif.findUnique({
+					where: { hash },
+					select: { id: true },
+				})) ||
+				(await db.prisma.submittedReactonGif.findUnique({
+					where: { hash },
+					select: { id: true },
+				}));
+
+			if (existing) {
+				return msg.edit("⚠️ duplicate found");
 			}
 
-			// ── perceptual hash + near-duplicate check ──
-			const phash = await hashImage(tmp);
+			const phash = await hashImage(converted);
 
 			const nearDup = await findNearDuplicate(db.prisma, phash);
 			if (nearDup) {
-				return msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n⚠️  Near-duplicate: ${BASE}/reactiongifs/${nearDup.id}.gif`,
-				);
+				return msg.edit("⚠️ near duplicate found");
 			}
 
-			// ── insert ──
-			let record;
-			if (config.owners.includes(message.author.id)) {
-				record = await db.prisma.reactionGif.create({
-					data: {
-						hash: exactHash,
-						actions,
-						fileType,
-						mediaHash: phash.bigint,
-					},
-				});
-			} else {
-				record = await db.prisma.submittedReactonGif.create({
-					data: {
-						hash: exactHash,
-						actions,
-						fileType,
-						mediaHash: phash.bigint,
-						submittedBy: message.author.id,
-					},
-				});
-			}
+			/* =====================================================
+			   DB INSERT
+			   ===================================================== */
 
-			// ── save to L drive ──
-			fs.mkdirSync(GIF_DIR, { recursive: true });
+			const record = config.owners.includes(message.author.id)
+				? await db.prisma.reactionGif.create({
+						data: {
+							hash,
+							actions: valid,
+							fileType: "gif",
+							mediaHash: phash.bigint,
+						},
+				  })
+				: await db.prisma.submittedReactonGif.create({
+						data: {
+							hash,
+							actions: valid,
+							fileType: "gif",
+							mediaHash: phash.bigint,
+							submittedBy: message.author.id,
+						},
+				  });
+
+			fs.mkdirSync("L:\\reactiongifs", { recursive: true });
+
 			fs.copyFileSync(
-				tmp,
-				path.join(GIF_DIR, `${record.id}.${record.fileType}`),
+				converted,
+				path.join("L:\\reactiongifs", `${record.id}.gif`),
 			);
 
-			if (config.owners.includes(message.author.id)) {
-				await msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Added!          ${progressBar(100)}`,
-				);
-			} else {
-				await msg.edit(
-					`⬇️ Downloaded      ${progressBar(90)}\n🔍 Hashed          ${progressBar(90)}\n📦 Checked         ${progressBar(90)}\n✅ Submitted for review! ${progressBar(100)}`,
-				);
-			}
+			await msg.edit(
+				`⬇️ Downloaded ${progressBar(90)}\n🎞️ Converted ${progressBar(90)}\n🔍 Hashed ${progressBar(90)}\n✅ Done`,
+			);
 		} catch (err) {
 			console.error(err);
-			await msg
-				.edit("❌ something went wrong processing that file")
-				.catch(() => {});
+			await msg.edit("❌ failed processing file");
 		} finally {
 			fs.unlink(tmp, () => {});
+			fs.unlink(converted, () => {});
 		}
 	},
 };
