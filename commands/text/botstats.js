@@ -130,6 +130,7 @@ module.exports = {
 				},
 				{ name: "Node.js", value: nodeVer, inline: true },
 				{ name: "Discord.js", value: `v${djsVersion}`, inline: true },
+
 			)
 			.setFooter({ text: `ID: ${botUser.id}` })
 			.setTimestamp();
