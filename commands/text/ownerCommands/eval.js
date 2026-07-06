@@ -146,9 +146,7 @@ module.exports = {
 				);
 			}
 
-			const safeResult = safeWalk(result);
-
-			let inspected = util.inspect(safeResult, {
+			let inspected = util.inspect(result, {
 				depth: 4,
 				maxArrayLength: Infinity,
 				maxStringLength: Infinity,
@@ -169,7 +167,6 @@ module.exports = {
 					],
 				});
 			}
-
 			return message.channel.send(`\`\`\`${lang}\n${inspected}\`\`\``);
 		} catch (err) {
 			const output = censor(err?.stack || String(err));
