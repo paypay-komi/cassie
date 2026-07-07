@@ -106,7 +106,10 @@ module.exports = {
 				log.warn(
 					`mod channel ${logChannelId} can not be found in the server: ${message.guildId} logs wont be sent`,
 				);
-
+			current.messages.push({
+				channelId: message.channelId,
+				messageId: message.id,
+			});
 			for (const { channelId, messageId } of current.messages) {
 				// redownload all attachments in memory because you cant link them as they will be deleted
 
