@@ -210,8 +210,8 @@ module.exports = {
 					inline: true,
 				},
 				{
-					name: "CPU Time",
-					value: `${cpuTime}s`,
+					name: "CPU Time ",
+					value: `${cpuTime}s (since shard start/restart)`,
 					inline: true,
 				},
 				{
