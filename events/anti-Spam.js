@@ -1,9 +1,7 @@
 const { Events, Client, Message } = require("discord.js");
 const { getLogger } = require("../lib/logger");
-const logger = require("../lib/logger");
 
 const log = getLogger("anti Spam");
-/**
 /**
  * A tracked message that can be deleted later.
  *
@@ -20,6 +18,7 @@ const log = getLogger("anti Spam");
  * @property {number} heatlvl The user's current spam heat level.
  * @property {string} lastChannel The last channel the user spoke in for easy look up
  * @property {TrackedMessage[]} messages The user's recently tracked messages.
+ * @property {boolean} punished Whether we've already bonked them for this spam burst (stops duplicate bonk msgs)
  */
 
 /**
@@ -31,6 +30,7 @@ const delayMap = new Map();
 const tolerance = 3;
 const decayAmount = 1; // set to infiinty or a large number to instnatly decay all
 const toleranceReset = 4 * 1000; // 4 secs
+const timeoutMs = 30 * 1000; // 30ish secs like she asked
 const CassiesServer = "1489809097401307340";
 const logChannelId = "1523825653638496307";
 const offenderRole = "1523497783523414066";
@@ -60,6 +60,7 @@ module.exports = {
 				messages: [
 					{ channelId: message.channelId, messageId: message.id },
 				],
+				punished: false,
 			}); // initlize it
 		}
 
@@ -80,6 +81,7 @@ module.exports = {
 					...current.messages.slice(1),
 					{ channelId: message.channelId, messageId: message.id },
 				],
+				punished: false, // they actually cooled down so let them get bonked fresh next time
 			});
 		}
 		// they send within the tolerace reset !!!!!!
@@ -88,6 +90,16 @@ module.exports = {
 			log.warn(
 				`Spam detected: ${message.author.tag} (${message.author.id}) exceeded tolerance. Heat: ${current.heatlvl + 1}/${tolerance}`,
 			);
+			await message.member
+				.timeout(timeoutMs, "Cross-channel spam detected")
+				.then(() => {
+					log.info(
+						`Timed out ${message.author.tag} (${message.author.id}) for ${timeoutMs}ms`,
+					);
+				})
+				.catch((e) => {
+					log.error(`Failed timing out ${message.author.tag}:`, e);
+				});
 			await message.member.roles
 				.add(offenderRole)
 				.then(() => {
@@ -161,14 +173,22 @@ module.exports = {
 						log.error(`Failed deleting ${messageId}:`, e);
 					});
 			}
-			await message.channel.send(
-				`<@${message.author.id}>!!! you have been BONKED for spamming across channels your upload abilities have been removed and mods have been notified this is due to the recent mister beast scams if this is a false alarm no worries a mod will remove it if you did nothing wrong `,
-			);
+
+			// only send the bonk message once per spam burst, but keep deleting/timing out if they keep going
+			if (!current.punished) {
+				await message.channel.send(
+					`<@${message.author.id}>!!! you have been BONKED for spamming across channels you have been timed out for a bit and mods have been notified this is due to the recent mister beast scams if this is a false alarm no worries a mod will remove it if you did nothing wrong `,
+				);
+			}
+
+			// dont reset heat here anymore, keep it high so continued spam keeps getting nuked
+			// messages array gets cleared tho since we just deleted everything in it, no point keeping em tracked
 			return delayMap.set(message.author.id, {
 				last: Date.now(),
 				lastChannel: message.channelId,
-				heatlvl: 0,
+				heatlvl: current.heatlvl + 1,
 				messages: [],
+				punished: true,
 			});
 		}
 
@@ -180,6 +200,7 @@ module.exports = {
 				...current.messages,
 				{ channelId: message.channelId, messageId: message.id },
 			],
+			punished: current.punished,
 		});
 	},
 };
