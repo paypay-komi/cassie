@@ -473,13 +473,13 @@ const settings = {
 							where: { guildId, roleId: { in: roleIds } },
 						})
 					: [],
-				prisma.guildUserCommandAccess.findMany({ where: { guildId, userId } }),
+				prisma.guildUserCommandAccess.findMany({
+					where: { guildId, userId },
+				}),
 			]);
 
 		// Start with guild-level disabled
-		const disabledSet = new Set([
-			...guildDisabled.map((r) => r.commandId),
-		]);
+		const disabledSet = new Set([...guildDisabled.map((r) => r.commandId)]);
 
 		// Apply channel-level deny (add to disabled set)
 		for (const r of channelAccess) {
@@ -511,96 +511,101 @@ const settings = {
 			if (r.allowed) disabledSet.delete(r.commandId);
 		}
 
-	return {
-		guildId,
-		channelId,
-		userId,
-		prefix: "c.",
-		disabledCommands: Array.from(disabledSet),
-		raw: {
-			guild: g,
-			channel: ch,
-			user: u,
-		},
-	};
-},
+		return {
+			guildId,
+			channelId,
+			userId,
+			prefix: "c.",
+			disabledCommands: Array.from(disabledSet),
+			raw: {
+				guild: g,
+				channel: ch,
+				user: u,
+			},
+		};
+	},
 
-/**
- * Determine the source of a restriction for a single commandId.
- *
- * Returns one of: "server", "channel", "role", "user", or null if not restricted.
- *
- * Priority (highest to lowest):
- *   user allow  → not restricted
- *   role allow  → not restricted
- *   channel allow → not restricted
- *   user deny   → "user"
- *   role deny   → "role"
- *   channel deny → "channel"
- *   guild       → "server"
- */
-async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
-	// User allow — overrides everything
-	const userAccess = userId
-		? await prisma.guildUserCommandAccess.findUnique({
-				where: {
-					guildId_userId_commandId: { guildId, userId, commandId },
-				},
-			})
-		: null;
-	if (userAccess?.allowed) return null;
+	/**
+	 * Determine the source of a restriction for a single commandId.
+	 *
+	 * Returns one of: "server", "channel", "role", "user", or null if not restricted.
+	 *
+	 * Priority (highest to lowest):
+	 *   user allow  → not restricted
+	 *   role allow  → not restricted
+	 *   channel allow → not restricted
+	 *   user deny   → "user"
+	 *   role deny   → "role"
+	 *   channel deny → "channel"
+	 *   guild       → "server"
+	 */
+	async getDisableSource(guildId, channelId, userId, roleIds, commandId) {
+		// User allow — overrides everything
+		const userAccess = userId
+			? await prisma.guildUserCommandAccess.findUnique({
+					where: {
+						guildId_userId_commandId: {
+							guildId,
+							userId,
+							commandId,
+						},
+					},
+				})
+			: null;
+		if (userAccess?.allowed) return null;
 
-	// Role allow — overrides denies and channel/guild
-	let roleEntries = [];
-	if (roleIds.length > 0) {
-		roleEntries = await prisma.guildRoleCommandAccess.findMany({
-			where: { guildId, roleId: { in: roleIds }, commandId },
+		// Role allow — overrides denies and channel/guild
+		let roleEntries = [];
+		if (roleIds.length > 0) {
+			roleEntries = await prisma.guildRoleCommandAccess.findMany({
+				where: { guildId, roleId: { in: roleIds }, commandId },
+			});
+		}
+		if (roleEntries.some((r) => r.allowed)) return null;
+
+		// Channel allow — overrides guild disable and channel deny
+		const channelEntry = await prisma.guildChannelCommandAccess.findUnique({
+			where: { channelId_commandId: { channelId, commandId } },
 		});
-	}
-	if (roleEntries.some((r) => r.allowed)) return null;
+		if (channelEntry?.allowed) return null;
 
-	// Channel allow — overrides guild disable and channel deny
-	const channelEntry = await prisma.guildChannelCommandAccess.findUnique({
-		where: { channelId_commandId: { channelId, commandId } },
-	});
-	if (channelEntry?.allowed) return null;
+		// User deny
+		if (userAccess && !userAccess.allowed) return "user";
 
-	// User deny
-	if (userAccess && !userAccess.allowed) return "user";
+		// Role deny
+		if (roleEntries.some((r) => !r.allowed)) return "role";
 
-	// Role deny
-	if (roleEntries.some((r) => !r.allowed)) return "role";
+		// Channel deny
+		if (channelEntry && !channelEntry.allowed) return "channel";
 
-	// Channel deny
-	if (channelEntry && !channelEntry.allowed) return "channel";
+		// Guild disable
+		const guildDisabled = await prisma.guildDisabledCommand.findUnique({
+			where: { guildId_commandId: { guildId, commandId } },
+		});
+		if (guildDisabled) return "server";
 
-	// Guild disable
-	const guildDisabled = await prisma.guildDisabledCommand.findUnique({
-		where: { guildId_commandId: { guildId, commandId } },
-	});
-	if (guildDisabled) return "server";
+		return null;
+	},
 
-	return null;
-},
-
-/**
- * Get all channel IDs where a command has an allow override.
- */
-async getChannelAllowLocations(guildId, commandId) {
-	const rows = await prisma.guildChannelCommandAccess.findMany({
-		where: { guildId, commandId, allowed: true },
-		select: { channelId: true },
-	});
-	return rows.map((r) => r.channelId);
-},
+	/**
+	 * Get all channel IDs where a command has an allow override.
+	 */
+	async getChannelAllowLocations(guildId, commandId) {
+		const rows = await prisma.guildChannelCommandAccess.findMany({
+			where: { guildId, commandId, allowed: true },
+			select: { channelId: true },
+		});
+		return rows.map((r) => r.channelId);
+	},
 };
-
 // ------------------------------------------------------
 // NAMESPACE: announcements (webhook-powered broadcast system)
 // ------------------------------------------------------
 const announcements = {
 	async get(guildId) {
-		let row = await prisma.guildAnnouncement.findUnique({ where: { guildId } });
+		let row = await prisma.guildAnnouncement.findUnique({
+			where: { guildId },
+		});
 		if (!row) {
 			row = await prisma.guildAnnouncement.create({ data: { guildId } });
 		}
@@ -611,14 +616,25 @@ const announcements = {
 		return prisma.guildAnnouncement.upsert({
 			where: { guildId },
 			update: { channelId, webhookId, webhookToken, optedOut: false },
-			create: { guildId, channelId, webhookId, webhookToken, optedOut: false },
+			create: {
+				guildId,
+				channelId,
+				webhookId,
+				webhookToken,
+				optedOut: false,
+			},
 		});
 	},
 
 	async unsubscribe(guildId) {
 		return prisma.guildAnnouncement.upsert({
 			where: { guildId },
-			update: { channelId: null, webhookId: null, webhookToken: null, optedOut: true },
+			update: {
+				channelId: null,
+				webhookId: null,
+				webhookToken: null,
+				optedOut: true,
+			},
 			create: { guildId, optedOut: true },
 		});
 	},
@@ -648,8 +664,24 @@ const announcements = {
 		});
 	},
 
-	/** Guild with the oldest lastNagged (soonest to need nagging next) */
+	/**
+	 * Info needed to schedule the next nag check.
+	 * Never-nagged guilds are always "due now" and take priority over
+	 * guilds waiting out their weekly cooldown.
+	 */
 	async getNextNagDue() {
+		const neverNagged = await prisma.guildAnnouncement.findFirst({
+			where: {
+				channelId: null,
+				optedOut: false,
+				lastNagged: null,
+			},
+			select: { guildId: true },
+		});
+		if (neverNagged) {
+			return { guildId: neverNagged.guildId, lastNagged: null };
+		}
+
 		return prisma.guildAnnouncement.findFirst({
 			where: {
 				channelId: null,
