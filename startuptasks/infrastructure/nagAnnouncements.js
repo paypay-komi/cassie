@@ -6,6 +6,7 @@ const {
 const NAG_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // once per week per guild
 const MIN_DELAY_MS = 1000; // never schedule less than 1s out
 const BATCH_DELAY_MS = 500; // stagger between guilds within a batch
+const STARTUP_DELAY_MS = 30_000;
 
 module.exports = {
 	name: "nagAnnouncements",
@@ -14,9 +15,17 @@ module.exports = {
 	reloadAble: true,
 	priority: 20,
 	timer: null,
+	startupTimer: null,
+	running: false, // guards against overlapping runTask cycles
+	client: null, // remembered so recheck() can restart cleanly
 
 	async execute(client) {
 		const log = getLogger("NagAnnouncements");
+
+		// Guard against execute() being called again (reload, duplicate ready
+		// event, etc.) while a previous instance is still active.
+		this.cleanUp();
+		this.client = client;
 
 		// ── Backfill rows for guilds missing a GuildAnnouncement row ──
 		async function backfillExistingGuilds() {
@@ -54,7 +63,7 @@ module.exports = {
 			}
 		}
 
-		// ── Nag a single guild ──
+		// ── Nag a single guild. Returns the guild on success, false otherwise ──
 		async function nagGuild(row) {
 			const guild = client.guilds.cache.get(row.guildId);
 			if (!guild) return false;
@@ -76,42 +85,64 @@ module.exports = {
 						`Don't want these messages? Run \`${prefix}unsubscribe\` and I'll stop asking.`,
 					allowedMentions: { parse: [] },
 				});
-				return true;
+				return guild;
 			} catch (err) {
-				log.warn(`Nag failed for ${row.guildId}: ${err.message}`);
+				log.warn(
+					`Nag failed for ${row.guildId} (${guild.name}): ${err.message}`,
+				);
 				return false;
 			}
 		}
 
 		// ── Find & nag all due guilds, then schedule next check ──
 		const runTask = async () => {
+			if (this.running) {
+				log.warn(
+					"runTask already in progress, skipping overlapping run",
+				);
+				return;
+			}
+			this.running = true;
+
 			try {
 				const cutoff = new Date(Date.now() - NAG_INTERVAL_MS);
 				const due = await client.db.announcements.getNagDue(cutoff);
 
+				const naggedGuilds = [];
+
 				for (const row of due) {
 					const nagged = await nagGuild(row);
 					if (nagged) {
+						// Awaited before moving on so a subsequent cycle
+						// (or a restart) can't re-select this guild.
 						await client.db.announcements.markNagged(row.guildId);
+						naggedGuilds.push(nagged);
 					}
 					await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
 				}
 
-				if (due.length > 0) {
-					log.info(`Nagged ${due.length} guild(s) for announcements`);
+				if (naggedGuilds.length > 0) {
+					const names = naggedGuilds
+						.map((g) => `${g.name} (${g.id})`)
+						.join(", ");
+					log.info(
+						`Nagged ${naggedGuilds.length} guild(s): ${names}`,
+					);
 				}
 			} catch (err) {
 				log.error("Nag cycle error:", err);
+			} finally {
+				this.running = false;
 			}
 
 			scheduleNext();
 		};
 
 		// ── Schedule next check at the exact time the next guild needs nagging ──
-		function scheduleNext() {
-			if (module.exports.timer) {
-				clearTimeout(module.exports.timer);
-				module.exports.timer = null;
+		const scheduleNext = () => {
+			if (this.timer) {
+				clearTimeout(this.timer);
+				this.timer = null;
 			}
 
 			client.db.announcements
@@ -119,33 +150,43 @@ module.exports = {
 				.then((next) => {
 					let delay;
 
-					if (next?.lastNagged) {
-						delay =
-							new Date(next.lastNagged).getTime() +
-							NAG_INTERVAL_MS -
-							Date.now();
+					if (next) {
+						if (next.lastNagged) {
+							delay =
+								new Date(next.lastNagged).getTime() +
+								NAG_INTERVAL_MS -
+								Date.now();
+						} else {
+							// Never nagged before — due immediately, not in
+							// a full week.
+							delay = MIN_DELAY_MS;
+						}
 					}
 
 					if (!delay || delay < MIN_DELAY_MS) {
-						delay = NAG_INTERVAL_MS;
+						delay = Math.max(
+							delay ?? NAG_INTERVAL_MS,
+							MIN_DELAY_MS,
+						);
 					}
 
-					module.exports.timer = setTimeout(runTask, delay);
+					this.timer = setTimeout(runTask, delay);
 					log.info(
 						`Next announcement nag in ${Math.round(delay / 1000 / 60)}m`,
 					);
 				})
 				.catch((err) => {
 					log.error("scheduleNext error:", err);
-					module.exports.timer = setTimeout(runTask, NAG_INTERVAL_MS);
+					this.timer = setTimeout(runTask, NAG_INTERVAL_MS);
 				});
-		}
+		};
 
 		// ── Startup: backfill then kick off first cycle ──
-		setTimeout(async () => {
+		this.startupTimer = setTimeout(async () => {
+			this.startupTimer = null;
 			await backfillExistingGuilds();
 			runTask();
-		}, 30_000);
+		}, STARTUP_DELAY_MS);
 
 		log.info("✅ Announcement nag system started (smart scheduling)");
 	},
@@ -155,10 +196,22 @@ module.exports = {
 			clearTimeout(this.timer);
 			this.timer = null;
 		}
+		if (this.startupTimer) {
+			clearTimeout(this.startupTimer);
+			this.startupTimer = null;
+		}
+		this.running = false;
 	},
 
 	recheck() {
+		const client = this.client;
 		this.cleanUp();
-		this.execute();
+		if (!client) {
+			getLogger("NagAnnouncements").warn(
+				"recheck() called before execute() has set a client; ignoring",
+			);
+			return;
+		}
+		this.execute(client);
 	},
 };
