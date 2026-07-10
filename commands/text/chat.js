@@ -73,7 +73,7 @@ module.exports = {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					model: "llama3.1:latest",
+					model: "gemma4-heretic:latest  ",
 					keep_alive: "0s",
 					messages: convo,
 					stream: true,
