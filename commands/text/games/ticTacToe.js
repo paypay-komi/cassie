@@ -7,6 +7,11 @@ const {
 	MessageFlags,
 } = require("discord.js");
 
+// centralized emoji vars so we only have to change these in one place
+const EMPTY_SQUARE = "\u2B1B"; // black square, unplaced tile
+const X_SYMBOL = "✖️";
+const O_SYMBOL = "⭕";
+
 class TicTacToe {
 	constructor(player1, player2, channel) {
 		this.board = [
@@ -30,7 +35,7 @@ class TicTacToe {
 		const createButton = (r, c) =>
 			new ButtonBuilder()
 				.setCustomId(`${prefix}-${r},${c}`)
-				.setLabel("\u2B1B") // black square
+				.setLabel(EMPTY_SQUARE)
 				.setStyle(ButtonStyle.Secondary);
 
 		const row1 = new ActionRowBuilder().addComponents(
@@ -111,7 +116,7 @@ class TicTacToe {
 
 			// Set X/O emoji
 			const symbol =
-				this.currentPlayer.id === this.player1.id ? "❌" : "⭕";
+				this.currentPlayer.id === this.player1.id ? X_SYMBOL : O_SYMBOL;
 			this.board[row][col] = symbol;
 			this.buttons[row].components[col]
 				.setLabel(symbol)
@@ -274,7 +279,7 @@ class TicTacToe {
 				val === this.board[b[0]][b[1]] &&
 				val === this.board[c[0]][c[1]]
 			) {
-				return val; // return winning symbol ❌ or ⭕
+				return val; // return winning symbol
 			}
 		}
 		return null;
@@ -292,14 +297,14 @@ class TicTacToe {
 		if (!bestMove) return;
 
 		const { row, col } = bestMove;
-		this.board[row][col] = "⭕";
-		this.buttons[row].components[col].setLabel("⭕").setDisabled(true);
+		this.board[row][col] = O_SYMBOL;
+		this.buttons[row].components[col].setLabel(O_SYMBOL).setDisabled(true);
 
 		const winner = this.checkWin();
 		if (winner) {
 			this.gameOver = true;
 			await this.gameMessage.edit({
-				content: `${this.player2} (⭕) wins!`,
+				content: `${this.player2} (${O_SYMBOL}) wins!`,
 				components: this.buttons,
 			});
 			return;
@@ -328,7 +333,7 @@ class TicTacToe {
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
 				if (this.board[i][j] === " ") {
-					this.board[i][j] = "⭕";
+					this.board[i][j] = O_SYMBOL;
 					const score = this.minimax(0, false);
 					this.board[i][j] = " ";
 					moves.push({ row: i, col: j, score });
@@ -353,7 +358,7 @@ class TicTacToe {
 		for (let i = 0; i < 3; i++) {
 			for (let j = 0; j < 3; j++) {
 				if (this.board[i][j] === " ") {
-					this.board[i][j] = "⭕";
+					this.board[i][j] = O_SYMBOL;
 					const moveVal = this.minimax(0, false);
 					this.board[i][j] = " ";
 					if (moveVal > bestVal) {
@@ -369,8 +374,8 @@ class TicTacToe {
 
 	minimax(depth, isMax) {
 		const winner = this.checkWin();
-		if (winner === "⭕") return 10 - depth;
-		if (winner === "❌") return depth - 10;
+		if (winner === O_SYMBOL) return 10 - depth;
+		if (winner === X_SYMBOL) return depth - 10;
 		if (this.checkDraw()) return 0;
 
 		if (isMax) {
@@ -378,7 +383,7 @@ class TicTacToe {
 			for (let i = 0; i < 3; i++) {
 				for (let j = 0; j < 3; j++) {
 					if (this.board[i][j] === " ") {
-						this.board[i][j] = "⭕";
+						this.board[i][j] = O_SYMBOL;
 						best = Math.max(best, this.minimax(depth + 1, false));
 						this.board[i][j] = " ";
 					}
@@ -390,7 +395,7 @@ class TicTacToe {
 			for (let i = 0; i < 3; i++) {
 				for (let j = 0; j < 3; j++) {
 					if (this.board[i][j] === " ") {
-						this.board[i][j] = "❌";
+						this.board[i][j] = X_SYMBOL;
 						best = Math.min(best, this.minimax(depth + 1, true));
 						this.board[i][j] = " ";
 					}
@@ -404,7 +409,10 @@ module.exports = {
 	commandId: "7b5a5d8e-581c-446b-970b-a036cadc44aa",
 	name: "tic-tac-toe",
 	description: "Play a game of tic-tac-toe against another user or me!",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 	aliases: ["ttt", "tictactoe", "tic-tac-toe"],
 	parent: "games",
 
