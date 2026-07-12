@@ -96,11 +96,17 @@ function resolveNested(command, args) {
 async function checkPermissions(command, client, message) {
 	let node = command;
 
-	const isGuild = message.inGuild();
+	// IMPORTANT: don't rely on message.inGuild() here. For text-command messages
+	// synthesized from user-installed app slash interactions, `guildId` can be
+	// set (Discord tells us which guild the interaction happened in) even when
+	// the bot is NOT a member of that guild and can't resolve `message.guild`.
+	// inGuild() only checks guildId !== null, so it would report `true` while
+	// message.guild is still null — checking message.guild directly avoids that.
+	const isGuild = Boolean(message.guild);
 	const isGuildOwner =
 		isGuild && message.author?.id === message.guild?.ownerId;
 
-	// SAFE: only fetch member in guilds
+	// SAFE: only fetch member in guilds we actually have a resolved guild for
 	const clientMember = isGuild ? await message.guild.members.fetchMe() : null;
 
 	while (node) {
@@ -126,7 +132,7 @@ async function checkPermissions(command, client, message) {
 
 		// Required bot permissions
 		if (node.requiredBotPermissions?.length) {
-			if (!isGuild) return true; // DMs bypass permissions safely
+			if (!isGuild) return true; // DMs / uncached guilds bypass permissions safely
 
 			const missing = [];
 
@@ -151,7 +157,7 @@ async function checkPermissions(command, client, message) {
 
 		// Required user permissions
 		if (node.requiredUserPermissions?.length) {
-			if (!isGuild) return true; // DMs bypass permissions safely
+			if (!isGuild) return true; // DMs / uncached guilds bypass permissions safely
 
 			const missing = [];
 
@@ -190,16 +196,18 @@ async function handleUseLocation(command, client, message, args) {
 	const orginalNode = command;
 	let node = command;
 
+	// Same reasoning as in checkPermissions: use message.guild rather than
+	// message.inGuild(), since inGuild() can be true (guildId set) while
+	// message.guild is null for user-installed app commands run in guilds
+	// the bot isn't a member of.
+	const isGuild = Boolean(message.guild);
+
 	while (node) {
-		if (Object.hasOwn(node, "dmUse") && !node.dmUse && !message.inGuild()) {
+		if (Object.hasOwn(node, "dmUse") && !node.dmUse && !isGuild) {
 			message.reply("this command must be used in a server");
 			return false;
 		}
-		if (
-			Object.hasOwn(node, "guildUse") &&
-			!node.guildUse &&
-			message.inGuild()
-		) {
+		if (Object.hasOwn(node, "guildUse") && !node.guildUse && isGuild) {
 			try {
 				await message.reply({
 					content: `This command (\`${orginalNode.name}\`) only works in DMs. sending you a dm (it first sends a copy of your message as some commands need the message content) `,
@@ -317,7 +325,13 @@ module.exports = {
 		// Restrictions (disabled/deny overrides)
 		// ---------------------------
 		const cmdIdForLog = finalCommand.commandId;
-		if (message.inGuild() && cmdIdForLog) {
+
+		// Use message.guild (resolved) rather than message.inGuild() (guildId
+		// presence only) — user-installed app commands can carry a guildId for
+		// a guild the bot has no cached/resolvable access to, which would make
+		// message.guild.ownerId below throw the same "reading 'members'"-style
+		// null access bug we fixed in checkPermissions.
+		if (message.guild && cmdIdForLog) {
 			const isGuildOwner = message.author.id === message.guild.ownerId;
 
 			if (isGuildOwner) {
