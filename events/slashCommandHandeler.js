@@ -1,5 +1,9 @@
 const { getLogger } = require("../lib/logger");
-const { buildFakeMessage, extractArgs, buildContent } = require("../lib/slashAdapter");
+const {
+	buildFakeMessage,
+	extractArgs,
+	buildContent,
+} = require("../lib/slashAdapter");
 const { getAllCommandNames } = require("../lib/commandResolver");
 
 // ── Reuse text command permission/location helpers ──
@@ -9,7 +13,12 @@ const {
 } = require("./textCommandHandeler");
 
 async function checkPermissions(cmd, interaction, client) {
-	const isGuild = interaction.inGuild();
+	// IMPORTANT: use interaction.guild, not interaction.inGuild(). inGuild()
+	// only reflects whether guildId is set — for user-installed app commands
+	// run in a guild the bot isn't a member of, guildId can be present while
+	// interaction.guild is still null, which would make interaction.guild.ownerId
+	// below throw.
+	const isGuild = Boolean(interaction.guild);
 	const isGuildOwner =
 		isGuild && interaction.user.id === interaction.guild.ownerId;
 
@@ -19,10 +28,14 @@ async function checkPermissions(cmd, interaction, client) {
 		// Guild owner only
 		if (node.guildOwnerOnly && !isGuildOwner) {
 			if (!isGuild) {
-				await interaction.reply("This command can only be used in a server.");
+				await interaction.reply(
+					"This command can only be used in a server.",
+				);
 				return false;
 			}
-			await interaction.reply("Only the server owner can use this command.");
+			await interaction.reply(
+				"Only the server owner can use this command.",
+			);
 			return false;
 		}
 
@@ -32,7 +45,9 @@ async function checkPermissions(cmd, interaction, client) {
 			client.owners?.length &&
 			!client.owners.includes(interaction.user.id)
 		) {
-			await interaction.reply("This command can only be used by bot owners.");
+			await interaction.reply(
+				"This command can only be used by bot owners.",
+			);
 			return false;
 		}
 
@@ -43,7 +58,10 @@ async function checkPermissions(cmd, interaction, client) {
 }
 
 async function checkRestrictions(cmd, interaction) {
-	if (!interaction.inGuild() || !cmd.commandId) return true;
+	// Same fix: check interaction.guild (resolved) instead of
+	// interaction.inGuild() (guildId presence only) before dereferencing
+	// interaction.guild.ownerId.
+	if (!interaction.guild || !cmd.commandId) return true;
 
 	const isGuildOwner = interaction.user.id === interaction.guild.ownerId;
 	if (isGuildOwner) return true;
@@ -63,13 +81,14 @@ async function checkRestrictions(cmd, interaction) {
 		let reason = null;
 		while (restrictNode) {
 			if (restrictNode.commandId) {
-				const src = await interaction.client.db.settings.getDisableSource(
-					interaction.guildId,
-					interaction.channelId,
-					interaction.user.id,
-					roleIds,
-					restrictNode.commandId,
-				);
+				const src =
+					await interaction.client.db.settings.getDisableSource(
+						interaction.guildId,
+						interaction.channelId,
+						interaction.user.id,
+						roleIds,
+						restrictNode.commandId,
+					);
 				if (src) {
 					reason = src;
 					break;
@@ -83,10 +102,11 @@ async function checkRestrictions(cmd, interaction) {
 
 			// If restricted, check if the command is allowed in other channels
 			try {
-				const allowedChIds = await interaction.client.db.settings.getChannelAllowLocations(
-					interaction.guildId,
-					cmd.commandId,
-				);
+				const allowedChIds =
+					await interaction.client.db.settings.getChannelAllowLocations(
+						interaction.guildId,
+						cmd.commandId,
+					);
 				if (allowedChIds.length > 0) {
 					const guild = interaction.guild;
 					const mentions = allowedChIds
@@ -97,7 +117,9 @@ async function checkRestrictions(cmd, interaction) {
 						msg += ` ✅ Allowed in: ${mentions.join(", ")}`;
 					}
 				}
-			} catch { /* non-fatal */ }
+			} catch {
+				/* non-fatal */
+			}
 
 			if (interaction.deferred) {
 				await interaction.editReply(msg);
@@ -144,7 +166,9 @@ async function handleTextDerivedSlash(interaction, textCmd, client) {
 		fakeMessage = await buildFakeMessage(interaction);
 	} catch (err) {
 		log.error(`Failed to build fake message for /${cmdPath}:`, err);
-		await interaction.editReply("An error occurred setting up the command.").catch(() => {});
+		await interaction
+			.editReply("An error occurred setting up the command.")
+			.catch(() => {});
 		return;
 	}
 
@@ -152,7 +176,11 @@ async function handleTextDerivedSlash(interaction, textCmd, client) {
 	const args = extractArgs(interaction, textCmd);
 
 	// ── Reconstruct message content ──
-	fakeMessage.content = buildContent(interaction.commandName, args, group ? [group] : []);
+	fakeMessage.content = buildContent(
+		interaction.commandName,
+		args,
+		group ? [group] : [],
+	);
 
 	// ── Run text-command permission/location checks ──
 	try {
@@ -160,7 +188,9 @@ async function handleTextDerivedSlash(interaction, textCmd, client) {
 		if (!(await checkTextPermissions(textCmd, client, fakeMessage))) return;
 	} catch (err) {
 		log.error(`Permission check error for /${cmdPath}:`, err);
-		await interaction.editReply("An error occurred checking permissions.").catch(() => {});
+		await interaction
+			.editReply("An error occurred checking permissions.")
+			.catch(() => {});
 		return;
 	}
 
@@ -177,7 +207,7 @@ async function handleTextDerivedSlash(interaction, textCmd, client) {
 		await textCmd.execute(fakeMessage, args);
 
 		// ── Track stats (mirrors textCommandHandeler behavior) ──
-		if (interaction.inGuild()) {
+		if (interaction.guild) {
 			await client.db.stats.incrementUserCommand(
 				interaction.guildId,
 				interaction.user.id,
@@ -191,7 +221,9 @@ async function handleTextDerivedSlash(interaction, textCmd, client) {
 		await client.db.stats.incrementGlobalCommand(statPath);
 	} catch (err) {
 		log.error(`Error executing /${cmdPath}:`, err);
-		await interaction.editReply("There was an error executing that command.").catch(() => {});
+		await interaction
+			.editReply("There was an error executing that command.")
+			.catch(() => {});
 	}
 }
 
@@ -245,10 +277,11 @@ module.exports = {
 
 		const commandName = interaction.commandName;
 
-	// ── 1. Check manual slash commands (from commands/slash/) ──
+		// ── 1. Check manual slash commands (from commands/slash/) ──
 		const manualCmd = client.slashCommands?.get(commandName);
 		if (manualCmd) {
-			if (!(await checkPermissions(manualCmd, interaction, client))) return;
+			if (!(await checkPermissions(manualCmd, interaction, client)))
+				return;
 			if (!(await checkRestrictions(manualCmd, interaction))) return;
 
 			try {
@@ -257,7 +290,9 @@ module.exports = {
 				const log = getLogger("SlashCmd");
 				log.error(`Error executing /${commandName}:`, e);
 				if (!interaction.replied && !interaction.deferred) {
-					await interaction.reply("Error executing command.").catch(() => {});
+					await interaction
+						.reply("Error executing command.")
+						.catch(() => {});
 				}
 			}
 			return;
