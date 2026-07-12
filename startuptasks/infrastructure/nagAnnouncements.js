@@ -94,7 +94,6 @@ module.exports = {
 			}
 		}
 
-		// ── Find & nag all due guilds, then schedule next check ──
 		const runTask = async () => {
 			if (this.running) {
 				log.warn(
@@ -109,15 +108,23 @@ module.exports = {
 				const due = await client.db.announcements.getNagDue(cutoff);
 
 				const naggedGuilds = [];
+				const failedCount = { n: 0 };
 
 				for (const row of due) {
 					const nagged = await nagGuild(row);
+
+					// Record the attempt either way — otherwise a guild we can
+					// never successfully nag (missing perms, deleted channel,
+					// etc.) gets retried every single cycle forever instead of
+					// backing off like a normal nag.
+					await client.db.announcements.markNagged(row.guildId);
+
 					if (nagged) {
-						// Awaited before moving on so a subsequent cycle
-						// (or a restart) can't re-select this guild.
-						await client.db.announcements.markNagged(row.guildId);
 						naggedGuilds.push(nagged);
+					} else {
+						failedCount.n++;
 					}
+
 					await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
 				}
 
@@ -127,6 +134,11 @@ module.exports = {
 						.join(", ");
 					log.info(
 						`Nagged ${naggedGuilds.length} guild(s): ${names}`,
+					);
+				}
+				if (failedCount.n > 0) {
+					log.info(
+						`${failedCount.n} guild(s) were due but could not be nagged (will retry in ~1 week)`,
 					);
 				}
 			} catch (err) {
