@@ -1,7 +1,9 @@
+const { User, messageLink } = require("discord.js");
 const prisma = require("../prisma/client");
+const parseTime = require("../utils/parseTime");
 
 const MAX_BALANCE = 2_147_483_647;
-
+const voteStreakBonus = 1000;
 /**
  * @param {import("discord.js").Snowflake} guildId
  * @returns {Promise<import('../generated/prisma/client').GuildEconomy>}
@@ -346,7 +348,49 @@ async function claimDaily(guildId, userId) {
 		message: `Claimed ${amount}`,
 	};
 }
-
+/**
+ * @param {import("discord.js").Snowflake} guildId
+ * @param {import("discord.js").Snowflake} user
+ */
+async function claimVoteStreakReward(guildId, userId) {
+	const voteStreak = await prisma.dblVote.findUnique({
+		where: { userId: user.id },
+	});
+	if (!voteStreak) {
+		return {
+			success: false,
+			message: "You have no votes. Vote to get a vote streak reward c:",
+		};
+	}
+	if (voteStreak.voteStreak == 0) {
+		return {
+			success: false,
+			message:
+				"Sorry!!!. Your Vote streak expired. Vote again to get a vote streak reward c:",
+		};
+	}
+	if (
+		Date.now() - voteStreak.lastClaimedReward.getTime() >
+		parseTime("12h")
+	) {
+		return {
+			success: false,
+			message:
+				"Sorry!!!. You already Claimed Your Reward for this vote Period ",
+		};
+	}
+	await addBalance(
+		guildId,
+		userId,
+		voteStreakBonus * voteStreak.voteStreak,
+		"claimed vote Streak",
+		"Calimed vote streak",
+	);
+	return {
+		success: true,
+		message: `You have claimed ${voteStreak.voteStreak * voteStreakBonus}`,
+	};
+}
 /**
  * @param {import("discord.js").Snowflake} guildId
  * @param {import("discord.js").Snowflake} userId
@@ -387,7 +431,9 @@ async function doWork(guildId, userId) {
 	}
 	streak += 1;
 
-	const base = Math.floor(Math.random() * (config.workMax - config.workMin + 1)) + config.workMin;
+	const base =
+		Math.floor(Math.random() * (config.workMax - config.workMin + 1)) +
+		config.workMin;
 	const bonus = streak * config.workStreakBonus;
 	const amount = base + bonus;
 
@@ -412,7 +458,13 @@ async function doWork(guildId, userId) {
 	);
 
 	const cooldownEnd = new Date(now.getTime() + config.workCooldown * 1000);
-	return { amount, streak, bonus, cooldownEnd, message: `You worked and earned ${amount}` };
+	return {
+		amount,
+		streak,
+		bonus,
+		cooldownEnd,
+		message: `You worked and earned ${amount}`,
+	};
 }
 
 /**
