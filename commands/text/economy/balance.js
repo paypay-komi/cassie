@@ -1,8 +1,11 @@
-const { ContainerBuilder, TextDisplayBuilder, MessageFlags } = require("discord.js");
+const {
+	ContainerBuilder,
+	TextDisplayBuilder,
+	MessageFlags,
+} = require("discord.js");
 
 module.exports = {
-
-commandId: "da755842-de42-4232-80e3-5cfb6dd8798e",
+	commandId: "da755842-de42-4232-80e3-5cfb6dd8798e",
 	name: "balance",
 	aliases: ["bal"],
 	description: "View your or another user's balance.",
@@ -19,17 +22,20 @@ commandId: "da755842-de42-4232-80e3-5cfb6dd8798e",
 			econ.getRank(guildId, userId),
 		]);
 
-		const name = balance === 1 ? config.currencyName : config.currencyNamePlural;
+		const name =
+			balance === 1 ? config.currencyName : config.currencyNamePlural;
 		const sym = config.currencySymbol;
 		const rankStr = rank ? ` (#${rank})` : "";
 
-		const container = new ContainerBuilder()
-			.addTextDisplayComponents(
-				new TextDisplayBuilder().setContent(
-					`**${target.displayName}**${rankStr}\n${sym} **${balance.toLocaleString()}** ${name}`
-				),
-			);
+		const container = new ContainerBuilder().addTextDisplayComponents(
+			new TextDisplayBuilder().setContent(
+				`**${target.displayName}**${rankStr}\n${sym} **${balance.toLocaleString()}** ${name}`,
+			),
+		);
 
-		message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
+		message.reply({
+			components: [container],
+			flags: MessageFlags.IsComponentsV2,
+		});
 	},
 };
