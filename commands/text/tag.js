@@ -8,6 +8,12 @@ commandId: "9d0b8ce5-bb87-42a4-bd84-ac47b288ceb8",
 	aliases: ["tags"],
 	guildOwnerOnly: true,
 	dmUse: false,
+	category: {
+		name: "Social",
+		emoji: "💬",
+		description: "Community features and interactions.",
+		order: 60,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 	],

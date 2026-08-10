@@ -7,5 +7,11 @@ commandId: "2ee4f576-a337-492b-a62f-0091a1799890",
 	description: "Manage command access and restrictions for this server.",
 	guildOwnerOnly: true,
 	dmUse: false,
+	category: {
+		name: "Moderation",
+		emoji: "🛡️",
+		description: "Server management and administration.",
+		order: 20,
+	},
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
 };

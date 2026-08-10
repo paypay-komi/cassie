@@ -11,7 +11,11 @@ module.exports = {
 		"hares",
 		"bunnys",
 	],
-	description: "main command for bunny gif or image",
+	description: "View adorable bunny images and GIFs.",
 
 	parent: "animal",
+
+	usage: "{prefix}animal bunny",
+
+	examples: ["{prefix}animal bunny", "{prefix}animal rabbit"],
 };

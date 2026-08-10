@@ -7,6 +7,12 @@ commandId: "f7b2c1a4-3d8e-4f0a-9b6c-7d5e1f2a3b4c",
 	aliases: ["invitestat", "istats"],
 	description: "Show invite link click counts grouped by referral source.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 	],

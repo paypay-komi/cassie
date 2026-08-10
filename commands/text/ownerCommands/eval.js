@@ -100,8 +100,14 @@ module.exports = {
 	commandId: "5d9cda2c-31e5-4af5-9e93-7dc817af7582",
 	name: "eval",
 	aliases: ["ev"],
-	description: "Owner-only eval (safe VM REPL + file support)",
+	description: "Owner-only eval (safe VM REPL + file support).",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,

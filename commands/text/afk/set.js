@@ -9,6 +9,7 @@ module.exports = {
 		.string("message", { description: "AFK message" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "afk",
+	
 	async execute(message, args) {
 		await db.prisma.globalAfkUser.upsert({
 			create: {

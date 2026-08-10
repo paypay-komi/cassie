@@ -9,7 +9,13 @@ module.exports = {
 
 commandId: "efa5f934-c486-4a5a-8606-775349acda31",
 	name: "roll",
-	description: "Roll dice. Usage: c.roll [NdN] e.g. c.roll 2d6",
+	description: "Roll dice. Usage: c.roll [NdN] e.g. c.roll 2d6.",
+	category: {
+		name: "Fun",
+		emoji: "🎉",
+		description: "Fun commands, actions, and entertainment.",
+		order: 40,
+	},
 	args: ArgsBuilder.create()
 		.string("dice", { description: "Dice notation, e.g. 2d6" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks, PermissionsBitField.Flags.AttachFiles],

@@ -22,6 +22,12 @@ module.exports = {
 	commandId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
 	name: "bf",
 	description: "Run a Brainfuck program.",
+	category: {
+		name: "Fun",
+		emoji: "🎉",
+		description: "Fun commands, actions, and entertainment.",
+		order: 40,
+	},
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
 	aliases: ["brainfuck"],
 

@@ -6,7 +6,13 @@ module.exports = {
 
 commandId: "44cb174d-20ee-48e4-90d8-3adad8a91a9a",
 	name: "mydata",
-	description: "Export all user data from Postgres as JSON.",
+	description: "Export all your user data from the bot as JSON.",
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,

@@ -1,6 +1,7 @@
 const { User, messageLink } = require("discord.js");
 const prisma = require("../prisma/client");
 const parseTime = require("../utils/parseTime");
+const stream = require("stream");
 
 const MAX_BALANCE = 2_147_483_647;
 const voteStreakBonus = 1000;
@@ -354,27 +355,33 @@ async function claimDaily(guildId, userId) {
  */
 async function claimVoteStreakReward(guildId, userId) {
 	const voteStreak = await prisma.dblVote.findUnique({
-		where: { userId: user.id },
+		where: { userId: userId },
 	});
 	if (!voteStreak) {
 		return {
 			success: false,
+			amount: null,
+			streak: null,
 			message: "You have no votes. Vote to get a vote streak reward c:",
 		};
 	}
 	if (voteStreak.voteStreak == 0) {
 		return {
 			success: false,
+			amount: null,
+			streak: null,
 			message:
 				"Sorry!!!. Your Vote streak expired. Vote again to get a vote streak reward c:",
 		};
 	}
 	if (
-		Date.now() - voteStreak.lastClaimedReward.getTime() >
+		Date.now() - voteStreak.lastClaimedReward?.getTime() <
 		parseTime("12h")
 	) {
 		return {
 			success: false,
+			amount: null,
+			streak: null,
 			message:
 				"Sorry!!!. You already Claimed Your Reward for this vote Period ",
 		};
@@ -386,8 +393,14 @@ async function claimVoteStreakReward(guildId, userId) {
 		"claimed vote Streak",
 		"Calimed vote streak",
 	);
+	await prisma.dblVote.update({
+		where: { userId: userId },
+		data: { lastClaimedReward: new Date() },
+	});
 	return {
 		success: true,
+		amount: voteStreak.voteStreak * voteStreakBonus,
+		streak: voteStreak.voteStreak,
 		message: `You have claimed ${voteStreak.voteStreak * voteStreakBonus}`,
 	};
 }
@@ -498,4 +511,5 @@ module.exports = {
 	canWork,
 	doWork,
 	resetGuild,
+	claimVoteStreakReward,
 };

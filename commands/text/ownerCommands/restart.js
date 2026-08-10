@@ -6,6 +6,12 @@ module.exports = {
 	aliases: ["reboot", "respawn"],
 	description: "Restart all shards.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
 
 	async execute(message) {

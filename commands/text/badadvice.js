@@ -296,8 +296,14 @@ async function getBadAdvice(userQuestion) {
 module.exports = {
 	commandId: "64743cf1-e287-4486-ada9-059864cc6af1",
 	name: "badAdvice",
-	description: "gives bad advice",
+	description: "Get intentionally terrible advice from AI.",
 	aliases: ["badidea", "ba", "bi"],
+	category: {
+		name: "AI",
+		emoji: "🧠",
+		description: "AI-powered and chat commands.",
+		order: 45,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,

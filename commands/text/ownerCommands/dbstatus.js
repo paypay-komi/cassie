@@ -14,6 +14,13 @@ commandId: "a3f8c1b7-4d62-4e9a-9c3d-5f2e8a1b7c0d",
 	aliases: ["dbsize", "databasesize"],
 	description: "Show database size breakdown by table and user.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
+	permissions: ["botOwner"],
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 	],

@@ -20,6 +20,12 @@ module.exports = {
 	name: "coinflip",
 	aliases: ["flip", "cf"],
 	description: "Flip a coin. Pick heads or tails and bet on it.",
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

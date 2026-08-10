@@ -73,7 +73,13 @@ header nav a:hover { color: var(--text); }
   text-align: center;
   padding: 40px 0 60px;
 }
-.hero img {
+.hero .banner {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+.hero img.avatar {
   width: 120px;
   height: 120px;
   border-radius: 30px;
@@ -211,7 +217,7 @@ footer .links { display: flex; gap: 16px; }
   </header>
 
   <section class="hero">
-    <img id="bot-avatar-large" src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512" alt="Cassie avatar">
+    <img class="banner" src="/site_banner.png" alt="Cassie banner">
     <h2>Your multipurpose Discord companion</h2>
     <p>Tags, reminders, AI chat, economy, idea wall with voting, games, announcements, GIF tagging, and a full web dashboard — all in one bot.</p>
     <div class="btns">

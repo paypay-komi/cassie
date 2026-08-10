@@ -8,6 +8,12 @@ module.exports = {
 	aliases: ["rts", "restartts", "tsrestart"],
 	description: "Restart Tailscale service and funnel on port 3000.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 
 	async execute(message) {
 		const log = getLogger("RestartTS");

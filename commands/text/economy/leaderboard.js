@@ -2,6 +2,7 @@ const {
 	ContainerBuilder,
 	TextDisplayBuilder,
 	MessageFlags,
+	Message,
 } = require("discord.js");
 
 function v2(text) {
@@ -20,7 +21,18 @@ module.exports = {
 	name: "leaderboard",
 	aliases: ["lb", "top"],
 	description: "View the richest users.",
-
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
+	/**
+	 *
+	 * @param {Message} message
+	 * @param {*} args
+	 * @returns
+	 */
 	async execute(message, args) {
 		const econ = message.client.db.economy;
 		const config = await econ.getConfig(message.guildId);
@@ -45,6 +57,6 @@ module.exports = {
 			return `${medal} <@${e.userId}> — ${config.currencySymbol}**${e.balance.toLocaleString()}** ${name}`;
 		});
 
-		message.reply(v2(lines.join("\n")));
+		message.reply({ ...v2(lines.join("\n")), allowedMentions: [] });
 	},
 };

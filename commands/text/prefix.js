@@ -2,6 +2,12 @@ module.exports = {
 	commandId: "460d5777-cdfd-4ed3-b858-e47cc44a6542",
 	name: "prefix",
 	description: "View or change your custom command prefix. `c.` always works.",
+	category: {
+		name: "Utility",
+		emoji: "🔧",
+		description: "Practical tools and utilities.",
+		order: 30,
+	},
 
 	async execute(message, args) {
 		if (args.length) {

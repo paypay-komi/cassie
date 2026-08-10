@@ -50,7 +50,6 @@ function getDirectChildren(cmd) {
  * Check if a command should be exposed as a slash command.
  */
 function isSlashEligible(cmd) {
-	if (cmd.name === "help") return false; // already has its own slash handler
 	if (cmd.name === "action") return false; // split into /action1–6 manually due to 25-subcommand limit
 	return true;
 }

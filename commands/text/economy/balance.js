@@ -9,6 +9,12 @@ module.exports = {
 	name: "balance",
 	aliases: ["bal"],
 	description: "View your or another user's balance.",
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

@@ -7,6 +7,12 @@ commandId: "476758aa-746b-4d16-a3a6-8dd274980a8e",
 	aliases: ["activetop", "mostactive"],
 	description: "Show the most active users by total command count.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 	],

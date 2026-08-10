@@ -26,7 +26,13 @@ module.exports = {
 
 commandId: "6075ee09-4a02-4bb3-9d4c-358e8b391fec",
 	name: "8ball",
-	description: "Ask the magic 8-ball a question",
+	description: "Ask the magic 8-ball a question.",
+	category: {
+		name: "Fun",
+		emoji: "🎉",
+		description: "Fun commands, actions, and entertainment.",
+		order: 40,
+	},
 	args: ArgsBuilder.create()
 		.string("question", { required: true, description: "Your question for the 8-ball" }),
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],

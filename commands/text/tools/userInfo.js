@@ -3,13 +3,19 @@ const { PermissionsBitField } = require("discord.js");
 module.exports = {
 	commandId: "05899a1f-29e4-414b-b3b8-f7f49cfe9241",
 	name: "userInfo",
-	description: "gets various userinfo on a user",
+	description: "Get information about a user.",
+	aliases: ["useri", "ui", "personInfo"],
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,
 	],
-	aliases: ["useri", "ui", "personInfo"],
 	dmUse: false,
+	category: {
+		name: "Utility",
+		emoji: "🔧",
+		description: "Practical tools and utilities.",
+		order: 30,
+	},
 	/**
 	 * @param {import("discord.js").Message<true>} message
 	 * @param {string[]} args

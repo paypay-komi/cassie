@@ -20,6 +20,12 @@ module.exports = {
 	name: "transactions",
 	aliases: ["tx", "history"],
 	description: "View your transaction history.",
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

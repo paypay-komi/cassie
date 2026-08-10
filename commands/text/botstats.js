@@ -37,7 +37,12 @@ module.exports = {
 		PermissionsBitField.Flags.EmbedLinks,
 	],
 
-	category: "Utility",
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 
 	async execute(message, args) {
 		const client = message.client;

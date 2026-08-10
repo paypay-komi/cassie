@@ -127,6 +127,11 @@ module.exports = {
 		});
 
 		// -----------------------------
+		// STATIC FILES
+		// -----------------------------
+		app.use(express.static(path.join(process.cwd(), "public")));
+
+		// -----------------------------
 		// BASIC ROUTES
 		// -----------------------------
 		app.get("/", async (req, res) => {

@@ -7,7 +7,12 @@ commandId: "0bfd59dd-e035-49f6-a928-f980b61f59e3",
 	name: "ping",
 	description: "Check the bot's latency.",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
-	category: "Utility",
+	category: {
+		name: "Utility",
+		emoji: "🔧",
+		description: "Practical tools and utilities.",
+		order: 30,
+	},
 	aliases: ["p"],
 	// Optional args declaration — generates typed Discord options for /ping
 	// Commands without this fall back to a generic string option.

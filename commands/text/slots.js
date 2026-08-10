@@ -7,7 +7,16 @@ const {
 	MessageFlags,
 } = require("discord.js");
 const { renderSlotGif } = require("../../utils/slotRenderer");
-
+function v2(text) {
+	return {
+		components: [
+			new ContainerBuilder().addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(text),
+			),
+		],
+		flags: MessageFlags.IsComponentsV2,
+	};
+}
 const NUKE = "💀";
 const REELS = [
 	{ sym: "🍒", weight: 30 },
@@ -107,12 +116,16 @@ function pick() {
 	return REELS[REELS.length - 1].sym;
 }
 
-
-
 module.exports = {
 	commandId: "abea06f4-75ce-41b3-bcbd-2a7a31e2ce45",
 	name: "slots",
-	description: "gambling with slots",
+	description: "Play the slot machine.",
+	category: {
+		name: "Games",
+		emoji: "🎮",
+		description: "Interactive games to play.",
+		order: 35,
+	},
 	requiredBotPermissions: [
 		PermissionsBitField.Flags.SendMessages,
 		PermissionsBitField.Flags.ReadMessageHistory,
@@ -151,27 +164,38 @@ module.exports = {
 				finalGrid[r][c] = pick();
 			}
 		}
-
 		const hits = [];
 		const nuked = [];
 		for (const line of PAYLINES) {
 			const syms = line.cells.map(([r, c]) => finalGrid[r][c]);
 			if (syms.includes(NUKE)) {
 				const filtered = syms.filter((s) => s !== NUKE);
-				if (filtered.length === 2 && filtered[0] === filtered[1] && PAYOUTS[filtered[0]]?.half) {
+				if (
+					filtered.length === 2 &&
+					filtered[0] === filtered[1] &&
+					PAYOUTS[filtered[0]]?.half
+				) {
 					nuked.push({ name: line.name, sym: filtered[0] });
 				}
 				continue;
 			}
 			if (syms.every((s) => s === syms[0])) {
-				hits.push({ name: line.name, sym: syms[0], multi: PAYOUTS[syms[0]]?.multi ?? 1 });
+				hits.push({
+					name: line.name,
+					sym: syms[0],
+					multi: PAYOUTS[syms[0]]?.multi ?? 1,
+				});
 				continue;
 			}
 			const counts = {};
 			for (const s of syms) counts[s] = (counts[s] || 0) + 1;
 			const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
 			if (best[1] === 2 && PAYOUTS[best[0]]?.half) {
-				hits.push({ name: line.name, sym: best[0], multi: PAYOUTS[best[0]].multi / PAYOUTS[best[0]].half });
+				hits.push({
+					name: line.name,
+					sym: best[0],
+					multi: PAYOUTS[best[0]].multi / PAYOUTS[best[0]].half,
+				});
 			}
 		}
 

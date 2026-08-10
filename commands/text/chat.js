@@ -182,7 +182,13 @@ function toolStatusLabel(name, args) {
 module.exports = {
 	commandId: "2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49",
 	name: "chat",
-	description: "Chat with AI (streaming, formatted, with web search)",
+	description: "Chat with AI (streaming, formatted, with web search).",
+	category: {
+		name: "AI",
+		emoji: "🧠",
+		description: "AI-powered and chat commands.",
+		order: 45,
+	},
 	args: ArgsBuilder.create().string("message", {
 		required: true,
 		description: "Message for the AI",
@@ -400,120 +406,36 @@ module.exports = {
 		const typingInterval = setInterval(() => {
 			message.channel.sendTyping().catch(() => {});
 		}, TYPING_REFRESH_INTERVAL);
+		let spinnerTimer = null; // hoisted so `finally` can always clear it
 
 		try {
 			// ==========================
-			// Tool calling phase
-			// ==========================
-
-			let toolFinished = false; // disable for now
-			let statusMsg = null; // declare above the while loop, alongside toolFinished
-			convo.push({
-				role: "system",
-				content: [
-					"Tool execution phase instructions:",
-					"",
-					"This is the part of the conversation where tools may be used.",
-					"You should use tools whenever they are needed to answer the user's request.",
-					"",
-					"If you need to use a tool:",
-					"- Output only the tool call.",
-					"- Do not provide any user-facing response content yet.",
-					"- I will automatically continue the conversation after the tool result is provided.",
-					"",
-					"If you do not need any tools:",
-					"- Do not provide any content in this step.",
-					"- End your response with blank content so the flow controller can continue.",
-					"",
-					"After tool usage is complete, you will receive another instruction telling you to provide the final response.",
-					"At that point, provide the complete answer to the user in the normal response content field.",
-				].join("\n"),
-			});
-			while (!toolFinished) {
-				const response = await ollamaRequest(convo, TOOLS, false);
-				const data = await response.json();
-				const toolCalls = data.message?.tool_calls;
-				log.debug(JSON.stringify(data, null, 2));
-				if (!toolCalls || toolCalls.length === 0) {
-					convo.push({
-						role: "assistant",
-						content: data.message?.content || "",
-					});
-					break;
-				}
-
-				convo.push(data.message);
-
-				for (const tool of toolCalls) {
-					let args;
-					try {
-						//log.debug(JSON.stringify(tool, null, 2));
-						args = tool.function.arguments;
-					} catch (e) {
-						log.error(
-							`Failed to parse tool args for ${tool.function.name}: ${tool.function.arguments}`,
-							e,
-						);
-						args = {};
-					}
-
-					const label = toolStatusLabel(tool.function.name, args);
-
-					if (!statusMsg) {
-						clearInterval(typingInterval); // real feedback now exists, stop faking typing
-						statusMsg = await message.reply(pingSafeMesage(label));
-					} else {
-						await statusMsg
-							.edit(pingSafeMesage(label))
-							.catch(() => {});
-					}
-
-					let result;
-					if (tool.function.name === "web_search") {
-						result = await webSearch(args.query);
-					} else if (tool.function.name === "calculate") {
-						result = calculate(args.expression);
-					} else {
-						result = `Unknown tool: ${tool.function.name}`;
-					}
-					log.debug(result);
-					convo.push({
-						role: "tool",
-						tool_call_id: tool.id,
-						name: tool.function.name,
-						content: result,
-					});
-				}
-			}
-
-			// ==========================
-			// Streaming final response
+			// Unified streaming loop — tool calls and the final answer all
+			// stream into ONE message. Every round (tool round or answer
+			// round) is a streamed Ollama request; we just read each round
+			// differently depending on whether it comes back with
+			// tool_calls or with real content.
 			// ==========================
 			convo.push({
 				role: "system",
 				content: [
-					"The previous assistant messages were only used internally for tool execution.",
-					"The user did not see them.",
-					"Now provide the final answer that should be shown to the user.",
-					"If you already wrote an answer earlier, repeat it here.",
-					"Do not describe tool usage unless it is relevant to the user.",
-					"you can NOT call anymore tools anymore if you need to call more tell the user to run c.chat again so you can continue but warning in the next run of you. your context doesnt keep your tool usage",
+					"Tool + response flow:",
+					"",
+					"You may call tools (web_search, calculate) whenever they would help answer the user's request.",
+					"If you call a tool, leave your visible content empty for that turn — the tool result will be added to the conversation and you will get another turn.",
+					"You may call tools across multiple turns in a row if needed.",
+					"Once you don't need any more tools, write your complete, final answer as normal visible content — this is what the user will see.",
+					"Do not describe tool usage unless it's relevant to the user.",
 				].join("\n"),
 			});
-			const streamResponse = await ollamaRequest(convo, null, true);
 
-			if (!streamResponse.body) {
-				throw new Error("No response body");
-			}
-
-			const reader = streamResponse.body.getReader();
 			const decoder = new TextDecoder();
 
-			let buffer = "";
 			let fullResponse = "";
 			let thinkingBuffer = "";
 			let lastFinalized = 0;
 			let activeMsg = null;
+			let loopDetected = false;
 
 			function splitPoint(text, limit) {
 				let idx = text.lastIndexOf("\n", limit);
@@ -551,15 +473,41 @@ module.exports = {
 				return limit;
 			}
 			function formatThinking(thinking) {
-				if (!thinking.trim()) return "";
+				const trimmed = thinking.trim();
 
-				//log.debug(thinking);
-				return "";
+				if (!trimmed) return "";
+
+				return `# Thinking\n\n${trimmed}`;
+			}
+
+			// Renders thinking tokens into their own message, headed by
+			// "# Thinking". Kept separate from updateStream() below —
+			// once real content or a tool call shows up, we stop touching
+			// this message (it's left in place as a record of the
+			// reasoning) and a brand new message is used for the outcome.
+			async function updateThinkingMsg() {
+				if (!activeMsg) {
+					clearInterval(typingInterval);
+					activeMsg = await message.reply(
+						pingSafeMesage("# Thinking"),
+					);
+				}
+
+				const text = formatThinking(thinkingBuffer);
+
+				// Thinking can run long; unlike the final answer we don't
+				// need perfect mid-word splitting across messages here —
+				// just keep the heading and show the most recent portion.
+				const display =
+					text.length > DISCORD_LIMIT
+						? `# Thinking\n\n…${text.slice(-(DISCORD_LIMIT - 20))}`
+						: text;
+
+				await activeMsg.edit(pingSafeMesage(display)).catch(() => {});
 			}
 
 			async function updateStream(isFinal = false) {
-				const displayText =
-					formatThinking(thinkingBuffer) + fullResponse;
+				const displayText = fullResponse;
 
 				const trimmed = displayText.trim();
 
@@ -600,69 +548,315 @@ module.exports = {
 				);
 			}
 
-			let lastEdit = Date.now();
-			let loopDetected = false;
-			let lastLoopCheck = 0;
+			// "Thinking…" spinner — covers the dead air while Ollama is
+			// starting up / generating first token(s) for a round. It owns
+			// activeMsg (and edits it directly) until real content starts
+			// arriving, at which point updateStream() takes over the same
+			// message. Also used as the resting state between rounds
+			// (e.g. right after a tool result is fed back in).
+			const SPINNER_FRAMES = [
+				"Thinking.",
+				"Thinking..",
+				"Thinking...",
+				"Thinking",
+			];
+			const SPINNER_INTERVAL = 1000;
+			let spinnerFrame = 0;
 
-			while (true) {
-				const { done, value } = await reader.read();
+			async function startSpinner() {
+				if (!activeMsg) {
+					clearInterval(typingInterval);
+					activeMsg = await message.reply(
+						pingSafeMesage(SPINNER_FRAMES[0]),
+					);
+				}
 
-				if (done) break;
+				if (spinnerTimer) return;
 
-				buffer += decoder.decode(value, {
-					stream: true,
-				});
+				spinnerTimer = setInterval(() => {
+					spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES.length;
+					activeMsg
+						.edit(pingSafeMesage(SPINNER_FRAMES[spinnerFrame]))
+						.catch(() => {});
+				}, SPINNER_INTERVAL);
+			}
 
-				const lines = buffer.split("\n");
-				buffer = lines.pop();
+			function stopSpinner() {
+				if (spinnerTimer) {
+					clearInterval(spinnerTimer);
+					spinnerTimer = null;
+				}
+			}
 
-				for (const line of lines) {
-					if (!line.trim()) continue;
-					//console.log(line);
-					let parsed;
+			// Caps so a misbehaving model can't loop forever: at most this
+			// many tool-calling rounds before we force a final answer, and
+			// at most this many retries of a round that comes back totally
+			// empty (no content, no tool call).
+			const MAX_TOOL_ROUNDS = 6;
+			const MAX_EMPTY_RETRIES = 2;
 
-					try {
-						parsed = JSON.parse(line);
-					} catch {
-						continue;
-					}
-					if (parsed.message?.thinking) {
-						thinkingBuffer += parsed.message.thinking;
+			let toolRoundsUsed = 0;
+			let emptyRetries = 0;
+			let toolsExhaustedNoticeSent = false;
+			let lastToolRoundContent = ""; // fallback if the final round ends up empty
 
-						const now = Date.now();
+			let finalDone = false;
 
-						if (now - lastEdit > EDIT_INTERVAL) {
-							lastEdit = now;
-							await updateStream();
+			while (!finalDone) {
+				let buffer = "";
+				thinkingBuffer = "";
+				fullResponse = "";
+				lastFinalized = 0;
+				loopDetected = false;
+				let thinkingDetached = false; // has this round's thinking message already been "handed off" to a fresh outcome message?
+
+				const toolsCapped = toolRoundsUsed >= MAX_TOOL_ROUNDS;
+
+				if (toolsCapped && !toolsExhaustedNoticeSent) {
+					toolsExhaustedNoticeSent = true;
+					convo.push({
+						role: "system",
+						content:
+							"You've used the maximum number of tool calls for this turn. Tools are now disabled — answer now using only what you already have.",
+					});
+				}
+
+				await startSpinner();
+
+				const streamResponse = await ollamaRequest(
+					convo,
+					toolsCapped ? null : TOOLS,
+					true,
+				);
+
+				if (!streamResponse.body) {
+					throw new Error("No response body");
+				}
+
+				const reader = streamResponse.body.getReader();
+
+				let lastEdit = Date.now();
+				let lastLoopCheck = 0;
+				let roundToolCalls = null;
+				let roundAssistantMessage = null;
+
+				while (true) {
+					const { done, value } = await reader.read();
+
+					if (done) break;
+
+					buffer += decoder.decode(value, {
+						stream: true,
+					});
+
+					const lines = buffer.split("\n");
+					buffer = lines.pop();
+
+					for (const line of lines) {
+						if (!line.trim()) continue;
+						//console.log(line);
+						let parsed;
+
+						try {
+							parsed = JSON.parse(line);
+						} catch {
+							continue;
 						}
-					}
-					if (parsed.message?.content) {
-						fullResponse += parsed.message.content;
 
-						if (fullResponse.length - lastLoopCheck >= 200) {
-							lastLoopCheck = fullResponse.length;
+						if (parsed.message?.tool_calls?.length) {
+							roundToolCalls = parsed.message.tool_calls;
+							roundAssistantMessage = parsed.message;
+						}
 
-							if (detectLoop(fullResponse)) {
-								reader.cancel().catch(() => {});
+						if (parsed.message?.thinking) {
+							// Stream the model's reasoning into its own
+							// "# Thinking" message — separate from
+							// whatever ends up being the round's outcome
+							// (tool status or real content).
+							stopSpinner();
 
-								loopDetected = true;
-								break;
+							thinkingBuffer += parsed.message.thinking;
+
+							const now = Date.now();
+
+							if (now - lastEdit > EDIT_INTERVAL) {
+								lastEdit = now;
+								await updateThinkingMsg();
 							}
 						}
 
-						const now = Date.now();
+						if (parsed.message?.content) {
+							// Real content is arriving now. If a thinking
+							// message was showing, leave it in place and
+							// start a brand new message for the answer —
+							// don't overwrite the reasoning with it.
+							if (!thinkingDetached && thinkingBuffer.trim()) {
+								thinkingDetached = true;
+								activeMsg = null;
+								lastFinalized = 0;
+							}
 
-						if (now - lastEdit > EDIT_INTERVAL) {
-							lastEdit = now;
+							stopSpinner();
 
-							await updateStream();
+							fullResponse += parsed.message.content;
+
+							if (fullResponse.length - lastLoopCheck >= 200) {
+								lastLoopCheck = fullResponse.length;
+
+								if (detectLoop(fullResponse)) {
+									reader.cancel().catch(() => {});
+
+									loopDetected = true;
+									break;
+								}
+							}
+
+							const now = Date.now();
+
+							if (now - lastEdit > EDIT_INTERVAL) {
+								lastEdit = now;
+
+								await updateStream();
+							}
 						}
 					}
+
+					if (loopDetected) break;
 				}
 
 				if (loopDetected) break;
-			} // Final update — ensure last chunk is displayed, force-close any trailing open fence/inline-code
-			await updateStream(true);
+
+				if (roundToolCalls && roundToolCalls.length) {
+					// This round called tool(s) instead of (or alongside)
+					// answering — run them, feed results back, and loop
+					// around for another round on the same message.
+					stopSpinner();
+
+					// If a thinking message was showing, leave it in place
+					// and let the tool-status labels below start a fresh
+					// message of their own.
+					if (!thinkingDetached && thinkingBuffer.trim()) {
+						thinkingDetached = true;
+						activeMsg = null;
+					}
+
+					if (fullResponse.trim()) {
+						lastToolRoundContent = fullResponse;
+					}
+
+					convo.push(
+						roundAssistantMessage || {
+							role: "assistant",
+							content: fullResponse,
+							tool_calls: roundToolCalls,
+						},
+					);
+
+					for (const tool of roundToolCalls) {
+						let args;
+
+						try {
+							args = tool.function.arguments;
+						} catch (e) {
+							log.error(
+								`Failed to parse tool args for ${tool.function.name}: ${tool.function.arguments}`,
+								e,
+							);
+							args = {};
+						}
+
+						const label = toolStatusLabel(tool.function.name, args);
+
+						if (!activeMsg) {
+							clearInterval(typingInterval);
+							activeMsg = await message.reply(
+								pingSafeMesage(label),
+							);
+						} else {
+							await activeMsg
+								.edit(pingSafeMesage(label))
+								.catch(() => {});
+						}
+
+						let result;
+
+						if (tool.function.name === "web_search") {
+							result = await webSearch(args.query);
+						} else if (tool.function.name === "calculate") {
+							result = calculate(args.expression);
+						} else {
+							result = `Unknown tool: ${tool.function.name}`;
+						}
+
+						log.debug(result);
+						convo.push({
+							role: "tool",
+							tool_call_id: tool.id,
+							name: tool.function.name,
+							content: result,
+						});
+					}
+
+					toolRoundsUsed++;
+
+					// Leave this round's message as-is (showing the last
+					// tool status) instead of reusing it — the next round
+					// (another tool call or the final answer) gets its own
+					// fresh "Thinking…" message.
+					activeMsg = null;
+
+					continue;
+				}
+
+				// No tool calls this round — this was meant to be the
+				// final answer.
+				if (fullResponse.trim()) {
+					finalDone = true;
+					break;
+				}
+
+				// Empty round, no tool call. Retry a few times before
+				// giving up — silently, without asking the user to run
+				// anything themselves.
+				if (emptyRetries < MAX_EMPTY_RETRIES) {
+					emptyRetries++;
+					log.warn(
+						`Empty final response on retry ${emptyRetries}/${MAX_EMPTY_RETRIES}, auto-retrying...`,
+					);
+					continue;
+				}
+
+				break;
+			}
+
+			stopSpinner();
+
+			// If the model still produced nothing after retries, fall back
+			// to the last tool round's content (if it had already written
+			// something), otherwise apologize — without asking the user to
+			// manually rerun anything.
+			if (!fullResponse.trim()) {
+				if (lastToolRoundContent.trim()) {
+					fullResponse = lastToolRoundContent;
+					await updateStream(true);
+				} else if (activeMsg) {
+					await activeMsg.edit(
+						pingSafeMesage(
+							"Sorry, I couldn't get a response together for that one.",
+						),
+					);
+				} else {
+					clearInterval(typingInterval);
+					await message.reply(
+						pingSafeMesage(
+							"Sorry, I couldn't get a response together for that one.",
+						),
+					);
+				}
+			} else {
+				// Final update — ensure last chunk is displayed, force-close any trailing open fence/inline-code
+				await updateStream(true);
+			}
 
 			if (loopDetected) {
 				await message.channel.send(
@@ -670,13 +864,15 @@ module.exports = {
 				);
 			}
 
-			await message.client.db.chatHistory.add(
-				userId,
-				"assistant",
-				fullResponse,
-				guildId,
-				channelId,
-			);
+			if (fullResponse.trim()) {
+				await message.client.db.chatHistory.add(
+					userId,
+					"assistant",
+					fullResponse,
+					guildId,
+					channelId,
+				);
+			}
 		} catch (err) {
 			log.error("Streaming error:", err);
 
@@ -689,6 +885,7 @@ module.exports = {
 			// Guarantee cleanup even if something throws before the first
 			// real edit ever fires (e.g. Ollama request itself fails).
 			clearInterval(typingInterval);
+			clearInterval(spinnerTimer);
 		}
 	},
 };

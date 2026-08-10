@@ -7,7 +7,12 @@ module.exports = {
 	name: "subscribe",
 	aliases: ["sub", "announcements"],
 	description: "Set the announcement channel for bot updates (via webhook).",
-	category: "Utility",
+	category: {
+		name: "Utility",
+		emoji: "🔧",
+		description: "Practical tools and utilities.",
+		order: 30,
+	},
 	dmUse: false,
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
 

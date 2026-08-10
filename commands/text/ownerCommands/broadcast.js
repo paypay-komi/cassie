@@ -7,6 +7,12 @@ module.exports = {
 	aliases: ["announce", "bc"],
 	description: "Send an announcement to all subscribed servers via webhook.",
 	permissions: ["botOwner"],
+	category: {
+		name: "Bot",
+		emoji: "🤖",
+		description: "Bot information and configuration.",
+		order: 10,
+	},
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages],
 
 	async execute(message, args) {

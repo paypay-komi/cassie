@@ -19,6 +19,12 @@ module.exports = {
 	commandId: "acd9cf91-fe8b-4f1f-9f27-e4508a262709",
 	name: "work",
 	description: "Work to earn some coins. Build a streak for bonuses.",
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

@@ -3,11 +3,12 @@ const {
 	TextDisplayBuilder,
 	MessageFlags,
 } = require("discord.js");
+const db = require("../../../db");
 
 module.exports = {
-	commandId: "b08aa355-54ef-4226-8ff3-476a60627380",
-	name: "daily",
-	description: "Claim your daily reward. Streaks increase the payout.",
+	commandId: "e1a4efda-c860-451a-bf3d-c59fbbe5eae8",
+	name: "ClaimVoteStreak",
+	description: "Claim your vote reward. Streaks increase the payout.",
 	category: {
 		name: "Economy",
 		emoji: "💰",
@@ -16,8 +17,8 @@ module.exports = {
 	},
 
 	async execute(message, args) {
-		const econ = message.client.db.economy;
-		const result = await econ.claimDaily(
+		const econ = db.economy;
+		const result = await econ.claimVoteStreakReward(
 			message.guildId,
 			message.author.id,
 		);
@@ -33,7 +34,7 @@ module.exports = {
 		if (result.success) {
 			text = `${sym} **${result.amount.toLocaleString()}** ${name}`;
 			if (result.streak > 1)
-				text += `\n🔥 **${result.streak}-day streak!**`;
+				text += `\n🔥 **${result.streak}-vote streak!**`;
 		} else {
 			text = result.message;
 		}

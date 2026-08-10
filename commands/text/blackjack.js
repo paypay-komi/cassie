@@ -400,8 +400,14 @@ module.exports = {
 	commandId: 'e7b3a1c9-2d5f-4b8a-9c6e-1f0d3a7b2e8c',
 	name: 'blackjack',
 	aliases: ['bj', 'twentyone', '21'],
-	description: 'Play blackjack against the dealer. Hit, stand, double, split, surrender, insurance.',
+	description: 'Play blackjack against the dealer.',
 	guildUse: true,
+	category: {
+		name: "Games",
+		emoji: "🎮",
+		description: "Interactive games to play.",
+		order: 35,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

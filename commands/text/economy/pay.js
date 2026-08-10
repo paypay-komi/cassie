@@ -20,6 +20,12 @@ module.exports = {
 	name: "pay",
 	description: "Send coins to another user. A tax may be deducted.",
 	guildUse: true,
+	category: {
+		name: "Economy",
+		emoji: "💰",
+		description: "Currency, rewards, and voting.",
+		order: 50,
+	},
 
 	async execute(message, args) {
 		const econ = message.client.db.economy;

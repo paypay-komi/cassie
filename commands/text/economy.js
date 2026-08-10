@@ -3,6 +3,12 @@ module.exports = {
 	name: "economy",
 	aliases: ["eco"],
 	description: "Economy system admin commands.",
+	category: {
+		name: "Moderation",
+		emoji: "🛡️",
+		description: "Server management and administration.",
+		order: 20,
+	},
 
 	async execute(message, args) {
 		const prefix = (await message.client.db.guild.getPrefix(message.guildId)) || "c.";

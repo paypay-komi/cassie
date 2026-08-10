@@ -2,12 +2,26 @@ const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 const { getLogger } = require("../../../../lib/logger");
 
 module.exports = {
+	commandId: "ae45368b-a68e-40fb-af15-68df92c982d2",
 
-commandId: "ae45368b-a68e-40fb-af15-68df92c982d2",
 	name: "image",
 	description: "Sends a random bunny image",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.EmbedLinks],
+
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+		PermissionsBitField.Flags.EmbedLinks
+	],
+
 	parent: "bunny",
+
+	metadata: {
+		category: "Fun",
+		emoji: "🐰",
+		featured: false,
+		hidden: false
+	},
+
 	async execute(message, args) {
 		const log = getLogger("BunnyImg");
 		let jsonData;

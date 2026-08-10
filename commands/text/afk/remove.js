@@ -6,6 +6,7 @@ module.exports = {
 	description: "removes your current afk if you have one",
 	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
 	parent: "afk",
+	
 	async execute(message, args) {
 		if (!message.client.afk.has(message.author.id)) {
 			return message.reply(
