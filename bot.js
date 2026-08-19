@@ -19,6 +19,7 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.DirectMessages, // need this
 		GatewayIntentBits.DirectMessageReactions, // optional but recommended
+		GatewayIntentBits.GuildVoiceStates,
 	],
 	partials: [Partials.Channel], // required for DMs to fire MessageCreate
 });
@@ -104,15 +105,13 @@ async function doStartupTasks() {
 
 			// Wait for client if required
 			if (task.needsReadyClient) {
-				await waitUntil(() => client.isReady(), { timeout: WAIT_FOREVER });
+				await waitUntil(() => client.isReady(), {
+					timeout: WAIT_FOREVER,
+				});
 			}
 
 			const log = getLogger("Startup");
-			if (
-				task.shard0Only &&
-				client.shard &&
-				client.shard.ids[0] !== 0
-			) {
+			if (task.shard0Only && client.shard && client.shard.ids[0] !== 0) {
 				log.info(
 					`Skipping "${task.name}" (shard 0 only, on shard ${client.shard.ids[0]})`,
 				);
