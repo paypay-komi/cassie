@@ -6,36 +6,59 @@ const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
 } = require("../../../utils/parseDateIntoDiscordTimeStamp.js");
+
 module.exports = {
 	commandId: "f3ba4e0a-7bb4-4557-85f2-6ce987589af3",
 	name: "create",
 	description: "Create a reminder",
-	requiredBotPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 	aliases: ["add", "new", "set", "make"],
 	parent: "reminders",
+
 	async execute(message, args) {
 		const log = getLogger("Reminders");
 		const userId = message.author.id;
-		const content = args.slice(0, -1).join(" ");
-		const time = args[args.length - 1];
+
+		// Time components must be at the end of the command.
+		// Examples: 10m, 2h 30m, 1d 4h 20m, 1/5h
+		const timeComponentRegex = /^(?:\d+(?:\.\d+)?|\d+\/\d+)[smhd]$/i;
+
+		let timeStart = args.length;
+
+		// Work backwards and collect all trailing time components.
+		while (timeStart > 0 && timeComponentRegex.test(args[timeStart - 1])) {
+			timeStart--;
+		}
+
+		const content = args.slice(0, timeStart).join(" ");
+		const time = args.slice(timeStart).join(" ");
 
 		if (!content || !time) {
 			return message.reply(
-				"Please provide both reminder content and time. Example: `c.reminders create Buy milk in 10m`",
+				"Please provide both reminder content and time. Example: `c.reminders create Buy milk 10h 30m`",
 			);
 		}
+
 		const reminderTime = parseTime(time);
+
 		if (!reminderTime) {
 			return message.reply(
-				"Invalid time format. Please use formats like `10m`, `2h`, or `1d`.",
+				"Invalid time format. Please use formats like `10m`, `2h`, `10h 30m`, or `1d 6h`.",
 			);
 		}
+
 		const reminderDate = new Date(Date.now() + reminderTime);
+
 		const discordTimestamp = parseDateIntoDiscordTimeStamp(
 			reminderDate,
 			discordTimeStampFormats.ShortDateTime,
 		);
-		// attempt to dm the user to confirm the reminder, if dm fails, reply in channel but warn about dms being closed
+
+		// Attempt to DM the user to confirm the reminder.
+		// If DMs fail, remind them in the channel instead.
 		let dmSuccess = true;
 
 		try {
@@ -43,12 +66,18 @@ module.exports = {
 				`You set a reminder for "${content}" at ${discordTimestamp}. I will remind you in DMs!`,
 			);
 		} catch (error) {
-			log.warn(`Could not DM user ${message.author.tag} (${message.author.id}) — DMs may be closed:`, error);
+			log.warn(
+				`Could not DM user ${message.author.tag} (${message.author.id}) — DMs may be closed:`,
+				error,
+			);
+
 			dmSuccess = false;
+
 			await message.reply(
-				`You tried to set a reminder for "${content}" at ${time}. I would love to remind you in DMs, but it seems like I can't DM you. Please check your DM settings! instead, I'll reply here when it's time to remind you.`,
+				`You tried to set a reminder for "${content}" at ${time}. I would love to remind you in DMs, but it seems like I can't DM you. Please check your DM settings! Instead, I'll reply here when it's time to remind you.`,
 			);
 		}
+
 		message.client.db.prisma.reminder
 			.create({
 				data: {
@@ -56,18 +85,21 @@ module.exports = {
 					content,
 					createdAt: new Date(),
 					remindAt: reminderDate,
-					remindInChannel: !dmSuccess, // If we can't DM the user, we'll remind them in the channel instead
-					channelId: dmSuccess ? null : message.channel.id, // If reminding in channel, save the channel ID
+					remindInChannel: !dmSuccess,
+					channelId: dmSuccess ? null : message.channel.id,
 				},
 			})
 			.then(() => {
 				message.reply(
 					`Reminder set for "${content}" at ${discordTimestamp}`,
 				);
-				setupReminderTask.recheck(message.client); // Recheck reminders to ensure the new one is scheduled at the correct time without waiting for the next interval
+
+				// Recheck reminders so the new reminder is scheduled immediately.
+				setupReminderTask.recheck(message.client);
 			})
 			.catch((error) => {
 				log.error("Error creating reminder:", error);
+
 				message.reply(
 					"Failed to create the reminder. Please try again later.",
 				);
