@@ -565,10 +565,10 @@ model GuildEconomy {
     streakResetDays  Int @default(1)
 
     // Work
-    workMin               Int @default(10)
-    workMax               Int @default(50)
-    workCooldown          Int @default(60)
-    workStreakBonus       Int @default(1)
+    workMin                 Int @default(10)
+    workMax                 Int @default(50)
+    workCooldown            Int @default(60)
+    workStreakBonus         Int @default(1)
     workStreakDecayInterval Int @default(1800)
 
     // Tax (% taken from transfers, 0–100, destroyed not collected)
@@ -612,20 +612,30 @@ model GuildEconomyUser {
 }
 
 model GuildEconomyTransaction {
-    id          String   @id @default(cuid())
-    guildId     String
+    id            String   @id @default(cuid())
+    guildId       String
     // @userid
-    userId      String
-    type        String   // daily | work | pay_in | pay_out | admin_add | admin_remove
-    amount      Int      // positive = gained, negative = lost
-    balanceAfter Int
+    userId        String
+    type          String // daily | work | pay_in | pay_out | admin_add | admin_remove
+    amount        Int // positive = gained, negative = lost
+    balanceAfter  Int
     // @userid
     relatedUserId String?
-    description  String?
-    createdAt    DateTime @default(now())
+    description   String?
+    createdAt     DateTime @default(now())
 
     user GuildEconomyUser @relation(fields: [guildId, userId], references: [guildId, userId], onDelete: Cascade)
 
     @@index([guildId, userId])
     @@index([guildId, createdAt])
+}
+
+model GuildMemberActivity {
+    guildId      String
+    // @userid
+    userId       String
+    messageCount Int    @default(0)
+    voiceSeconds Int    @default(0)
+
+    @@id([guildId, userId])
 }
