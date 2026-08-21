@@ -55,7 +55,7 @@ a:hover { text-decoration: underline; }
 <div class="wrap">
   <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: June 14, 2026</p>
+  <p class="updated">Last updated: August 20, 2026</p>
 
   <h2>1. Data Controller</h2>
   <p>Cassie ("the Bot") is operated by an individual developer. For privacy-related inquiries, contact the operator through the <a id="support-link" href="#">support server</a> or via Discord direct message. Responses will be provided within 30 days.</p>
@@ -63,7 +63,7 @@ a:hover { text-decoration: underline; }
   <h2>2. Lawful Basis for Processing</h2>
   <p>We process your personal data under the following lawful bases as defined in Article 6 of the GDPR:</p>
   <ul>
-    <li><strong>Legitimate Interest (Article 6(1)(f))</strong> &mdash; for core Bot functionality: storing guild settings, tags, reminders, todo lists, AFK status, command overrides, and command usage statistics. This processing is necessary to provide the service you intentionally use, and it does not override your fundamental rights and freedoms.</li>
+    <li><strong>Legitimate Interest (Article 6(1)(f))</strong> &mdash; for core Bot functionality: storing guild settings, tags, reminders, todo lists, AFK status, command overrides, command usage statistics, and member activity statistics. This processing is necessary to provide the service you intentionally use, and it does not override your fundamental rights and freedoms.</li>
     <li><strong>Consent (Article 6(1)(a))</strong> &mdash; for AI chat history and message content used by AI features. You provide consent by actively using these features. You may withdraw consent at any time by ceasing to use AI features or requesting deletion of your data.</li>
     <li><strong>Legal Obligation (Article 6(1)(c))</strong> &mdash; where we are required to retain or disclose data by applicable law (e.g., reporting illegal content to authorities).</li>
   </ul>
@@ -76,6 +76,7 @@ a:hover { text-decoration: underline; }
     <li><strong>Discord Channel ID</strong> &mdash; used for channel-specific command overrides and settings.</li>
     <li><strong>Discord Role ID</strong> &mdash; used for role-based command overrides.</li>
     <li><strong>Command Usage Data</strong> &mdash; we record which command was used, in which server, by whom, and when. This is used for statistics and diagnostics.</li>
+    <li><strong>Member Activity Statistics</strong> &mdash; for each server you are in, we keep a per-member count of messages sent and a cumulative total of time spent in voice channels. We only store these numeric counters tied to your Discord User ID and the server's ID. We do <strong>not</strong> store message content, voice audio, or recordings for this purpose, and bot accounts are excluded. This data is used solely to determine eligibility for automatic activity-based roles (see Section 5); it is not used to improve the Bot.</li>
     <li><strong>Message Content</strong> &mdash; when you use AI/chat features, the messages you send are stored to provide conversational context. Retained until you request deletion.</li>
     <li><strong>User-Created Content</strong> &mdash; tags, reminders, and todo list items you create are stored so they can be retrieved later.</li>
     <li><strong>AFK Status</strong> &mdash; your AFK message is stored to notify others when you are away.</li>
@@ -97,13 +98,14 @@ a:hover { text-decoration: underline; }
     <li>Remembering your custom prefix, reminders, tags, and todo lists</li>
     <li>Enforcing command restrictions (disable/enable per server, channel, role, or user)</li>
     <li>Displaying statistics on the web dashboard</li>
-    <li>Improving the Bot based on usage patterns (aggregated, not individual)</li>
+    <li>Automatically granting activity-based roles (such as @Trusted or @Verified) when you meet thresholds configured by your server's administrators &mdash; for example, a set number of messages, hours spent in voice chat, or days of server membership &mdash; without manual staff review. Server administrators can disable or fully configure this feature.</li>
+    <li>Improving the Bot based on aggregated command usage patterns (not individual profiles). Member activity statistics are not used for this purpose.</li>
   </ul>
 
   <h2>6. Data Storage &amp; Retention</h2>
   <p>All data is stored in a PostgreSQL database on the same machine running the Bot. We retain data for as long as it is needed to provide the Bot's functionality:</p>
   <ul>
-    <li><strong>Guild settings, tags, reminders, todo lists, time capsules, AFK status, command overrides, command usage statistics, announcement preferences</strong> &mdash; retained indefinitely until you request deletion or remove the Bot from your server.</li>
+    <li><strong>Guild settings, tags, reminders, todo lists, time capsules, AFK status, command overrides, command usage statistics, member activity statistics, announcement preferences</strong> &mdash; retained indefinitely until you request deletion or remove the Bot from your server.</li>
     <li><strong>Web dashboard session cookies</strong> &mdash; retained for up to 7 days of inactivity, or deleted on logout.</li>
   </ul>
   <p>You may request deletion of your data at any time (see Section 11). Data needed for ongoing investigations (e.g., reported illegal content) may be retained longer until the matter is resolved.</p>
