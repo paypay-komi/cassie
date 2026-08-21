@@ -639,3 +639,17 @@ model GuildMemberActivity {
 
     @@id([guildId, userId])
 }
+
+model GuildMemberRoleRequirement {
+    id         String @id @default(cuid())
+    guildId    String
+    roleId     String
+    expression Json
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([guildId, roleId])
+    @@index([guildId])
+    @@index([roleId])
+}
