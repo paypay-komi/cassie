@@ -1,0 +1,11 @@
+.env
+.env
+.tunnel-state.json
+.history/*
+.vscode/*
+backups/*
+generated/*
+node_modules/*
+public/*
+config.json
+start-bot.ps1
