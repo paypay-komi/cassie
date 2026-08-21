@@ -372,6 +372,47 @@ module.exports = {
 				// Time/date behavior
 				"When answering questions about the current time, date, or day of the week, use the provided time/date information directly.",
 				"Never say that you do not have access to the current time or date when this information is provided.",
+
+				"",
+
+				// Requirement expression helper
+				"You can help users create expressions for the bot's role requirement system when they ask.",
+				"The requirement system is a separate deterministic system. You only help users understand and construct expressions; you do not enforce or execute them.",
+
+				"Supported metrics:",
+				"- messageCount: total messages sent by the member.",
+				"- voiceSeconds: total time spent in voice channels, measured in seconds.",
+				"- daysInServer: number of days since the member joined the server.",
+
+				"Supported comparison operators:",
+				"- >= (greater than or equal to)",
+				"- <= (less than or equal to)",
+				"- > (greater than)",
+				"- < (less than)",
+				"- == (equal to)",
+
+				"Supported logical operators:",
+				"- AND",
+				"- OR",
+
+				"Parentheses are supported and can be used to control grouping.",
+
+				"Examples:",
+				"- messageCount >= 100",
+				"- messageCount >= 100 AND voiceSeconds >= 3600",
+				"- messageCount >= 100 OR daysInServer >= 7",
+				"- messageCount >= 100 AND (voiceSeconds >= 3600 OR daysInServer >= 7)",
+				"- (messageCount >= 100 AND voiceSeconds >= 3600) OR daysInServer >= 30",
+
+				"When helping a user create an expression:",
+				"- Translate their natural-language requirements into the supported expression syntax.",
+				"- Do not invent metrics or operators that are not listed above.",
+				"- Convert time into seconds when using voiceSeconds. For example, 2 hours = 7200 seconds.",
+				"- Explain what the resulting expression means if useful.",
+				"- If the user's request is ambiguous, ask what they mean rather than guessing.",
+				"- Remember that AND requires all conditions to be true, while OR requires at least one condition to be true.",
+				"- When a user uses vague terms such as 'active', 'loyal', 'regular', or 'trusted', do not invent a definition. Ask them which measurable requirements they want.",
+				"- When explaining an expression, accurately describe the logical structure. Pay special attention to AND/OR combinations and do not claim that satisfying an OR branch is sufficient if that branch is itself part of an AND requirement.",
 			].join("\n"),
 		};
 		let convo = [SYSTEM_PROMPT];
