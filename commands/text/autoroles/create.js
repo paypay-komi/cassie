@@ -1,8 +1,21 @@
-const { PermissionsBitField } = require("discord.js");
+const {
+	PermissionsBitField,
+	ContainerBuilder,
+	TextDisplayBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	MessageFlags,
+} = require("discord.js");
+const { getLogger } = require("../../../lib/logger.js");
+const log = getLogger("autoroles:create");
 const {
 	parseExpression,
 	RequirementParseError,
 } = require("../../../lib/roleRequirementEvaluator.js");
+
+const prisma = require("../../../db/index.js").prisma;
+
 module.exports = {
 	commandId: "e166ddea-6693-4cb0-b60b-c65f9d3b8469",
 	name: "create",
@@ -13,9 +26,12 @@ module.exports = {
 		PermissionsBitField.Flags.ReadMessageHistory,
 		PermissionsBitField.Flags.ManageRoles,
 	],
+
 	requiredUserPermissions: [PermissionsBitField.Flags.ManageRoles],
+
 	parent: "autorole",
 	aliases: ["make", "add", "new"],
+
 	/**
 	 * @param {import("discord.js").Message} message
 	 * @param {string[]} args
@@ -45,6 +61,7 @@ module.exports = {
 				`I couldn't find a role with the name, id, or mention \`${roleInput}\``,
 			);
 		}
+
 		if (role.managed) {
 			return message.reply(
 				`I can't assign ${role} because it's a **managed role**.\n\n` +
@@ -52,7 +69,9 @@ module.exports = {
 					`Please choose a regular role instead!`,
 			);
 		}
+
 		const botMember = await message.guild.members.fetchMe();
+
 		if (role.position >= botMember.roles.highest.position) {
 			return message.reply(
 				`I can't assign the ${role} role because it's higher than or equal to my highest role.\n\n` +
@@ -60,8 +79,9 @@ module.exports = {
 					`Move my highest role above ${role} **or** move ${role} below my highest role in **Server Settings → Roles**.`,
 			);
 		}
+
 		const expression = args.join(" ");
-		let ast;
+
 		if (!expression?.trim()) {
 			return message.reply(
 				"You need to provide a requirement expression.\n\n" +
@@ -85,11 +105,12 @@ module.exports = {
 					"`messageCount >= 500 AND voiceSeconds >= 7200`\n" +
 					"`messageCount >= 1000 OR daysInServer >= 30`\n\n" +
 					"Don't want to write the expression yourself? You can use `c.chat` " +
-					"to help create one. For example, ask:\n" +
-					"`write me an expression for less than 10 days in the server and more than 100 messages`\n\n" +
-					"`c.chat` can turn what you describe into an expression you can paste here.",
+					"to help create one.",
 			);
 		}
+
+		let ast;
+
 		try {
 			ast = parseExpression(expression);
 		} catch (error) {
@@ -106,5 +127,93 @@ module.exports = {
 				"Something went wrong while processing that requirement. Please try again later.",
 			);
 		}
+
+		try {
+			await prisma.guildMemberRoleRequirement.create({
+				data: {
+					guildId: message.guild.id,
+					roleId: role.id,
+					expression,
+					ast,
+				},
+			});
+
+			return message.reply({
+				content: `Auto role ${role} created successfully!\n\n**Requirement:** \`${expression}\``,
+			});
+		} catch (error) {
+			if (error?.code !== "P2002") {
+				log.error(
+					"Unexpected error while creating autorole requirement:",
+					error,
+				);
+
+				return message.reply(
+					"Something went wrong while creating that autorole. Please try again later.",
+				);
+			}
+		}
+
+		const existing = await prisma.guildMemberRoleRequirement.findUnique({
+			where: {
+				guildId_roleId: {
+					guildId: message.guild.id,
+					roleId: role.id,
+				},
+			},
+		});
+
+		if (!existing) {
+			return message.reply(
+				"That autorole already exists, but I couldn't retrieve its current requirement.",
+			);
+		}
+
+		const container = new ContainerBuilder().addTextDisplayComponents(
+			new TextDisplayBuilder().setContent(
+				`## Autorole Already Configured\n\n` +
+					`${role} already has a requirement configured.\n\n` +
+					`**Current requirement**\n` +
+					`\`${existing.expression}\`\n\n` +
+					`**New requirement**\n` +
+					`\`${expression}\`\n\n` +
+					`What would you like to do?`,
+			),
+		);
+
+		const row = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId(
+					`autorole_merge:replace:${message.guild.id}:${role.id}`,
+				)
+				.setLabel("Replace")
+				.setStyle(ButtonStyle.Primary),
+
+			new ButtonBuilder()
+				.setCustomId(`autorole_merge:or:${message.guild.id}:${role.id}`)
+				.setLabel("Merge with OR")
+				.setStyle(ButtonStyle.Success),
+
+			new ButtonBuilder()
+				.setCustomId(
+					`autorole_merge:and:${message.guild.id}:${role.id}`,
+				)
+				.setLabel("Merge with AND")
+				.setStyle(ButtonStyle.Secondary),
+
+			new ButtonBuilder()
+				.setCustomId(
+					`autorole_merge:cancel:${message.guild.id}:${role.id}`,
+				)
+				.setLabel("Cancel")
+				.setStyle(ButtonStyle.Danger),
+		);
+
+		container.addActionRowComponents(row);
+
+		return message.reply({
+			components: [container],
+			flags: MessageFlags.IsComponentsV2,
+		});
 	},
 };

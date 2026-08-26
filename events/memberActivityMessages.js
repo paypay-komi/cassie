@@ -3,7 +3,10 @@ const { getLogger } = require("../lib/logger");
 const prisma = require("../prisma/client");
 
 const log = getLogger("member activity messages");
-
+const {
+	evaluateRequirement,
+	handleRoleAssignment,
+} = require("../lib/roleRequirementEvaluator.js");
 module.exports = {
 	name: Events.MessageCreate,
 	description: "updates member activity for every message",
@@ -33,5 +36,7 @@ module.exports = {
 				},
 			},
 		});
+		await handleRoleAssignment(message.guild, message.author.id);
 	},
 };
+	

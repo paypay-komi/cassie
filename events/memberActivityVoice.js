@@ -2,7 +2,10 @@ const { Events, Client, VoiceState } = require("discord.js");
 const prisma = require("../prisma/client");
 
 const voiceSessions = new Map();
-
+const {
+	evaluateRequirement,
+	handleRoleAssignment,
+} = require("../lib/roleRequirementEvaluator.js");
 module.exports = {
 	name: Events.VoiceStateUpdate,
 	description: "updates member voice activity",
@@ -56,5 +59,6 @@ module.exports = {
 				},
 			});
 		}
+		await handleRoleAssignment(oldState.guild, oldState.member.id);
 	},
 };
