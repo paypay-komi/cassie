@@ -5,6 +5,26 @@ const stream = require("stream");
 
 const MAX_BALANCE = 2_147_483_647;
 const voteStreakBonus = 1000;
+
+/**
+ * User-facing explanation for when a balance operation would overflow the
+ * 32-bit integer used to store balances.
+ *
+ * @param {number} current Current balance
+ * @param {number} amount Amount being added
+ * @returns {string}
+ */
+function overflowMessage(current, amount) {
+	const total = (current || 0) + (amount || 0);
+	return (
+		`❌ **Balance limit reached**\n` +
+		`That would bring the balance to **${total.toLocaleString()}**, which is over the maximum of **${MAX_BALANCE.toLocaleString()}**.\n\n` +
+		`**Why is there a maximum?**\n` +
+		`Balances are stored as a 32-bit signed integer — the standard whole-number type in the database. ` +
+		`It can only hold values up to **2,147,483,647**; anything larger overflows and the database refuses to save it.\n\n` +
+		`Try a smaller amount, or use the \`set\` command to replace the balance instead of adding to it.`
+	);
+}
 /**
  * @param {import("discord.js").Snowflake} guildId
  * @returns {Promise<import('../generated/prisma/client').GuildEconomy>}
@@ -497,6 +517,8 @@ module.exports = {
 	setCurrencyPlural,
 	setCurrencySymbol,
 	updateConfig,
+	MAX_BALANCE,
+	overflowMessage,
 	ensureUser,
 	getBalance,
 	setBalance,

@@ -11,6 +11,16 @@ const {
 const { getLogger } = require("../lib/logger");
 const didYouMean = require("../utils/didyoumean.js");
 const { levenshtein } = require("../utils/didyoumean.js");
+const fs = require("fs");
+const path = require("path");
+const { ContainerBuilder, TextDisplayBuilder, MessageFlags } = require("discord.js");
+const BANS_PATH = path.join(__dirname, "..", "data", "botBans.json");
+function isBotBanned(userId) {
+	try { const d = JSON.parse(fs.readFileSync(BANS_PATH, "utf8")); return Boolean(d?.banned?.[userId]); } catch { return false; }
+}
+function getBanReason(userId) {
+	try { const d = JSON.parse(fs.readFileSync(BANS_PATH, "utf8")); return d?.banned?.[userId]?.reason || "No reason"; } catch { return "No reason"; }
+}
 /**
  * Show available subcommands when parent is called.
  * If `unmatched` is provided, uses fuzzy matching to suggest close alternatives.
@@ -309,6 +319,23 @@ module.exports = {
 			path,
 			unmatched,
 		} = resolveNested(command, args);
+
+		// ---------------------------
+		// Bot-wide ban check (json) — block all except help/ban/unban
+		// ---------------------------
+		if (isBotBanned(message.author.id)) {
+			const allowedWhileBanned = ["help", "ban", "unban"];
+			const name = finalCommand.name;
+			const parentName = finalCommand.parentRef?.name;
+			const isAllowed = allowedWhileBanned.includes(name) || (parentName && allowedWhileBanned.includes(parentName));
+			if (!isAllowed) {
+				const reason = getBanReason(message.author.id);
+				const c = new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`## 🚫 You're banned from the bot\n**Reason:** ${reason.slice(0, 1000)}`));
+				c.setAccentColor(0xed4245);
+				try { await message.reply({ components: [c], flags: MessageFlags.IsComponentsV2 }); } catch {}
+				return;
+			}
+		}
 
 		// ---------------------------
 		// Use location (dm vs guild) — cheapest check first

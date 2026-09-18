@@ -189,6 +189,11 @@ module.exports = {
 				"-# — Cassie Bot  •  run `c.optout dms` to stop these",
 			].join("\n");
 
+			const remindButton = new ButtonBuilder()
+				.setCustomId(`vote_remind:${user.id}:12h`)
+				.setLabel("⏰ Remind me in 12h")
+				.setStyle(ButtonStyle.Secondary);
+
 			const dmContainer = new ContainerBuilder()
 				.addSectionComponents(buildUserSection(user, dmContent))
 				.addActionRowComponents(
@@ -196,7 +201,8 @@ module.exports = {
 						...buildAllVoteButtons(),
 						buildSupportServerButton(),
 					),
-				);
+				)
+				.addActionRowComponents(buildActionRow(remindButton));
 
 				try {
 					const dm = await user.createDM();

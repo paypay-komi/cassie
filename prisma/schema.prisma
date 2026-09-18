@@ -654,3 +654,88 @@ model GuildMemberRoleRequirement {
     @@index([guildId])
     @@index([roleId])
 }
+
+model VoteReminder {
+	id        String   @id @default(cuid())
+	// @userid
+	userId    String
+	remindAt  DateTime
+	createdAt DateTime @default(now())
+	site      String? // optional site hint
+	@@index([remindAt])
+	@@index([userId])
+	@@unique([userId]) // one pending reminder per user (upsert)
+}
+
+// ------------------------------------------------------
+// Persistent Chat Memory (~1000 words per user)
+// The AI can read/write/append via tool calls
+// ------------------------------------------------------
+model ChatMemory {
+	// @userid
+	userId    String   @id
+	memory    String   @default("") // free-text, ~1000 words max
+	updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------
+// Reaction Roles
+// ------------------------------------------------------
+model ReactionRole {
+	id        String @id @default(cuid())
+	guildId   String
+	channelId String
+	messageId String @unique
+	// @userid
+	creatorId String
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	entries ReactionRoleEntry[]
+
+	@@index([guildId])
+	@@index([messageId])
+}
+
+model ReactionRoleEntry {
+	id            String @id @default(cuid())
+	reactionRoleId String
+	emoji         String // custom: "name:id" or unicode: "👍"
+	roleId        String
+
+	reactionRole ReactionRole @relation(fields: [reactionRoleId], references: [id], onDelete: Cascade)
+
+	@@unique([reactionRoleId, emoji])
+	@@index([roleId])
+}
+
+// ------------------------------------------------------
+// Boosts
+// ------------------------------------------------------
+model GuildBoostConfig {
+	guildId   String   @id
+	channelId String? // channel where boost thank-you messages go, null = not set
+	roleId    String? // role applied to boosters, null = not set
+	enabled   Boolean  @default(true)
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	@@index([channelId])
+	@@index([roleId])
+}
+
+model MemberBoostStreak {
+	id          String    @id @default(cuid())
+	guildId     String
+	// @userid
+	userId      String
+	streak      Int       @default(0) // consecutive boosts within 30-day window
+	totalBoosts Int       @default(0)
+	lastBoostAt DateTime?
+	createdAt   DateTime  @default(now())
+	updatedAt   DateTime  @updatedAt
+
+	@@unique([guildId, userId])
+	@@index([guildId])
+	@@index([userId])
+}

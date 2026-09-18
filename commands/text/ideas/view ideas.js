@@ -13,21 +13,24 @@ const {
 } = require("discord.js");
 const db = require("../../../db");
 const actionUserCommand = require("../../../utils/actionUserCommand");
+
+const PAGE_SIZE = 5;
 /**
  * @param {number} page
  * @param {(data: import('discord.js').InteractionReplyOptions) => Promise<void>} responder
  * @param {import('discord.js').Interaction | import('discord.js').Message} source
  */
 
-async function makeIdeaStuff(page, source) {
+async function makeIdeaStuff(page, source, notice) {
 	const userId = source.user?.id ?? source.author?.id;
+	const isOwner = (source.client?.owners || []).includes(userId);
 
 	const {
 		ideas,
 		page: safePage,
 		totalPages,
 		wrapped,
-	} = await db.ideas.getIdeasPage(page, userId, { pageSize: 7 });
+	} = await db.ideas.getIdeasPage(page, userId, { pageSize: PAGE_SIZE });
 
 	const navButtons = new ActionRowBuilder().addComponents(
 		new ButtonBuilder()
@@ -56,7 +59,7 @@ async function makeIdeaStuff(page, source) {
 
 		const container = new ContainerBuilder().addTextDisplayComponents(
 			new TextDisplayBuilder().setContent(
-				`**Idea #${(safePage - 1) * 7 + i + 1}** votes: ${idea.vote_score}\n${content}`,
+				`**Idea #${(safePage - 1) * PAGE_SIZE + i + 1}** votes: ${idea.vote_score}\n${content}`,
 			),
 		);
 		const actionRow = new ActionRowBuilder().addComponents(
@@ -77,6 +80,16 @@ async function makeIdeaStuff(page, source) {
 					userDownvoted ? ButtonStyle.Danger : ButtonStyle.Secondary,
 				),
 		);
+		if (isOwner) {
+			actionRow.addComponents(
+				new ButtonBuilder()
+					.setCustomId(
+						`ideaViewer_${userId}_delete_${safePage}_${idea.id}`,
+					)
+					.setLabel("🗑️")
+					.setStyle(ButtonStyle.Danger),
+			);
+		}
 		if (idea.content.length > maxPreviewLength) {
 			actionRow.addComponents(
 				new ButtonBuilder()
@@ -90,10 +103,11 @@ async function makeIdeaStuff(page, source) {
 		container.addActionRowComponents(actionRow);
 		return container;
 	});
+	const footer = `-# page ${safePage}/${totalPages}`;
 	ideaContainers.push(
 		new ContainerBuilder().addTextDisplayComponents(
 			new TextDisplayBuilder().setContent(
-				`-# page ${safePage}/${totalPages}`,
+				notice ? `${notice}\n${footer}` : footer,
 			),
 		),
 	);
@@ -140,6 +154,7 @@ module.exports = {
 			const [_, authorid, action, currentPage, ...args] =
 				interaction.customId.split("_");
 			let page = parseInt(currentPage);
+			let notice = null;
 			if (interaction.user.id != authorid)
 				return interaction.reply({
 					content: "this is not your command run your own command",
@@ -158,6 +173,20 @@ module.exports = {
 			if (action == "downvote") {
 				const [IdeaId] = args;
 				await db.ideas.handleVote(interaction.user.id, IdeaId, -1);
+			}
+			if (action == "delete") {
+				const [IdeaId] = args;
+				if (!(message.client.owners || []).includes(interaction.user.id))
+					return interaction.reply({
+						content: "only bot owners can delete ideas",
+						flags: MessageFlags.Ephemeral,
+					});
+				const deleted = await db.prisma.idea.delete({
+					where: { id: IdeaId },
+				});
+				notice = `🗑️ deleted idea **#${deleted.content
+					.split("\n")[0]
+					.slice(0, 40)}**`;
 			}
 			if (action == "viewFull") {
 				const [IdeaId] = args;
@@ -184,7 +213,7 @@ module.exports = {
 			if (action == "back") {
 				// theroeticly i shouldnt have to do anything as it will just make the embed with the page and go back to where it was below
 			}
-			ideastuff = await makeIdeaStuff(page, message);
+			ideastuff = await makeIdeaStuff(page, message, notice);
 			interaction.update({
 				flags: MessageFlags.IsComponentsV2,
 				components: [...ideastuff.ideaContainers, ideastuff.navButtons],

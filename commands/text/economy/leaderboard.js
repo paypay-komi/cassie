@@ -57,6 +57,6 @@ module.exports = {
 			return `${medal} <@${e.userId}> — ${config.currencySymbol}**${e.balance.toLocaleString()}** ${name}`;
 		});
 
-		message.reply({ ...v2(lines.join("\n")), allowedMentions: [] });
+		message.reply({ ...v2(lines.join("\n")), allowedMentions: { parse: [] } });
 	},
 };

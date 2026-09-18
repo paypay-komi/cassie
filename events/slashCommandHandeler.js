@@ -4,6 +4,16 @@ const {
 	extractArgs,
 	buildContent,
 } = require("../lib/slashAdapter");
+const fs = require("fs");
+const path = require("path");
+const { ContainerBuilder, TextDisplayBuilder, MessageFlags } = require("discord.js");
+const BANS_PATH = path.join(__dirname, "..", "data", "botBans.json");
+function isBotBanned(userId) {
+	try { const d = JSON.parse(fs.readFileSync(BANS_PATH, "utf8")); return Boolean(d?.banned?.[userId]); } catch { return false; }
+}
+function getBanReason(userId) {
+	try { const d = JSON.parse(fs.readFileSync(BANS_PATH, "utf8")); return d?.banned?.[userId]?.reason || "No reason"; } catch { return "No reason"; }
+}
 const { getAllCommandNames } = require("../lib/commandResolver");
 
 // ── Reuse text command permission/location helpers ──
@@ -274,6 +284,30 @@ module.exports = {
 		}
 
 		if (!interaction.isChatInputCommand()) return;
+
+		// Bot-wide ban check (json)
+		if (isBotBanned(interaction.user.id)) {
+			const allowedWhileBanned = ["help", "unban", "ban"];
+			const cmdPathTmp = (() => {
+				const p = [interaction.commandName];
+				const g = interaction.options.getSubcommandGroup(false);
+				const s = interaction.options.getSubcommand(false);
+				if (g) p.push(g);
+				if (s) p.push(s);
+				return p.join(" ");
+			})();
+			const isAllowedCmd = allowedWhileBanned.some((n) => cmdPathTmp === n || cmdPathTmp.startsWith(n + " "));
+			if (!isAllowedCmd) {
+				const reason = getBanReason(interaction.user.id);
+				const c = new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`## 🚫 You're banned from the bot\n**Reason:** ${reason.slice(0, 1000)}`));
+				c.setAccentColor(0xed4245);
+				try {
+					if (interaction.deferred || interaction.replied) await interaction.editReply({ components: [c], flags: MessageFlags.IsComponentsV2 });
+					else await interaction.reply({ components: [c], flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
+				} catch {}
+				return;
+			}
+		}
 
 		const commandName = interaction.commandName;
 

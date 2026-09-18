@@ -30,6 +30,64 @@ const GUILDS_PER_SHARD = 4500;
 		totalShards,
 	});
 
+	// Restart confirmation memory: survives respawnAll because the manager
+	// process itself stays alive across shard restarts.
+	let pendingRestartConfirm = null;
+	let waitingForReady = false;
+	let readyShardCount = 0;
+
+	// Discord's guild→shard mapping: shard_id = (guild_id >> 22) % totalShards
+	function shardIdForGuild(guildId) {
+		if (!guildId) return null;
+		const big = BigInt(guildId);
+		const shard = (big >> 22n) % BigInt(totalShards);
+		return Number(shard);
+	}
+
+	async function sendRestartConfirm(confirm, targetShardId) {
+		try {
+			await manager.broadcastEval(
+				(client, ctx) => {
+					return client.channels
+						.fetch(ctx.channelId)
+						.then((ch) => {
+							if (!ch || !ch.isTextBased()) return "missing";
+							return ch.send("✅ Restart done!").then(() => "sent");
+						})
+						.catch(() => "error");
+				},
+				{
+					context: {
+						channelId: confirm.channelId,
+						userId: confirm.userId,
+					},
+					shard: targetShardId,
+				},
+			);
+		} catch (err) {
+			console.error(
+				"[ShardManager] Failed to send restart confirmation:",
+				err,
+			);
+		}
+	}
+
+	function fireConfirmIfReady() {
+		if (!waitingForReady || !pendingRestartConfirm) return;
+		if (readyShardCount < manager.shards.size) return;
+
+		const pending = pendingRestartConfirm;
+		pendingRestartConfirm = null;
+		waitingForReady = false;
+		readyShardCount = 0;
+
+		// Route to the shard that owns the guild (only it has that guild).
+		const guildShard = shardIdForGuild(pending.confirm.guildId);
+		const targetShard =
+			guildShard !== null ? guildShard : pending.originShardId;
+		sendRestartConfirm(pending.confirm, targetShard);
+	}
+
 	manager.on("shardCreate", (shard) => {
 		process.stdout.write(
 			`[Shard ${shard.id}/${totalShards - 1}] Launched\n`,
@@ -57,7 +115,43 @@ const GUILDS_PER_SHARD = 4500;
 				console.log(
 					`[ShardManager] Restart requested by shard ${shard.id}, respawning all shards...`,
 				);
-				manager.respawnAll();
+				const confirm = message.confirm || null;
+				pendingRestartConfirm = { confirm, originShardId: shard.id };
+				waitingForReady = true;
+				readyShardCount = 0;
+				manager.respawnAll().catch((err) => {
+					console.error(
+						"[ShardManager] respawnAll failed:",
+						err,
+					);
+					pendingRestartConfirm = null;
+					waitingForReady = false;
+				});
+			}
+		});
+
+		shard.on("ready", () => {
+			process.stdout.write(
+				`[Shard ${shard.id}/${totalShards - 1}] Ready\n`,
+			);
+			if (waitingForReady) {
+				readyShardCount++;
+				fireConfirmIfReady();
+			}
+		});
+
+		// Fallback: if a shard fails to come back, don't leave the
+		// confirmation stuck — blast it to whatever is already up.
+		shard.on("error", () => {
+			if (waitingForReady && pendingRestartConfirm) {
+				const pending = pendingRestartConfirm;
+				pendingRestartConfirm = null;
+				waitingForReady = false;
+				readyShardCount = 0;
+				const guildShard = shardIdForGuild(pending.confirm.guildId);
+				const targetShard =
+					guildShard !== null ? guildShard : pending.originShardId;
+				sendRestartConfirm(pending.confirm, targetShard);
 			}
 		});
 	});

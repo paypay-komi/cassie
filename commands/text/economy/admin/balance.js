@@ -38,6 +38,20 @@ module.exports = {
 		if (isNaN(amount) || amount < 0)
 			return message.reply(v2("Provide a valid non-negative amount."));
 
+		if (op === "set" && amount > econ.MAX_BALANCE)
+			return message.reply(v2(econ.overflowMessage(0, amount)));
+
+		if (op === "add") {
+			const current = await econ.getBalance(
+				message.guildId,
+				target.id,
+			);
+			if (current + amount > econ.MAX_BALANCE)
+				return message.reply(
+					v2(econ.overflowMessage(current, amount)),
+				);
+		}
+
 		const config = await econ.getConfig(message.guildId);
 		const name =
 			amount === 1 ? config.currencyName : config.currencyNamePlural;
@@ -86,6 +100,12 @@ module.exports = {
 		} catch (e) {
 			if (e.message === "Insufficient balance") {
 				message.reply(v2("That user doesn't have enough coins."));
+			} else if (e.code === "P2020") {
+				message.reply(
+					v2(
+						`❌ **Balance limit reached**\nThis user's tracked totals are already at the maximum a 32-bit integer can hold (**${econ.MAX_BALANCE.toLocaleString()}**), so that change can't be saved.`,
+					),
+				);
 			} else {
 				throw e;
 			}
