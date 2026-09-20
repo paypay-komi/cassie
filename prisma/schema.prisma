@@ -739,3 +739,639 @@ model MemberBoostStreak {
 	@@index([guildId])
 	@@index([userId])
 }
+
+// ------------------------------------------------------
+// Invite Tracking
+// ------------------------------------------------------
+model GuildInviteConfig {
+	guildId          String   @id
+	channelId        String?  // where join announcements go
+	message          String?  // custom welcome script
+	deductOnLeave    Boolean  @default(true)
+	fakeAccountDays  Int      @default(0) // accounts younger than this are "fake"
+	trackingEnabled  Boolean  @default(true)
+	createdAt        DateTime @default(now())
+	updatedAt        DateTime @updatedAt
+
+	@@index([channelId])
+}
+
+model Invite {
+	id          String   @id @default(cuid())
+	guildId     String
+	code        String
+	inviterId   String
+	uses        Int      @default(0)
+	maxUses     Int      @default(0)
+	temporary   Boolean  @default(false)
+	createdAt   DateTime @default(now())
+	expiresAt   DateTime?
+
+	@@unique([guildId, code])
+	@@index([guildId, inviterId])
+}
+
+model InviteJoin {
+	id        String   @id @default(cuid())
+	guildId   String
+	userId    String
+	inviteId  String?  // null if couldn't determine (vanity, etc.)
+	fake      Boolean  @default(false)
+	joinedAt  DateTime @default(now())
+	leftAt    DateTime?
+
+	@@index([guildId, userId])
+	@@index([guildId, inviteId])
+}
+
+model InviteBonus {
+	id        String   @id @default(cuid())
+	guildId   String
+	roleId    String
+	bonus     Int      @default(1) // extra invites per join
+
+	@@unique([guildId, roleId])
+}
+
+model InviteAdjustment {
+	id        String   @id @default(cuid())
+	guildId   String
+	userId    String
+	amount    Int      @default(0)
+	updatedAt DateTime @updatedAt
+
+	@@unique([guildId, userId])
+	@@index([guildId])
+}
+
+// ------------------------------------------------------
+// Tickets
+// ------------------------------------------------------
+model TicketPanel {
+	id          String   @id @default(cuid())
+	guildId     String
+	name        String
+	channelId   String?  // where panel message is posted
+	messageId   String?  // the panel message
+	categoryId  String?  // default category for tickets
+	maxOpen     Int      @default(1) // per user per panel
+	mode        String   @default("thread") // "thread" or "channel"
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+
+	options     TicketOption[]
+	tickets     Ticket[]
+
+	@@unique([guildId, name])
+	@@index([guildId])
+}
+
+model TicketOption {
+	id          String   @id @default(cuid())
+	panelId     String
+	name        String   // internal key
+	label       String   // button label
+	style       Int      @default(1) // 1=primary, 2=secondary, 3=success, 4=danger
+	emoji       String?  // optional emoji
+	categoryId  String?  // override panel category
+	formId      String?  // attached form
+	closeOnLeave Boolean @default(false)
+	supportRoles String[] @default([])
+
+	panel       TicketPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+	tickets     Ticket[]
+
+	@@unique([panelId, name])
+	@@index([panelId])
+}
+
+model TicketForm {
+	id        String   @id @default(cuid())
+	guildId   String
+	name      String
+	title     String
+	fields    TicketFormField[]
+
+	@@unique([guildId, name])
+	@@index([guildId])
+}
+
+model TicketFormField {
+	id          String   @id @default(cuid())
+	formId      String
+	key         String   // unique within form
+	type        String   // short_text, long_text, checkbox, select, role_select, user_select, channel_select, case_select
+	label       String
+	required    Boolean  @default(true)
+	choices     String[] @default([]) // for select types
+	placeholder String?
+	order       Int      @default(0)
+
+	form        TicketForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+	@@unique([formId, key])
+	@@index([formId])
+}
+
+model Ticket {
+	id          String   @id @default(cuid())
+	guildId     String
+	panelId     String?
+	optionId    String?
+	channelId   String
+	threadId    String?  // if mode=thread
+	ownerId     String
+	claimedById String?
+	status      String   @default("open") // open, claimed, closed, deleted
+	priority    Int      @default(0) // 0=low, 1=medium, 2=high, 3=urgent
+	subject     String?
+	formData    Json?    // submitted form responses
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+	closedAt    DateTime?
+	closedById  String?
+	closeReason String?
+
+	panel       TicketPanel?   @relation(fields: [panelId], references: [id], onDelete: SetNull)
+	option      TicketOption?  @relation(fields: [optionId], references: [id], onDelete: SetNull)
+	messages    TicketMessage[]
+	notes       TicketNote[]
+
+	@@index([guildId, ownerId])
+	@@index([guildId, status])
+	@@index([channelId])
+}
+
+model TicketMessage {
+	id        String   @id @default(cuid())
+	ticketId  String
+	userId    String
+	content   String
+	createdAt DateTime @default(now())
+
+	ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+	@@index([ticketId, createdAt])
+}
+
+model TicketNote {
+	id        String   @id @default(cuid())
+	ticketId  String
+	userId    String
+	content   String
+	createdAt DateTime @default(now())
+
+	ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+	@@index([ticketId, createdAt])
+}
+
+model SavedReply {
+	id        String   @id @default(cuid())
+	guildId   String
+	name      String
+	content   String
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	@@unique([guildId, name])
+	@@index([guildId])
+}
+
+// ------------------------------------------------------
+// Starboard
+// ------------------------------------------------------
+model Starboard {
+	id            String   @id @default(cuid())
+	guildId       String
+	channelId     String
+	emoji         String   // unicode or "name:id"
+	threshold     Int      @default(1)
+	selfStar      Boolean  @default(false)
+	showAttachments Boolean @default(true)
+	showTimestamp Boolean  @default(true)
+	jumpUrl       Boolean  @default(true)
+	color         Int?     // embed color
+	createdAt     DateTime @default(now())
+	updatedAt     DateTime @updatedAt
+
+	ignored       StarboardIgnore[]
+
+	@@unique([guildId, emoji])
+	@@index([guildId])
+}
+
+model StarboardIgnore {
+	id        String   @id @default(cuid())
+	starboardId String
+	targetId  String   // channel, role, or member ID
+	targetType String   // "channel", "role", "member"
+
+	starboard Starboard @relation(fields: [starboardId], references: [id], onDelete: Cascade)
+
+	@@unique([starboardId, targetId, targetType])
+	@@index([starboardId])
+}
+
+model StarboardEntry {
+	id                 String   @id @default(cuid())
+	guildId            String
+	starboardId        String
+	sourceMessageId    String
+	sourceChannelId    String
+	starboardMessageId String
+	starCount          Int      @default(0)
+	createdAt          DateTime @default(now())
+	updatedAt          DateTime @updatedAt
+
+	@@unique([sourceMessageId, starboardId])
+	@@index([guildId, sourceChannelId])
+	@@index([guildId, starboardId])
+}
+
+// ------------------------------------------------------
+// Levels / XP
+// ------------------------------------------------------
+model LevelConfig {
+	guildId         String   @id
+	channelId       String?  // level-up announcements
+	textEnabled     Boolean  @default(true)
+	voiceEnabled    Boolean  @default(true)
+	textMultiplier  Float    @default(1.0)
+	dmLevelUp       Boolean  @default(false)
+	stackRoles      Boolean  @default(true)
+	cardEnabled     Boolean  @default(false)
+	cardBackground  String?  // URL
+	cardBranding    Boolean  @default(true)
+	decayEnabled    Boolean  @default(false)
+	decayDays       Int      @default(30)
+	decayPercent    Int      @default(10)
+	createdAt       DateTime @default(now())
+	updatedAt       DateTime @updatedAt
+
+	@@index([channelId])
+}
+
+model LevelRoleReward {
+	id        String   @id @default(cuid())
+	guildId   String
+	roleId    String
+	level     Int
+
+	@@unique([guildId, level])
+	@@index([guildId])
+}
+
+model LevelMilestone {
+	id        String   @id @default(cuid())
+	guildId   String
+	level     Int
+	coins     Int      @default(0)
+	roleId    String?
+
+	@@unique([guildId, level])
+	@@index([guildId])
+}
+
+model LevelMultiplier {
+	id        String   @id @default(cuid())
+	guildId   String
+	targetId  String   // role or channel ID
+	targetType String  // "role" or "channel"
+	multiplier Float
+
+	@@unique([guildId, targetId, targetType])
+	@@index([guildId])
+}
+
+model LevelIgnore {
+	id        String   @id @default(cuid())
+	guildId   String
+	targetId  String
+	targetType String  // "channel" or "role"
+
+	@@unique([guildId, targetId, targetType])
+	@@index([guildId])
+}
+
+model MemberXP {
+	id            String   @id @default(cuid())
+	guildId       String
+	userId        String
+	xp            BigInt   @default(0)
+	level         Int      @default(0)
+	totalVoiceSec BigInt   @default(0)
+	lastMessageAt DateTime?
+	lastVoiceAt   DateTime?
+	createdAt     DateTime @default(now())
+	updatedAt     DateTime @updatedAt
+
+	@@unique([guildId, userId])
+	@@index([guildId, level])
+	@@index([guildId, xp])
+}
+
+// ------------------------------------------------------
+// VoiceMaster
+// ------------------------------------------------------
+model VoiceMasterConfig {
+	guildId        String   @id
+	categoryId     String?  // category for temp channels
+	interfaceEnabled Boolean @default(true) // post control panel in temp channel
+	defaultBitrate Int      @default(64)
+	defaultName    String   @default("{user}'s channel")
+	defaultRegion  String?  // "auto" or specific region
+	defaultRoleId  String?  // role that can see/join by default
+	temporary      Boolean  @default(true) // delete empty channels
+	createdAt      DateTime @default(now())
+	updatedAt      DateTime @updatedAt
+
+	@@index([categoryId])
+}
+
+model VoiceMasterHub {
+	id        String   @id @default(cuid())
+	guildId   String
+	channelId String   // the join-to-create voice channel
+	name      String   // hub name
+	createdAt DateTime @default(now())
+
+	@@unique([guildId, channelId])
+	@@index([guildId])
+}
+
+model VoiceChannel {
+	id          String   @id @default(cuid())
+	guildId     String
+	channelId   String   @unique // the temp voice channel ID
+	ownerId     String   // creator
+	locked      Boolean  @default(false)
+	hidden      Boolean  @default(false)
+	userLimit   Int      @default(0)
+	bitrate     Int      @default(64)
+	name        String?
+	region      String?
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+
+	members     VoiceChannelMember[]
+
+	@@unique([guildId, channelId])
+	@@index([guildId, ownerId])
+}
+
+model VoiceChannelMember {
+	id         String   @id @default(cuid())
+	channelId  String   // VoiceChannel.channelId
+	userId     String
+	permitted  Boolean  @default(true) // false = rejected/banned
+	joinedAt   DateTime @default(now())
+
+	channel    VoiceChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+
+	@@unique([channelId, userId])
+	@@index([channelId])
+}
+
+// ------------------------------------------------------
+// Automation: Antinuke
+// ------------------------------------------------------
+model AntinukeConfig {
+	guildId       String   @id
+	enabled       Boolean  @default(false)
+	admins        String[] @default([]) // user IDs with AntiNuke Admin
+	whitelisted   String[] @default([]) // user IDs whitelisted
+	createdAt     DateTime @default(now())
+	updatedAt     DateTime @updatedAt
+
+	modules       AntinukeModule[]
+}
+
+model AntinukeModule {
+	id           String   @id @default(cuid())
+	configId     String
+	type         String   // ban, channel, role, emoji, sticker, webhook, integration, invite, botadd, kick, guildupdate, soundboard, vanity
+	enabled      Boolean  @default(false)
+	punishment   String   @default("ban") // ban, kick, strip, timeout
+	punishmentDuration Int? // for timeout
+	logChannelId String?
+	threshold    Int?     // e.g., max channels deleted before trigger
+	window       Int?     // time window in seconds
+	createdAt    DateTime @default(now())
+	updatedAt    DateTime @updatedAt
+
+	config       AntinukeConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, type])
+	@@index([configId])
+}
+
+// ------------------------------------------------------
+// Automation: Antiraid
+// ------------------------------------------------------
+model AntiraidConfig {
+	guildId           String   @id
+	enabled           Boolean  @default(false)
+	whitelisted       String[] @default([])
+	lockdown          Boolean  @default(false)
+	createdAt         DateTime @default(now())
+	updatedAt         DateTime @updatedAt
+
+	modules           AntiraidModule[]
+}
+
+model AntiraidModule {
+	id            String   @id @default(cuid())
+	configId      String
+	type          String   // age, avatar, massjoin, massmention, unverifiedbots, username
+	enabled       Boolean  @default(false)
+	action        String   @default("kick") // kick, ban
+	threshold     Int?     // for massjoin/massmention
+	window        Int?     // time window in seconds
+	maxAgeDays    Int?     // for age module
+	usernamePatterns String[] @default([]) // for username module
+	createdAt     DateTime @default(now())
+	updatedAt     DateTime @updatedAt
+
+	config        AntiraidConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, type])
+	@@index([configId])
+}
+
+// ------------------------------------------------------
+// Automation: Automod
+// ------------------------------------------------------
+model AutomodConfig {
+	guildId          String   @id
+	enabled          Boolean  @default(false)
+	logChannelId     String?
+	punishment       String   @default("delete") // delete, warn, timeout, kick, ban
+	punishmentDuration Int?   // for timeout
+	strikesEnabled   Boolean  @default(false)
+	maxStrikes       Int      @default(5)
+	strikeDecayHours Int      @default(168) // 1 week
+	createdAt        DateTime @default(now())
+	updatedAt        DateTime @updatedAt
+
+	filters          AutomodFilter[]
+	regexes          AutomodRegex[]
+	exemptions       AutomodExemption[]
+	strikeConfig     AutomodStrikeConfig[]
+}
+
+model AutomodFilter {
+	id             String   @id @default(cuid())
+	configId       String
+	type           String   // keyword, caps, emoji, images, invites, links, malicious, massmention, musicfiles, nicknames, nsfw, repetition, spam, spoilers, walloftext
+	enabled        Boolean  @default(false)
+	threshold      Int?     // e.g., % caps, count of emojis
+	whitelisted    String[] @default([]) // words/URLs exempt
+	blacklisted    String[] @default([]) // additional blocked terms
+	punishment     String?  // override default
+	punishmentDuration Int? // override
+	createdAt      DateTime @default(now())
+	updatedAt      DateTime @updatedAt
+
+	config         AutomodConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, type])
+	@@index([configId])
+}
+
+model AutomodRegex {
+	id        String   @id @default(cuid())
+	configId  String
+	name      String
+	pattern   String
+	enabled   Boolean  @default(true)
+	createdAt DateTime @default(now())
+
+	config    AutomodConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, name])
+	@@index([configId])
+}
+
+model AutomodExemption {
+	id        String   @id @default(cuid())
+	configId  String
+	targetId  String   // role or channel ID
+	targetType String   // "role" or "channel"
+	createdAt DateTime @default(now())
+
+	config    AutomodConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, targetId, targetType])
+	@@index([configId])
+}
+
+model AutomodStrikeConfig {
+	id        String   @id @default(cuid())
+	configId  String
+	strikes   Int      // threshold
+	action    String   // warn, timeout, kick, ban, strip
+	duration  Int?     // for timeout in seconds
+	createdAt DateTime @default(now())
+
+	config    AutomodConfig @relation(fields: [configId], references: [guildId], onDelete: Cascade)
+
+	@@unique([configId, strikes])
+	@@index([configId])
+}
+
+model MemberStrike {
+	id        String   @id @default(cuid())
+	guildId   String
+	userId    String
+	strikes   Int      @default(0)
+	lastStrikeAt DateTime?
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	@@unique([guildId, userId])
+	@@index([guildId])
+}
+
+// ------------------------------------------------------
+// Moderation: Invoke System & Escalation
+// ------------------------------------------------------
+model InvokeConfig {
+	id          String   @id @default(cuid())
+	guildId     String
+	command     String   // ban, kick, timeout, warn, jail, etc.
+	type        String   // "dm" or "message"
+	content     String   // script/template
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+
+	@@unique([guildId, command, type])
+	@@index([guildId])
+}
+
+model WarnPunishment {
+	id        String   @id @default(cuid())
+	guildId   String
+	threshold Int      // warning count
+	action    String   // timeout, kick, jail, hardban, softban, ban
+	duration  Int?     // seconds for timeout
+	createdAt DateTime @default(now())
+
+	@@unique([guildId, threshold])
+	@@index([guildId])
+}
+
+model JailConfig {
+	guildId     String   @id
+	enabled     Boolean  @default(false)
+	roleId      String?  // the jailed role
+	categoryId  String?  // category with jail channel
+	logChannelId String?
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+}
+
+model ImuteConfig {
+	guildId     String   @id
+	enabled     Boolean  @default(false)
+	roleId      String?  // image mute role
+	logChannelId String?
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+}
+
+model RmuteConfig {
+	guildId     String   @id
+	enabled     Boolean  @default(false)
+	roleId      String?  // reaction mute role
+	logChannelId String?
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+}
+
+model ModerationCase {
+	id          String   @id @default(cuid())
+	guildId     String
+	caseNumber  Int
+	type        String   // ban, kick, timeout, warn, jail, softban, hardban, strip, unban, unjail, imute, iunmute, rmute, runmute
+	moderatorId String
+	targetId    String
+	reason      String?
+	duration    Int?     // seconds for timeout/tempban
+	createdAt   DateTime @default(now())
+
+	@@unique([guildId, caseNumber])
+	@@index([guildId, targetId])
+	@@index([guildId, moderatorId])
+}
+
+model ModerationLog {
+	id        String   @id @default(cuid())
+	guildId   String
+	caseId    String
+	type      String   // dm_sent, message_sent, dm_failed, etc.
+	content   String
+	createdAt DateTime @default(now())
+
+	@@index([guildId, caseId])
+}
