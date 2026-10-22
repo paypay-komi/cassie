@@ -45,6 +45,7 @@ module.exports = {
 			} catch {
 				return;
 			}
+			if (!config.enabled) return;
 			if (!config.voiceEnabled) return;
 
 			try {
@@ -73,7 +74,7 @@ module.exports = {
 				Math.round(
 					(seconds / 60) *
 						VOICE_XP_PER_MIN *
-						(config.textMultiplier || 1) *
+						(config.voiceMultiplier ?? 1) *
 						mult,
 				),
 			);

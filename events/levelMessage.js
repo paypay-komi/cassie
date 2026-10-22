@@ -20,6 +20,7 @@ module.exports = {
 			log.warn(`Config load failed: ${err.message}`);
 			return;
 		}
+		if (!config.enabled) return;
 		if (!config.textEnabled) return;
 
 		const member =
