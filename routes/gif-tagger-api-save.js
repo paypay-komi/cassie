@@ -1,9 +1,12 @@
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const { hashImage, findNearDuplicate } = require("../utils/perceptualHash");
+const { hashImage, findNearDuplicate } = require("../lib/perceptualHash");
+const { requireOwner } = require("../lib/ownerGuard");
 const GIF_DIR = "L:\\reactiongifs";
 module.exports = { path: "/gif-tagger/api/save", method: "post", handler: async (req, res) => {
+  const guard = requireOwner(req);
+  if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
   const prisma = req.app?.locals?.client?.db?.prisma;
   if (!prisma) return res.json({ ok: false, error: "DB not available" });
   try {

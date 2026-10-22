@@ -1,3 +1,5 @@
+const { requireOwner } = require("../lib/ownerGuard");
+
 const ACTIONS = [
   "ambush","backflip","backrub","bake","balance","beckon","beg","bite","bless",
   "blowkiss","blush","bonk","boop","bow","brush","burn","burp","calm","carry",
@@ -21,6 +23,9 @@ module.exports = {
   path: "/gif-tagger",
   method: "get",
   handler: async (req, res) => {
+    if (!req.session?.user) return res.redirect("/login");
+    const guard = requireOwner(req);
+    if (!guard.ok) return res.status(403).send("Forbidden");
     res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>

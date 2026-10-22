@@ -1,8 +1,11 @@
 const path = require("path");
 const fs = require("fs");
+const { requireOwner } = require("../lib/ownerGuard");
 const GIF_DIR = "L:\\reactiongifs";
 module.exports = { path: "/gif-tagger/api/delete", method: "post", handler: async (req, res) => {
   try {
+    const guard = requireOwner(req);
+    if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
     const { file } = req.body;
     if (!file) return res.json({ ok: false, error: "Missing file" });
     const resolved = path.resolve(GIF_DIR, file);

@@ -1,8 +1,11 @@
 const path = require("path");
 const fs = require("fs");
+const { requireOwner } = require("../lib/ownerGuard");
 const GIF_DIR = "L:\\reactiongifs";
 const VALID_EXTS = new Set(["gif","png","jpg","jpeg","webp","mp4","webm","mov","avi","mkv","flv","wmv","m4v"]);
 module.exports = { path: "/gif-tagger/api/stats", method: "get", handler: async (req, res) => {
+  const guard = requireOwner(req);
+  if (!guard.ok) return res.status(guard.status).json({ ok: false, error: guard.error });
   const prisma = req.app?.locals?.client?.db?.prisma;
   if (!prisma) return res.json({ ok: false, error: "DB not available" });
   try {
