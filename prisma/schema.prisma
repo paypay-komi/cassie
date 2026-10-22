@@ -80,6 +80,7 @@ model GuildSettings {
     tags                 GuildTag[]
     echoChannels         EchoChannel[]
     announcement         GuildAnnouncement?
+    countingConfig       CountingConfig?
 }
 
 model UserPrefix {
@@ -994,10 +995,12 @@ model StarboardEntry {
 // ------------------------------------------------------
 model LevelConfig {
 	guildId         String   @id
+	enabled         Boolean  @default(true)
 	channelId       String?  // level-up announcements
 	textEnabled     Boolean  @default(true)
 	voiceEnabled    Boolean  @default(true)
 	textMultiplier  Float    @default(1.0)
+	voiceMultiplier Float    @default(1.0)
 	dmLevelUp       Boolean  @default(false)
 	stackRoles      Boolean  @default(true)
 	cardEnabled     Boolean  @default(false)
@@ -1076,6 +1079,7 @@ model MemberXP {
 // ------------------------------------------------------
 model VoiceMasterConfig {
 	guildId        String   @id
+	enabled        Boolean  @default(true)
 	categoryId     String?  // category for temp channels
 	interfaceEnabled Boolean @default(true) // post control panel in temp channel
 	defaultBitrate Int      @default(64)
@@ -1325,6 +1329,7 @@ model JailConfig {
 	guildId     String   @id
 	enabled     Boolean  @default(false)
 	roleId      String?  // the jailed role
+	channelId   String?  // the jail channel
 	categoryId  String?  // category with jail channel
 	logChannelId String?
 	createdAt   DateTime @default(now())
@@ -1374,4 +1379,52 @@ model ModerationLog {
 	createdAt DateTime @default(now())
 
 	@@index([guildId, caseId])
+}
+
+// ------------------------------------------------------
+// Counting Channel
+// ------------------------------------------------------
+model CountingConfig {
+	guildId        String   @id
+	enabled        Boolean  @default(false)
+	channelId      String?
+	currentCount   BigInt   @default(0)
+	highScore      BigInt   @default(0)
+	lastCounterId  String?
+	lastCountAt    DateTime?
+	resetOnFail    Boolean  @default(true)
+	deleteWrong    Boolean  @default(true)
+	allowDecimals  Boolean  @default(false)
+	allowMath      Boolean  @default(false)
+	allowText      Boolean  @default(false)
+	cooldownMs     Int      @default(0)
+	
+	// Display/behavior toggles
+	ephemeralFail  Boolean  @default(false)
+	deleteOnFail   Boolean  @default(true)
+	showOnFail     Boolean  @default(true)
+	reactOnWrong   Boolean  @default(true)
+	reactOnCorrect Boolean  @default(true)
+	failMsgDeleteSeconds Int @default(0)
+	createdAt      DateTime @default(now())
+	updatedAt      DateTime @updatedAt
+
+	guild          GuildSettings @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+	@@index([guildId])
+}
+
+model CountingScore {
+	id          String   @id @default(cuid())
+	guildId     String
+	userId      String
+	score       BigInt   @default(0)
+	correct     Int      @default(0)
+	wrong       Int      @default(0)
+	lastCountAt DateTime?
+	createdAt   DateTime @default(now())
+	updatedAt   DateTime @updatedAt
+
+	@@unique([guildId, userId])
+	@@index([guildId])
 }
