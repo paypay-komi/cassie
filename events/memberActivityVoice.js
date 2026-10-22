@@ -16,7 +16,7 @@ module.exports = {
 	 * @param {VoiceState} newState
 	 */
 	async execute(client, oldState, newState) {
-		if (newState.member?.user.bot) return;
+		if (newState.member?.user.bot || oldState.member?.user.bot) return;
 
 		const key = `${newState.guild.id}:${newState.id}`;
 
@@ -59,6 +59,8 @@ module.exports = {
 				},
 			});
 		}
-		await handleRoleAssignment(oldState.guild, oldState.member.id);
+		if (oldState.guild && oldState.id) {
+			await handleRoleAssignment(oldState.guild, oldState.id);
+		}
 	},
 };

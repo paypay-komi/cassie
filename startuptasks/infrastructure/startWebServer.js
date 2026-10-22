@@ -131,6 +131,23 @@ module.exports = {
 		// -----------------------------
 		app.use(express.static(path.join(process.cwd(), "public")));
 
+		// Serve guild dashboard assets from views/
+		app.use("/guild.css", (req, res) => {
+			res.sendFile(path.join(process.cwd(), "views", "guild.css"));
+		});
+		app.use("/dashboard", (req, res, next) => {
+			const baseDir = path.join(process.cwd(), "views", "dashboard");
+			const filePath = path.resolve(baseDir, req.path.replace(/^[/\\]+/, ""));
+			const ext = path.extname(filePath);
+			const inBase = filePath === baseDir || filePath.startsWith(baseDir + path.sep);
+			if (inBase && (ext === ".html" || ext === ".js" || ext === ".css")) {
+				return res.sendFile(filePath, (err) => {
+					if (err) res.status(404).end();
+				});
+			}
+			next();
+		});
+
 		// -----------------------------
 		// BASIC ROUTES
 		// -----------------------------

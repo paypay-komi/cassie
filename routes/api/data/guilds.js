@@ -1,8 +1,35 @@
-const fetch = require("node-fetch");
-const db = require("../../../db");
+const { getUserGuilds } = require("../../../lib/guildListCache");
 
 const MANAGE_GUILD = 0x20;
 const BOT_PERMS = 387136; // Send Messages, Read Message History, Embed Links, Attach Files, Use External Emojis, Add Reactions, Manage Messages
+
+const BOT_GUILD_TTL = 15 * 1000;
+let botGuildCache = { at: 0, ids: new Set(), counts: new Map() };
+
+async function getBotGuilds(client) {
+	if (!client) return botGuildCache;
+	if (Date.now() - botGuildCache.at < BOT_GUILD_TTL) return botGuildCache;
+
+	const snapshot = { at: Date.now(), ids: new Set(), counts: new Map() };
+	if (client.shard) {
+		const shardGuilds = await client.shard.broadcastEval((c) =>
+			[...c.guilds.cache.values()].map((g) => [g.id, g.memberCount ?? 0]),
+		);
+		for (const arr of shardGuilds) {
+			for (const [id, count] of arr) {
+				snapshot.ids.add(id);
+				snapshot.counts.set(id, count);
+			}
+		}
+	} else {
+		for (const g of client.guilds.cache.values()) {
+			snapshot.ids.add(g.id);
+			snapshot.counts.set(g.id, g.memberCount ?? 0);
+		}
+	}
+	botGuildCache = snapshot;
+	return snapshot;
+}
 
 module.exports = {
 	path: "/api/data/guilds",
@@ -19,52 +46,20 @@ module.exports = {
 		}
 
 		try {
-			// Fetch user's guilds via Discord API
-			const response = await fetch(
-				"https://discord.com/api/users/@me/guilds",
-				{
-					headers: {
-						Authorization: `Bearer ${session.accessToken}`,
-					},
-				},
-			);
+			const client = req.app?.locals?.client;
+			const [discordGuilds, botGuilds] = await Promise.all([
+				getUserGuilds(session),
+				getBotGuilds(client).catch((e) => {
+					console.error("Failed to get bot guilds:", e);
+					return botGuildCache;
+				}),
+			]);
 
-			if (!response.ok) {
-				return res.status(500).json({
-					ok: false,
-					error: "failed_to_fetch_guilds",
-				});
-			}
-
-			const discordGuilds = await response.json();
-
-			// Get bot's guild IDs across all shards
-			let botGuildIds = new Set();
-			try {
-				const client = req.app?.locals?.client;
-				if (client) {
-					if (client.shard) {
-						const shardGuilds = await client.shard.broadcastEval(
-							(c) => [...c.guilds.cache.keys()],
-						);
-						for (const ids of shardGuilds) {
-							for (const id of ids) botGuildIds.add(id);
-						}
-					} else {
-						for (const id of client.guilds.cache.keys()) {
-							botGuildIds.add(id);
-						}
-					}
-				}
-			} catch (e) {
-				console.error("Failed to get bot guilds:", e);
-			}
-
-			// Filter to guilds where user has MANAGE_GUILD
 			const manageable = discordGuilds.filter(
 				(g) => (Number(g.permissions) & MANAGE_GUILD) === MANAGE_GUILD || g.owner,
 			);
 
+			res.set("Cache-Control", "private, max-age=30");
 			return res.json({
 				ok: true,
 				clientId: process.env.DISCORD_CLIENT_ID,
@@ -82,14 +77,18 @@ module.exports = {
 						.slice(0, 2)
 						.toUpperCase(),
 					owner: g.owner,
-					botIn: botGuildIds.has(g.id),
+					botIn: botGuilds.ids.has(g.id),
+					memberCount: botGuilds.ids.has(g.id)
+						? botGuilds.counts.get(g.id) ?? null
+						: null,
 				})),
 			});
 		} catch (err) {
 			console.error(err);
-			return res.status(500).json({
+			return res.status(err.status === 401 ? 401 : 500).json({
 				ok: false,
-				error: "internal_error",
+				error:
+					err.status === 401 ? "unauthorized" : "failed_to_fetch_guilds",
 			});
 		}
 	},
