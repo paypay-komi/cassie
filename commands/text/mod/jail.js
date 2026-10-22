@@ -31,6 +31,10 @@ commandId: "3a791202-a7ca-43fd-9eb9-d37694314a41",
 		const role = await moderation.applyRole(guild, target, cfg.roleId, "Jailed");
 		if (!role) return message.reply(buildMessage("Could not apply the jail role (check hierarchy).", 0xe05252));
 
+		if (cfg.channelId && target.voice?.channelId) {
+			await target.voice.setChannel(cfg.channelId).catch(() => {});
+		}
+
 		const modCase = await moderation.createCase({
 			prisma,
 			guildId: guild.id,
