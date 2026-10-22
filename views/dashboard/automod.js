@@ -125,7 +125,7 @@ export async function init(ctx) {
           <div class="toggle-label">Strike System</div>
           <div class="toggle-desc">Track strikes and escalate punishments</div>
         </div>
-        <div class="toggle" id="am-strikes-enabled" data-disabled="true" data-tooltip="Track strikes for automod violations and apply the escalation thresholds below.">
+        <div class="toggle" id="am-strikes-enabled" data-disabled="true" data-tooltip="Track strikes for automod violations and apply the escalation thresholds below."></div>
       </div>
       <div class="toggle-row">
         <div class="toggle-info">

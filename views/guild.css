@@ -800,11 +800,12 @@ input[type="checkbox"] { accent-color: var(--accent); }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--sp-4);
   padding: var(--sp-3) 0;
 }
 .toggle-row + .toggle-row { border-top: 1px solid var(--border); }
-.toggle-info { flex: 1; min-width: 0; }
+.toggle-info { flex: 1; min-width: 200px; }
 .toggle-label {
   font-size: var(--text-sm);
   color: var(--text-0);
@@ -817,6 +818,30 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 .prefix-controls { display: flex; gap: var(--sp-2); align-items: center; }
 .prefix-input { width: 90px; text-align: center; font-family: var(--mono); }
+
+/* Module rows (security) */
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.module-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+  color: var(--text-2);
+  font-size: var(--text-sm);
+}
+.module-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.module-field > label { white-space: nowrap; }
 
 /* ============================================================
    CARDS
@@ -1134,6 +1159,7 @@ tbody tr:hover { background: var(--bg-3); }
    AUTOCOMPLETE
    ============================================================ */
 .autocomplete-wrap { position: relative; }
+.autocomplete-wrap > .input { width: 100%; }
 .autocomplete-list {
   display: none;
   position: absolute;
@@ -1632,7 +1658,20 @@ tbody tr:hover { background: var(--bg-3); }
   .prefix-row { flex-direction: column; align-items: flex-start; }
   .prefix-controls { width: 100%; }
   .prefix-input { flex: 1; width: auto; }
-  .form-row { flex-direction: column; align-items: stretch; }
+  .form-row { flex-direction: column; align-items: stretch !important; }
+  .form-row > .form-group { flex: 1 1 auto !important; width: 100%; min-width: 0 !important; }
+  .section-header { flex-wrap: wrap; }
+  .section-header > .search-input { flex: 1 1 100%; max-width: 100% !important; margin-left: 0 !important; }
+  .form-row > .form-group > .btn { width: 100%; }
+  .toggle-row > select,
+  .toggle-row > textarea,
+  .toggle-row > input[type="text"] { flex: 1 0 100%; width: 100% !important; max-width: 100%; }
+  .module-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .module-field { flex-direction: column; align-items: stretch; gap: var(--sp-1); }
+  .module-field > label { white-space: normal; }
+  .module-field > .input,
+  .module-field > select { width: 100% !important; min-width: 0; }
+  .module-field-wide { grid-column: 1 / -1; }
   .add-override,
   .add-override-form { flex-direction: column; align-items: stretch; }
   .section { margin-top: var(--sp-6); }

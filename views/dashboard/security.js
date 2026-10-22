@@ -102,22 +102,33 @@ export async function init(ctx) {
       const punishment = mod?.punishment || 'ban';
       return `
       <div class="item">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
+        <div class="module-header">
           <strong>${label}</strong>
           <div class="toggle${enabled ? ' on' : ''}" data-an-toggle="${type}" data-disabled="${!enabled}" data-tooltip="Enable or disable ${esc(label)} detection."></div>
         </div>
-        <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;color:var(--text-2);font-size:var(--text-sm);margin-top:var(--sp-2)">
-          <label>Punishment</label>
-          <select class="input" data-an-punish="${type}" style="width:110px" data-tooltip="Action taken when this module triggers.">
-            ${AN_PUNISHMENTS.map(p => `<option value="${p}" ${p === punishment ? 'selected' : ''}>${p}</option>`).join('')}
-          </select>
-          <input type="number" class="input" data-an-duration="${type}" value="${mod?.punishmentDuration ?? ''}" placeholder="timeout seconds" min="0" style="width:130px;display:${punishment === 'timeout' ? '' : 'none'}" data-tooltip="Timeout length in seconds; only used when punishment is timeout.">
-          <label>Log</label>
-          <select class="input" data-an-log="${type}" style="width:180px" data-tooltip="Channel where this module's triggers are logged.">${channelOptions(mod?.logChannelId)}</select>
-          <label>Threshold</label>
-          <input type="number" class="input" data-an-threshold="${type}" value="${mod?.threshold ?? ''}" placeholder="none" min="1" style="width:80px" data-tooltip="Number of events within the window that triggers punishment; blank uses the module default.">
-          <label>Window (s)</label>
-          <input type="number" class="input" data-an-window="${type}" value="${mod?.window ?? ''}" placeholder="60" min="1" style="width:80px" data-tooltip="Time window in seconds for counting events.">
+        <div class="module-controls">
+          <div class="module-field">
+            <label>Punishment</label>
+            <select class="input" data-an-punish="${type}" style="width:110px" data-tooltip="Action taken when this module triggers.">
+              ${AN_PUNISHMENTS.map(p => `<option value="${p}" ${p === punishment ? 'selected' : ''}>${p}</option>`).join('')}
+            </select>
+          </div>
+          <div class="module-field" style="display:${punishment === 'timeout' ? '' : 'none'}">
+            <label>Timeout (s)</label>
+            <input type="number" class="input" data-an-duration="${type}" value="${mod?.punishmentDuration ?? ''}" placeholder="timeout seconds" min="0" style="width:130px" data-tooltip="Timeout length in seconds; only used when punishment is timeout.">
+          </div>
+          <div class="module-field">
+            <label>Log</label>
+            <select class="input" data-an-log="${type}" style="width:180px" data-tooltip="Channel where this module's triggers are logged.">${channelOptions(mod?.logChannelId)}</select>
+          </div>
+          <div class="module-field">
+            <label>Threshold</label>
+            <input type="number" class="input" data-an-threshold="${type}" value="${mod?.threshold ?? ''}" placeholder="none" min="1" style="width:80px" data-tooltip="Number of events within the window that triggers punishment; blank uses the module default.">
+          </div>
+          <div class="module-field">
+            <label>Window (s)</label>
+            <input type="number" class="input" data-an-window="${type}" value="${mod?.window ?? ''}" placeholder="60" min="1" style="width:80px" data-tooltip="Time window in seconds for counting events.">
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -252,26 +263,26 @@ export async function init(ctx) {
       const enabled = !!(mod && mod.enabled);
       let extra = '';
       if (type === 'age') {
-        extra = `<label>Min account age (days)</label><input type="number" class="input" data-ar-age="${type}" value="${mod?.maxAgeDays ?? 7}" min="1" style="width:80px" data-tooltip="Reject accounts younger than this many days.">`;
+        extra = `<div class="module-field"><label>Min account age (days)</label><input type="number" class="input" data-ar-age="${type}" value="${mod?.maxAgeDays ?? 7}" min="1" style="width:80px" data-tooltip="Reject accounts younger than this many days."></div>`;
       } else if (type === 'username') {
-        extra = `<input class="input" data-ar-patterns="${type}" value="${esc((mod?.usernamePatterns || []).join(', '))}" placeholder="comma separated patterns" style="flex:1;min-width:200px" data-tooltip="Comma-separated patterns matched against usernames.">`;
+        extra = `<div class="module-field module-field-wide"><label>Username patterns</label><input class="input" data-ar-patterns="${type}" value="${esc((mod?.usernamePatterns || []).join(', '))}" placeholder="comma separated patterns" style="flex:1;min-width:200px" data-tooltip="Comma-separated patterns matched against usernames."></div>`;
       } else if (type === 'massjoin' || type === 'massmention') {
-        extra = `<label>Threshold</label><input type="number" class="input" data-ar-threshold="${type}" value="${mod?.threshold ?? ''}" placeholder="none" min="1" style="width:80px" data-tooltip="Number of events within the window that triggers the module.">
-                 <label>Window (s)</label><input type="number" class="input" data-ar-window="${type}" value="${mod?.window ?? ''}" placeholder="30" min="1" style="width:80px" data-tooltip="Time window in seconds for counting events.">`;
+        extra = `<div class="module-field"><label>Threshold</label><input type="number" class="input" data-ar-threshold="${type}" value="${mod?.threshold ?? ''}" placeholder="none" min="1" style="width:80px" data-tooltip="Number of events within the window that triggers the module."></div>
+                 <div class="module-field"><label>Window (s)</label><input type="number" class="input" data-ar-window="${type}" value="${mod?.window ?? ''}" placeholder="30" min="1" style="width:80px" data-tooltip="Time window in seconds for counting events."></div>`;
       }
       const actionSel = (type !== 'massjoin' && type !== 'massmention')
-        ? `<label>Action</label><select class="input" data-ar-action="${type}" style="width:100px" data-tooltip="Action applied to accounts caught by this module.">
+        ? `<div class="module-field"><label>Action</label><select class="input" data-ar-action="${type}" style="width:100px" data-tooltip="Action applied to accounts caught by this module.">
              <option value="kick" ${(mod?.action || 'kick') === 'kick' ? 'selected' : ''}>kick</option>
              <option value="ban" ${mod?.action === 'ban' ? 'selected' : ''}>ban</option>
-           </select>`
+           </select></div>`
         : '';
       return `
       <div class="item">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
+        <div class="module-header">
           <strong>${label}</strong>
           <div class="toggle${enabled ? ' on' : ''}" data-ar-toggle="${type}" data-disabled="${!enabled}" data-tooltip="Enable or disable ${esc(label)} protection."></div>
         </div>
-        <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;color:var(--text-2);font-size:var(--text-sm);margin-top:var(--sp-2)">
+        <div class="module-controls">
           ${actionSel}${extra}
         </div>
       </div>`;

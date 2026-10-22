@@ -171,15 +171,15 @@ export async function init(ctx) {
               Self Star
             </div>
             <div class="form-label" style="display:flex;align-items:center;gap:var(--sp-2)">
-              <div class="toggle" data-sb-bool="showAttachments" data-sb-idx="${i}" data-disabled="${sb.showAttachments === false}" data-tooltip="Include images and file attachments in the starboard embed.">
+              <div class="toggle" data-sb-bool="showAttachments" data-sb-idx="${i}" data-disabled="${sb.showAttachments === false}" data-tooltip="Include images and file attachments in the starboard embed."></div>
               Show Attachments
             </div>
             <div class="form-label" style="display:flex;align-items:center;gap:var(--sp-2)">
-              <div class="toggle" data-sb-bool="showTimestamp" data-sb-idx="${i}" data-disabled="${sb.showTimestamp === false}" data-tooltip="Show when the original message was sent.">
+              <div class="toggle" data-sb-bool="showTimestamp" data-sb-idx="${i}" data-disabled="${sb.showTimestamp === false}" data-tooltip="Show when the original message was sent."></div>
               Show Timestamp
             </div>
             <div class="form-label" style="display:flex;align-items:center;gap:var(--sp-2)">
-              <div class="toggle" data-sb-bool="jumpUrl" data-sb-idx="${i}" data-disabled="${sb.jumpUrl === false}" data-tooltip="Include a link back to the original message.">
+              <div class="toggle" data-sb-bool="jumpUrl" data-sb-idx="${i}" data-disabled="${sb.jumpUrl === false}" data-tooltip="Include a link back to the original message."></div>
               Jump URL
             </div>
             <div style="display:flex;align-items:center;gap:var(--sp-2)">
