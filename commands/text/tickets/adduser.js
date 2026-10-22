@@ -1,4 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
+const { buildMessage } = require("../../../lib/v2Reply");
+const tickets = require("../../../lib/tickets");
+
 module.exports = {
 	commandId: "08bd2203-0ce8-4cee-92d1-7b82e52f65ac",
 	name: "adduser",
@@ -8,29 +11,37 @@ module.exports = {
 	dmUse: false,
 	requiredUserPermissions: [PermissionsBitField.Flags.ModerateMembers],
 
-	async execute(message, args) {
+	async execute(message) {
 		const prisma = message.client.db.prisma;
 		const guild = message.guild;
 		const channel = message.channel;
 
-		const ticket = await prisma.ticket.findUnique({
-			where: { guildId_channelId: { guildId: guild.id, channelId: channel.id } },
-		});
-		if (!ticket) return message.reply(buildMessage("This is not a ticket channel.", 0xe05252));
+		const ticket = await tickets.getTicketForChannel(prisma, guild.id, channel.id);
+		if (!ticket) {
+			return message.reply(buildMessage("This is not a ticket channel.", 0xe05252));
+		}
 
 		const target = message.mentions.members.first();
-		if (!target) return message.reply(buildMessage("Mention a member to add.", 0xe05252));
+		if (!target) {
+			return message.reply(buildMessage("Mention a member to add.", 0xe05252));
+		}
 
 		try {
-			await channel.permissionOverwrites.edit(target.id, {
-				ViewChannel: true,
-				SendMessages: true,
-				ReadMessageHistory: true,
-			});
+			if (channel.isThread?.()) {
+				await channel.members.add(target.id);
+			} else {
+				await channel.permissionOverwrites.edit(target.id, {
+					ViewChannel: true,
+					SendMessages: true,
+					ReadMessageHistory: true,
+				});
+			}
 		} catch (err) {
 			return message.reply(buildMessage(`Failed: ${err.message}`, 0xe05252));
 		}
 
-		return message.reply(buildMessage(`${target} added to this ticket.`, 0x57f287));
+		return message.reply(
+			buildMessage(`${target} added to this ticket.`, 0x57f287),
+		);
 	},
 };

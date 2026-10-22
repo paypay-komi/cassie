@@ -1,79 +1,86 @@
-const {
-	PermissionsBitField,
-	ContainerBuilder,
-	TextDisplayBuilder,
-	SeparatorBuilder,
-	MessageFlags,
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	StringSelectMenuBuilder,
-} = require("discord.js");
+const { PermissionsBitField, ChannelType } = require("discord.js");
 const tickets = require("../../../lib/tickets");
 const { buildMessage } = require("../../../lib/v2Reply");
+const { getLogger } = require("../../../lib/logger");
+
+const log = getLogger("TicketSetup");
 
 module.exports = {
 	commandId: "ce58ab45-29b8-4c24-89d7-c69e9b175d3c",
 	name: "setup",
 	parent: "tickets",
-	description: "Send the ticket panel to a channel",
-	usage: "tickets setup <#channel>",
+	description: "Create the ticket category, support role, and panel",
+	usage: "tickets setup [category]",
 	dmUse: false,
 	requiredUserPermissions: [PermissionsBitField.Flags.ManageGuild],
+	requiredBotPermissions: [
+		PermissionsBitField.Flags.ManageChannels,
+		PermissionsBitField.Flags.ManageRoles,
+		PermissionsBitField.Flags.SendMessages,
+		PermissionsBitField.Flags.ManageMessages,
+		PermissionsBitField.Flags.ReadMessageHistory,
+	],
 
 	async execute(message, args) {
 		const prisma = message.client.db.prisma;
 		const guild = message.guild;
+		const raw = args.join(" ").trim();
 
-		const channel = message.mentions.channels.first();
-		if (!channel) return message.reply(buildMessage("Mention a channel to send the panel.", 0xe05252));
+		let category =
+			message.mentions.channels.find(
+				(channel) => channel.type === ChannelType.GuildCategory,
+			) || null;
 
-		const cfg = await tickets.ensureConfig(prisma, guild.id);
-		if (!cfg.enabled) {
-			return message.reply(buildMessage("Tickets are disabled. Run `tickets config` to enable.", 0xe05252));
+		if (!category && raw) {
+			const id = args[0].replace(/[<#>]/g, "");
+			category =
+				guild.channels.cache.get(id) ||
+				guild.channels.cache.find(
+					(channel) =>
+						channel.type === ChannelType.GuildCategory &&
+						channel.name.toLowerCase() === raw.toLowerCase(),
+				) ||
+				null;
+			if (!category) {
+				return message.reply(
+					buildMessage(
+						"I couldn't find that category. Mention a category, provide its ID, or run `tickets setup` with no arguments.",
+						0xe05252,
+					),
+				);
+			}
 		}
 
-		const options = await prisma.ticketOption.findMany({ where: { guildId: guild.id } });
+		const result = await tickets
+			.setupGuild({
+				client: message.client,
+				guild,
+				prisma,
+				category,
+			})
+			.catch((err) => {
+				log.error("Ticket setup failed: " + err.message);
+				return null;
+			});
 
-		const container = new ContainerBuilder()
-			.setAccentColor(0x5865f2)
-			.addTextDisplayComponents(
-				new TextDisplayBuilder().setContent("## 🎫 Support Tickets\nClick below or select a category to open a ticket."),
+		if (!result) {
+			return message.reply(
+				buildMessage(
+					"Ticket setup failed. Check that I have **Manage Channels**, **Manage Roles**, **Send Messages**, **Manage Messages**, and **Read Message History**.",
+					0xe05252,
+				),
 			);
-
-		if (options.length) {
-			container.addSeparatorComponents(new SeparatorBuilder());
-			const menu = new StringSelectMenuBuilder()
-				.setCustomId("ticket_options")
-				.setPlaceholder("Select a category...")
-				.addOptions(options.map((o) => ({
-					label: o.label,
-					description: o.description || undefined,
-					emoji: o.emoji || undefined,
-					value: o.label,
-				})));
-			container.addActionRowComponents(new ActionRowBuilder().addComponents(menu));
 		}
 
-		const row = new ActionRowBuilder().addComponents(
-			new ButtonBuilder().setCustomId("ticket_create").setLabel("Create Ticket").setStyle(ButtonStyle.Primary).setEmoji("🎫"),
+		return message.reply(
+			buildMessage(
+				"## Tickets are ready\n" +
+					`**Category:** ${result.category.name}\n` +
+					`**Support role:** ${result.supportRole}\n` +
+					`**Panel channel:** ${result.panelChannel}\n\n` +
+					"Users can open a private ticket from the panel. Use `tickets option` to add more categories.",
+				0x57f287,
+			),
 		);
-		container.addActionRowComponents(row);
-
-		await channel.send({
-			components: [container],
-			flags: MessageFlags.IsComponentsV2,
-			allowedMentions: { parse: [] },
-		}).catch((err) => {
-			return message.reply(buildMessage(`Failed to send panel: ${err.message}`, 0xe05252));
-		});
-
-		await prisma.ticketConfig.upsert({
-			where: { guildId: guild.id },
-			create: { guildId: guild.id, panelChannelId: channel.id },
-			update: { panelChannelId: channel.id },
-		});
-
-		return message.reply(buildMessage(`Panel sent to ${channel}.`, 0x57f287));
 	},
 };
