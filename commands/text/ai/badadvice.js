@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
-const { getLogger } = require("../../lib/logger");
-const { pingSafeMesage } = require("../../utils/safeMsg");
+const { getLogger } = require("../../../lib/logger");
+const { pingSafeMesage } = require("../../../lib/safeMsg");
 const EDIT_INTERVAL = 1000;
 const DISCORD_LIMIT = 2000;
 async function getBadAdvice(userQuestion) {

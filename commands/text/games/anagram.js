@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
-const { WORDS, randomWord } = require("../../../utils/words");
-const { shuffle } = require("../../../utils/shuffle");
+const { WORDS, randomWord } = require("../../../lib/words");
+const { shuffle } = require("../../../lib/shuffle");
 
 function signature(word) {
 	return word.toLowerCase().replace(/\s+/g, "").split("").sort().join("");

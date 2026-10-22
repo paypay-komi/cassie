@@ -1,6 +1,6 @@
 const { idToName } = require("../../../../lib/commandResolver");
 const { ArgsBuilder } = require("../../../../lib/argsBuilder");
-const { pingSafeMesage } = require("../../../../utils/safeMsg");
+const { pingSafeMesage } = require("../../../../lib/safeMsg");
 
 module.exports = {
 

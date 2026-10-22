@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
-const db = require("../../db");
-const { ArgsBuilder } = require("../../lib/argsBuilder");
+const db = require("../../../db");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {
 

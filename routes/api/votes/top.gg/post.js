@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { getLogger } = require("../../../../lib/logger");
-const voteEmitter = require("../../../../utils/voteEmitter");
+const voteEmitter = require("../../../../lib/voteEmitter");
 
 function verifyV1Signature(rawBody, signatureHeader, secret) {
 	if (!signatureHeader || !secret) return false;

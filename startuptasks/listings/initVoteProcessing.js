@@ -10,7 +10,7 @@ const {
 	MessageFlags,
 } = require("discord.js");
 const db = require("../../db");
-const voteEmitter = require("../../utils/voteEmitter");
+const voteEmitter = require("../../lib/voteEmitter");
 const { getLogger } = require("../../lib/logger");
 
 const STREAK_TIMEOUT = 24 * 60 * 60 * 1000;

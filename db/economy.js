@@ -1,6 +1,6 @@
 const { User, messageLink } = require("discord.js");
 const prisma = require("../prisma/client");
-const parseTime = require("../utils/parseTime");
+const parseTime = require("../lib/parseTime");
 const stream = require("stream");
 
 const MAX_BALANCE = 2_147_483_647;

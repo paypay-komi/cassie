@@ -6,7 +6,7 @@ const {
 	AttachmentBuilder,
 	MessageFlags,
 } = require("discord.js");
-const { renderSlotGif } = require("../../utils/slotRenderer");
+const { renderSlotGif } = require("../../../lib/slotRenderer");
 function v2(text) {
 	return {
 		components: [

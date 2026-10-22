@@ -1,5 +1,5 @@
 const { getLogger } = require("../../../../lib/logger");
-const voteEmitter = require("../../../../utils/voteEmitter");
+const voteEmitter = require("../../../../lib/voteEmitter");
 const express = require("express");
 
 const DBL_SECRET = process.env.DBL_WEBHOOK_SECRET;

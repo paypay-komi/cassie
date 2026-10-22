@@ -9,8 +9,8 @@ const {
 	ButtonStyle,
 } = require("discord.js");
 const { getLogger } = require("../lib/logger");
-const didYouMean = require("../utils/didyoumean.js");
-const { levenshtein } = require("../utils/didyoumean.js");
+const didYouMean = require("../lib/didyoumean.js");
+const { levenshtein } = require("../lib/didyoumean.js");
 const fs = require("fs");
 const path = require("path");
 const { ContainerBuilder, TextDisplayBuilder, MessageFlags } = require("discord.js");

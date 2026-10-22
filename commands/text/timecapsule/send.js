@@ -1,12 +1,12 @@
 const { PermissionsBitField } = require("discord.js");
 const { getLogger } = require("../../../lib/logger");
 const { ArgsBuilder } = require("../../../lib/argsBuilder");
-const parseTime = require("../../../utils/parseTime.js");
+const parseTime = require("../../../lib/parseTime.js");
 const setupTimeCapsuleTask = require("../../../startuptasks/data/startUpTimeCapsuleTask");
 const {
 	parseDateIntoDiscordTimeStamp,
 	discordTimeStampFormats,
-} = require("../../../utils/parseDateIntoDiscordTimeStamp.js");
+} = require("../../../lib/parseDateIntoDiscordTimeStamp.js");
 
 module.exports = {
 	commandId: "e187e953-dbfd-4c86-a71c-5c8050c34331",

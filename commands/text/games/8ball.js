@@ -1,5 +1,5 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
-const { ArgsBuilder } = require("../../lib/argsBuilder");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 const answers = [
 	// Positive

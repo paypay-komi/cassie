@@ -1,5 +1,5 @@
 const { PermissionsBitField, EmbedBuilder, AttachmentBuilder } = require("discord.js");
-const { ArgsBuilder } = require("../../lib/argsBuilder");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 const MAX_DICE = 100000;
 const MAX_SIDES = 1000000;

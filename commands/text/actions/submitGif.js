@@ -11,8 +11,8 @@ const config = require("../../../config.json");
 const {
 	hashImage,
 	findNearDuplicate,
-} = require("../../../utils/perceptualHash");
-const { ALL_ACTIONS } = require("../../../utils/actionGroups");
+} = require("../../../lib/perceptualHash");
+const { ALL_ACTIONS } = require("../../../lib/actionGroups");
 
 const VALID_ACTIONS = ALL_ACTIONS;
 

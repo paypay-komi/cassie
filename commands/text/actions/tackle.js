@@ -1,5 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
-const { handleActionCommand } = require("../../../utils/actionCommandHandler");
+const { handleActionCommand } = require("../../../lib/actionCommandHandler");
 
 module.exports = {
 

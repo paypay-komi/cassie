@@ -1,6 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
-const db = require("../../db");
-const { parseSchema } = require("../../lib/userDataMapper");
+const db = require("../../../db");
+const { parseSchema } = require("../../../lib/userDataMapper");
 
 module.exports = {
 

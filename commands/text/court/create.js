@@ -9,7 +9,7 @@ const {
 	ButtonStyle,
 	MessageFlags,
 } = require("discord.js");
-const parseTime = require("../../../utils/parseTime");
+const parseTime = require("../../../lib/parseTime");
 const courtCaseResolver = require("../../../startuptasks/schedulers/courtCaseResolver.js");
 
 module.exports = {

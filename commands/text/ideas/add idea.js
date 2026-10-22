@@ -4,7 +4,7 @@ const db = require("../../../db");
 const {
 	validateIdea,
 	bustIdeaCache,
-} = require("../../../utils/ideas/validateIdea.js");
+} = require("../../../lib/ideas/validateIdea.js");
 const { ArgsBuilder } = require("../../../lib/argsBuilder");
 
 module.exports = {

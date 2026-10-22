@@ -1,7 +1,7 @@
 const { Events, Client, Interaction, MessageFlags } = require("discord.js");
 const { getLogger } = require("../lib/logger");
 const db = require("../db");
-const render = require("../utils/echoChamberMessageRenderer");
+const render = require("../lib/echoChamberMessageRenderer");
 
 const log = getLogger("echoChamberMessagePaganation/deletingHandeler");
 

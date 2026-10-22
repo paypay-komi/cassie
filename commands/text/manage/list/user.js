@@ -1,5 +1,5 @@
 const { idToName } = require("../../../../lib/commandResolver");
-const { pingSafeMesage } = require("../../../../utils/safeMsg");
+const { pingSafeMesage } = require("../../../../lib/safeMsg");
 
 module.exports = {
 

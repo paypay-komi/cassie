@@ -1,5 +1,5 @@
 const { PermissionsBitField, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require("discord.js");
-const db = require("../../db");
+const db = require("../../../db");
 const fs = require("fs");
 const path = require("path");
 

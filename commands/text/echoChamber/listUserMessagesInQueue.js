@@ -1,6 +1,6 @@
 const db = require("../../../db");
 const { MessageFlags, PermissionsBitField } = require("discord.js");
-const render = require("../../../utils/echoChamberMessageRenderer");
+const render = require("../../../lib/echoChamberMessageRenderer");
 module.exports = {
 	commandId: "d0c80746-925d-4383-83ee-0dc34551da22",
 	name: "mymessages",

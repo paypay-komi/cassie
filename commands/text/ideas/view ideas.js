@@ -12,7 +12,7 @@ const {
 	ContainerBuilder,
 } = require("discord.js");
 const db = require("../../../db");
-const actionUserCommand = require("../../../utils/actionUserCommand");
+const actionUserCommand = require("../../../lib/actionUserCommand");
 
 const PAGE_SIZE = 5;
 /**

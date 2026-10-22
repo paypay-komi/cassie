@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../../config.json");
 const { getLogger } = require("../../lib/logger");
-const { GROUPS } = require("../../utils/actionGroups");
+const { GROUPS } = require("../../lib/actionGroups");
 require("dotenv/config");
 
 module.exports = {

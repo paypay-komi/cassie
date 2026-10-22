@@ -1,11 +1,11 @@
 const { PermissionsBitField } = require("discord.js");
-const { getLogger } = require("../../lib/logger");
-const { pingSafeMesage } = require("../../utils/safeMsg");
-const { ArgsBuilder } = require("../../lib/argsBuilder");
-const db = require("../../db");
+const { getLogger } = require("../../../lib/logger");
+const { pingSafeMesage } = require("../../../lib/safeMsg");
+const { ArgsBuilder } = require("../../../lib/argsBuilder");
+const db = require("../../../db");
 const { DateTime } = require("luxon");
-const restart = require("./ownerCommands/restart");
-const serverExplorer = require("../../lib/serverExplorer");
+const restart = require("../ownerCommands/restart");
+const serverExplorer = require("../../../lib/serverExplorer");
 const MAX_HISTORY = 20;
 const EDIT_INTERVAL = 1000;
 const DISCORD_LIMIT = 2000;
@@ -207,6 +207,88 @@ const TOOLS = [
 			},
 		},
 	},
+	{
+		type: "function",
+		function: {
+			name: "list_tables",
+			description:
+				"List all database tables the AI can read. Use this first to discover what data is available before querying specific tables.",
+			parameters: {
+				type: "object",
+				properties: {},
+			},
+		},
+	},
+	{
+		type: "function",
+		function: {
+			name: "describe_table",
+			description:
+				"Show the columns, types, and a few sample rows from a specific table. Use this to understand a table's structure before querying it.",
+			parameters: {
+				type: "object",
+				properties: {
+					table: {
+						type: "string",
+						description: "The table name to describe (use list_tables to see available tables)",
+					},
+				},
+				required: ["table"],
+			},
+		},
+	},
+	{
+		type: "function",
+		function: {
+			name: "query_table",
+			description:
+				"Query a database table with optional filters. Returns rows matching the filter. For user-specific data (todos, reminders, chat history, economy, etc.), results are automatically filtered to the requesting user. Use describe_table first to learn column names.",
+			parameters: {
+				type: "object",
+				properties: {
+					table: {
+						type: "string",
+						description: "The table name to query",
+					},
+					filters: {
+						type: "object",
+						description: "Key-value pairs to filter by (e.g. {\"status\": \"pending\"}). For user-scoped tables, userId is auto-added.",
+					},
+					limit: {
+						type: "number",
+						description: "Max rows to return (default 25, max 100)",
+					},
+				},
+				required: ["table"],
+			},
+		},
+	},
+	{
+		type: "function",
+		function: {
+			name: "get_chat_history",
+			description:
+				"Retrieve the user's chat history with the AI. Can search by keyword, get recent conversations, or look at a specific time range. Use when the user asks about past conversations or wants to revisit something discussed before.",
+			parameters: {
+				type: "object",
+				properties: {
+					action: {
+						type: "string",
+						description: "One of: 'recent' (last N messages), 'search' (keyword search), 'summary' (conversation summaries)",
+					},
+					query: {
+						type: "string",
+						description: "For 'search': the keyword or phrase to search for. For 'recent'/'summary': ignored.",
+					},
+					limit: {
+						type: "number",
+						description: "Max messages to return (default 20, max 100)",
+					},
+				},
+				required: ["action"],
+			},
+		},
+	},
 	...serverExplorer.TOOLS,
 ];
 function calculate(expression) {
@@ -327,9 +409,100 @@ function toolStatusLabel(name, args) {
 			return `Saving to memory…`;
 		case "append_memory":
 			return `Appending to memory…`;
+		case "list_tables":
+			return `Listing available tables…`;
+		case "describe_table":
+			return `Describing table \`${args.table}\`…`;
+		case "query_table":
+			return `Querying \`${args.table}\`…`;
+		case "get_chat_history":
+			return args.action === "search"
+				? `Searching chat history for "${args.query}"…`
+				: args.action === "summary"
+					? `Summarizing chat history…`
+					: `Fetching recent chat history…`;
 		default:
 			return `Using tool: ${name}…`;
 	}
+}
+
+const SAFE_TABLES = {
+	todolist: { userScoped: true, columns: "id, userId, content, createdAt, completed" },
+	reminder: { userScoped: true, columns: "id, userId, content, remindAt, createdAt, repeatingSecs, remindInChannel, channelId" },
+	ChatMessage: { userScoped: true, columns: "id, userId, guildId, channelId, role, content, createdAt" },
+	ChatMemory: { userScoped: true, columns: "userId, memory, updatedAt" },
+	userTimezone: { userScoped: true, columns: "userId, minsOffset, timeZoneString, timeFormat" },
+	UserPrefix: { userScoped: true, columns: "userId, prefix" },
+	GuildUserSettings: { userScoped: true, columns: "id, guildId, userId, statTracking" },
+	UserCommandStats: { userScoped: true, columns: "id, userId, guildId, commandName, count, lastUsed" },
+	UserGlobalCommandStats: { userScoped: true, columns: "id, userId, commandName, count, lastUsed" },
+	VoteReminder: { userScoped: true, columns: "id, userId, remindAt, createdAt, site" },
+	UserVoteStats: { userScoped: true, columns: "userId, lastVote, totalVotes, voteStreak, bestStreak, voteDmOptOut" },
+	IdeaVote: { userScoped: true, columns: "id, ideaId, userId, value, createdAt" },
+	CourtVote: { userScoped: true, columns: "id, caseId, voterId, value, votedAt" },
+	MemberBoostStreak: { userScoped: true, columns: "id, guildId, userId, streak, totalBoosts, lastBoostAt" },
+	GlobalAfkUser: { userScoped: true, columns: "userId, reason, since, autoReply, ignoreBots, notifyOnPing, mentionCount" },
+	MemberXP: { userScoped: true, columns: "id, guildId, userId, xp, level, totalVoiceSec, lastMessageAt, lastVoiceAt" },
+	GuildEconomyUser: { userScoped: true, columns: "guildId, userId, balance, totalEarned, totalSpent, lastDaily, lastWork, workStreak" },
+	GuildEconomyTransaction: { userScoped: true, columns: "id, guildId, userId, type, amount, balanceAfter, relatedUserId, description, createdAt" },
+	GuildMemberActivity: { userScoped: true, columns: "guildId, userId, messageCount, voiceSeconds" },
+	TimeCapsule: { userScoped: true, columns: "id, userId, content, sendAt, sentAt, createdAt" },
+	GuildTag: { userScoped: false, columns: "id, guildId, name, content, creatorId, uses, createdAt" },
+	EchoChannel: { userScoped: false, columns: "id, guildId, channelId, echoChance, deleteDelayMin, deleteDelayMax, echoDelayMin, echoDelayMax" },
+	GuildEconomy: { userScoped: false, columns: "guildId, currencyName, currencySymbol, dailyBase, workMin, workMax, taxRate, enabled" },
+	GuildMemberRoleRequirement: { userScoped: false, columns: "id, guildId, roleId, expression" },
+	Idea: { userScoped: false, columns: "id, authorId, content, status, aiResult, aiReason, vote_score, createdAt" },
+	CourtCase: { userScoped: false, columns: "id, guildId, defendantId, prosecutorId, reason, status, createdAt" },
+	LevelConfig: { userScoped: false, columns: "guildId, channelId, textEnabled, voiceEnabled, textMultiplier" },
+	LevelRoleReward: { userScoped: false, columns: "id, guildId, roleId, level" },
+	LevelMilestone: { userScoped: false, columns: "id, guildId, level, coins, roleId" },
+	Starboard: { userScoped: false, columns: "id, guildId, channelId, emoji, threshold, selfStar" },
+	StarboardEntry: { userScoped: false, columns: "id, guildId, sourceMessageId, sourceChannelId, starCount, createdAt" },
+	GuildInviteConfig: { userScoped: false, columns: "guildId, channelId, message, deductOnLeave, trackingEnabled" },
+	Invite: { userScoped: false, columns: "id, guildId, code, inviterId, uses, maxUses, createdAt" },
+	InviteJoin: { userScoped: false, columns: "id, guildId, userId, inviteId, fake, joinedAt, leftAt" },
+	TicketPanel: { userScoped: false, columns: "id, guildId, name, channelId, maxOpen, mode" },
+	Ticket: { userScoped: false, columns: "id, guildId, ownerId, status, priority, subject, createdAt" },
+	ReactionRole: { userScoped: false, columns: "id, guildId, channelId, messageId, creatorId" },
+	GuildBoostConfig: { userScoped: false, columns: "guildId, channelId, roleId, enabled" },
+	VoiceMasterConfig: { userScoped: false, columns: "guildId, categoryId, defaultBitrate, defaultName, temporary" },
+	VoiceChannel: { userScoped: false, columns: "id, guildId, channelId, ownerId, locked, hidden, name" },
+	SavedReply: { userScoped: false, columns: "id, guildId, name, content" },
+	ReactionGif: { userScoped: false, columns: "id, hash, actions, fileType, createdAt" },
+	GuildSettings: { userScoped: false, columns: "guildId, prefix, leftAt" },
+	GlobalStats: { userScoped: false, columns: "id" },
+	GlobalCommandStats: { userScoped: false, columns: "id, commandName, count, lastUsed" },
+};
+
+const BLOCKED_TABLES = new Set([
+	"Session", "GuildSettingsObject", "UserDataObject", "InviteClick",
+	"AntinukeConfig", "AntinukeModule", "AntiraidConfig", "AntiraidModule",
+	"AutomodConfig", "AutomodFilter", "AutomodRegex", "AutomodExemption", "AutomodStrikeConfig",
+	"InvokeConfig", "WarnPunishment", "JailConfig", "ImuteConfig", "RmuteConfig",
+	"ModerationCase", "ModerationLog", "MemberStrike",
+	"GuildDisabledCommand", "GuildChannelCommandAccess", "GuildRoleCommandAccess", "GuildUserCommandAccess",
+	"ChannelSettings", "GuildAnnouncement",
+	"SubmittedReactonGif", "ReactionGifReport",
+	"TicketOption", "TicketForm", "TicketFormField", "TicketMessage", "TicketNote",
+	"ReactionRoleEntry", "StarboardIgnore",
+	"LevelMultiplier", "LevelIgnore",
+	"VoiceMasterHub", "VoiceChannelMember",
+	"InviteBonus", "InviteAdjustment",
+	"DblVote",
+	"GlobalAfkMention",
+]);
+
+function serializeRow(row) {
+	const out = {};
+	for (const [k, v] of Object.entries(row)) {
+		if (v === null || v === undefined) { out[k] = null; continue; }
+		if (typeof v === "bigint") { out[k] = v.toString(); continue; }
+		if (v instanceof Date) { out[k] = v.toISOString(); continue; }
+		if (typeof v === "object" && !Array.isArray(v)) { out[k] = JSON.stringify(v); continue; }
+		if (Array.isArray(v)) { out[k] = v.join(", "); continue; }
+		out[k] = v;
+	}
+	return out;
 }
 
 async function handleTool(toolName, args, message) {
@@ -485,6 +658,125 @@ async function handleTool(toolName, args, message) {
 				create: { userId: message.author.id, memory: updated },
 			}).catch(() => null);
 			return `Appended to memory (${wordCount} words total).`;
+		}
+
+		case "list_tables": {
+			const tables = Object.keys(SAFE_TABLES).sort();
+			const lines = tables.map((t) => {
+				const info = SAFE_TABLES[t];
+				const scope = info.userScoped ? " (your data only)" : " (server-wide)";
+				return `- **${t}**${scope} — ${info.columns}`;
+			});
+			return [`Available tables (${tables.length}):`, "", ...lines].join("\n");
+		}
+
+		case "describe_table": {
+			const tableName = args.table;
+			if (BLOCKED_TABLES.has(tableName)) {
+				return `The \`${tableName}\` table contains sensitive data and cannot be accessed.`;
+			}
+			const tableInfo = SAFE_TABLES[tableName];
+			if (!tableInfo) {
+				return `Table \`${tableName}\` not found or not accessible. Use list_tables to see available tables.`;
+			}
+			const sampleRows = await db.prisma[tableName].findMany({
+				take: 3,
+				orderBy: tableInfo.userScoped ? { createdAt: "desc" } : undefined,
+			}).catch(() => []);
+			const sample = sampleRows.map((r) => serializeRow(r));
+			const lines = [
+				`**${tableName}**${tableInfo.userScoped ? " (user-scoped)" : ""}`,
+				`Columns: ${tableInfo.columns}`,
+				"",
+				`Sample rows (${sample.length}):`,
+				...sample.map((r) => `\`${JSON.stringify(r).slice(0, 300)}\``),
+			];
+			return lines.join("\n");
+		}
+
+		case "query_table": {
+			const tableName = args.table;
+			if (BLOCKED_TABLES.has(tableName)) {
+				return `The \`${tableName}\` table contains sensitive data and cannot be accessed.`;
+			}
+			const tableInfo = SAFE_TABLES[tableName];
+			if (!tableInfo) {
+				return `Table \`${tableName}\` not found or not accessible. Use list_tables to see available tables.`;
+			}
+			const limit = Math.min(args.limit || 25, 100);
+			const where = { ...(args.filters || {}) };
+			if (tableInfo.userScoped) {
+				where.userId = message.author.id;
+			}
+			if (guild && tableInfo.columns.includes("guildId")) {
+				where.guildId = guild.id;
+			}
+			const rows = await db.prisma[tableName].findMany({
+				where,
+				take: limit,
+				orderBy: { createdAt: "desc" },
+			}).catch(() => []);
+			if (!rows.length) return `No rows found in \`${tableName}\` matching those filters.`;
+			const serialized = rows.map((r) => serializeRow(r));
+			return [`**${tableName}** (${serialized.length} rows):`, "", ...serialized.map((r) => `\`${JSON.stringify(r).slice(0, 500)}\``)].join("\n");
+		}
+
+		case "get_chat_history": {
+			const action = args.action || "recent";
+			const limit = Math.min(args.limit || 20, 100);
+
+			if (action === "search") {
+				const query = args.query;
+				if (!query) return "Please provide a search query.";
+				const messages = await db.prisma.chatMessage.findMany({
+					where: {
+						userId: message.author.id,
+						content: { contains: query, mode: "insensitive" },
+					},
+					take: limit,
+					orderBy: { createdAt: "desc" },
+				}).catch(() => []);
+				if (!messages.length) return `No messages found containing "${query}".`;
+				const lines = messages.map((m) => {
+					const ts = m.createdAt ? new Date(m.createdAt).toLocaleDateString() : "?";
+					const role = m.role === "user" ? "You" : "Cassie";
+					return `[${ts}] **${role}**: ${m.content.slice(0, 300)}`;
+				});
+				return [`Search results for "${query}" (${messages.length}):`, "", ...lines].join("\n");
+			}
+
+			if (action === "summary") {
+				const messages = await db.prisma.chatMessage.findMany({
+					where: { userId: message.author.id, role: "user" },
+					take: 50,
+					orderBy: { createdAt: "desc" },
+				}).catch(() => []);
+				if (!messages.length) return "No chat history found.";
+				const topics = {};
+				for (const m of messages) {
+					const date = m.createdAt ? new Date(m.createdAt).toLocaleDateString() : "unknown";
+					if (!topics[date]) topics[date] = [];
+					topics[date].push(m.content.slice(0, 100));
+				}
+				const lines = Object.entries(topics).slice(0, 10).map(([date, msgs]) => {
+					return `**${date}** (${msgs.length} messages): ${msgs.slice(0, 3).join("; ")}${msgs.length > 3 ? "…" : ""}`;
+				});
+				return [`Chat history summary (last ${messages.length} user messages):`, "", ...lines].join("\n");
+			}
+
+			// Default: recent
+			const messages = await db.prisma.chatMessage.findMany({
+				where: { userId: message.author.id },
+				take: limit,
+				orderBy: { createdAt: "desc" },
+			}).catch(() => []);
+			if (!messages.length) return "No chat history found.";
+			const lines = messages.reverse().map((m) => {
+				const ts = m.createdAt ? new Date(m.createdAt).toLocaleString() : "?";
+				const role = m.role === "user" ? "You" : "Cassie";
+				return `[${ts}] **${role}**: ${m.content.slice(0, 300)}`;
+			});
+			return [`Recent chat history (${messages.length} messages):`, "", ...lines].join("\n");
 		}
 
 		default: {
@@ -661,6 +953,21 @@ module.exports = {
 				"When the user says 'server stats' or 'this server', call get_server_stats.",
 				"When the user mentions another user by name or ID, you can look them up with get_user_stats if you have their ID.",
 				"",
+				"## Database access:",
+				"You have read-only access to the bot's database. Use list_tables first to see what's available, then describe_table to learn the structure, then query_table to fetch data.",
+				"User-scoped tables (todos, reminders, chat history, economy, etc.) automatically filter to the requesting user — you don't need to add userId filters for those.",
+				"Server-wide tables (tags, starboard, level config, etc.) are filtered to the current guild automatically.",
+				"NEVER attempt to access Session, config blobs, moderation logs, antinuke/antiraid/automod configs, or any security-related tables — they are blocked.",
+				"Use query_table when the user asks about their todos, reminders, economy balance/transactions, chat history, ideas, votes, court cases, or any other data stored by the bot.",
+				"",
+				"## Memory usage:",
+				"ALWAYS read your memory at the start of every conversation using read_memory. This is critical — your memory contains facts about the user that you should reference naturally.",
+				"When the user tells you something about themselves (name, preferences, timezone, interests, job, etc.), save it with write_memory or append_memory IMMEDIATELY.",
+				"When the user asks you to remember something, use write_memory. When they add new info, use append_memory.",
+				"Reference your memory naturally in conversation — don't say 'I stored this', just use the knowledge as if you already knew it.",
+				"If your memory is empty or outdated, proactively ask the user about their preferences to build it up.",
+				"Keep memory organized with clear sections (e.g. 'About me', 'Preferences', 'Projects').",
+				"",
 
 				// Personality and behavior
 				"You are Cassie, a helpful, knowledgeable Discord assistant with a warm, easygoing personality.",
@@ -673,6 +980,16 @@ module.exports = {
 				"Do not volunteer that you are an AI unless asked.",
 				"Do not focus on being an AI or bring it up unnecessarily.",
 				"If a user sincerely asks whether you are an AI, answer honestly.",
+				"",
+				"## How to use your memory effectively:",
+				"Your memory is your most powerful tool. Use it to:",
+				"- Remember user preferences (favorite color, hobbies, preferred response style)",
+				"- Track ongoing projects or topics they care about",
+				"- Recall their timezone, name, or other personal details they shared",
+				"- Build context over time so conversations feel natural and personal",
+				"When someone says 'I told you before' or 'you should know this', check your memory first.",
+				"When you learn something new about the user, save it immediately — don't wait.",
+				"You can also query the database for their todos, reminders, economy data, and more to give informed answers.",
 
 				"",
 
@@ -908,7 +1225,7 @@ module.exports = {
 					"Tool + response flow:",
 					"",
 					"You may call tools whenever they would help answer the user's request.",
-					"Available tools: web_search, calculate, get_user_stats, get_server_stats, get_role_requirements, get_tags, get_echo_channels, get_economy_balance, read_memory, write_memory, append_memory.",
+					"Available tools: web_search, calculate, get_user_stats, get_server_stats, get_role_requirements, get_tags, get_echo_channels, get_economy_balance, read_memory, write_memory, append_memory, list_tables, describe_table, query_table, get_chat_history.",
 					"If you call a tool, leave your visible content empty for that turn — the tool result will be added to the conversation and you will get another turn.",
 					"You may call tools across multiple turns in a row if needed.",
 					"Once you don't need any more tools, write your complete, final answer as normal visible content — this is what the user will see.",
@@ -1404,13 +1721,14 @@ function detectLoop(text) {
 		line
 			.replace(/^\d+[\.\)]\s*/, "")
 			.replace(/^[-*•]\s*/, "")
+			.replace(/[_\-=~|]/g, "")
 			.replace(/\s+/g, " ")
 			.trim()
 			.toLowerCase();
 
 	const normalizedLines = rawLines
 		.map(normalize)
-		.filter((l) => l.length >= 2);
+		.filter((l) => l.length >= 4);
 
 	// Same normalized line repeated many times
 	const counts = {};
@@ -1422,7 +1740,7 @@ function detectLoop(text) {
 	}
 
 	for (const count of Object.values(counts)) {
-		if (count >= 10) {
+		if (count >= 20) {
 			return true;
 		}
 	}
@@ -1436,12 +1754,12 @@ function detectLoop(text) {
 
 	// Low variety in recent output — uses normalized lines so near-duplicate
 	// (not just identical) lines count toward "stuck".
-	const recent = normalizedLines.slice(-25);
+	const recent = normalizedLines.slice(-30);
 
-	if (recent.length >= 12) {
+	if (recent.length >= 15) {
 		const unique = new Set(recent);
 
-		if (unique.size <= Math.max(3, Math.floor(recent.length * 0.25))) {
+		if (unique.size <= Math.max(2, Math.floor(recent.length * 0.15))) {
 			return true;
 		}
 	}
@@ -1462,7 +1780,12 @@ function hasConsecutiveRepeat(text) {
 	// stuck, not whether it looped once much earlier and then recovered.
 	const tail = text.slice(-2000);
 
-	return /(.{2,60}?)\1{7,}/s.test(tail);
+	// Strip common formatting characters (underscores, dashes, equals, tildes,
+	// pipes) before checking — these are used for tables, dividers, headings,
+	// and markdown formatting, not actual content repetition.
+	const stripped = tail.replace(/[_\-=~|]/g, "");
+
+	return /(.{2,60}?)\1{14,}/s.test(stripped);
 }
 
 // Detects a recurring 5-word phrase that shows up many times in the recent
@@ -1471,7 +1794,7 @@ function hasRepeatedPhrase(text) {
 	const tail = text.slice(-3000).toLowerCase();
 	const words = tail.split(/\s+/).filter(Boolean);
 
-	if (words.length < 30) return false;
+	if (words.length < 40) return false;
 
 	const windowSize = 5;
 	const counts = {};
@@ -1482,7 +1805,7 @@ function hasRepeatedPhrase(text) {
 	}
 
 	for (const count of Object.values(counts)) {
-		if (count >= 8) return true;
+		if (count >= 15) return true;
 	}
 
 	return false;

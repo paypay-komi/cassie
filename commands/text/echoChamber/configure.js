@@ -1,6 +1,6 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 const db = require("../../../db");
-const parseTime = require("../../../utils/parseTime");
+const parseTime = require("../../../lib/parseTime");
 
 function formatTime(ms) {
 	if (!ms) return "0s";

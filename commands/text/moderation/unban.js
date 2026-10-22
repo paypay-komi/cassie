@@ -2,7 +2,7 @@ const { PermissionsBitField, ContainerBuilder, TextDisplayBuilder, SeparatorBuil
 const fs = require("fs");
 const path = require("path");
 
-const BANS_PATH = path.join(__dirname, "../../data/botBans.json");
+const BANS_PATH = path.join(__dirname, "../../../data/botBans.json");
 
 function loadBans() {
 	try { return JSON.parse(fs.readFileSync(BANS_PATH, "utf8")); } catch { return { banned: {} }; }

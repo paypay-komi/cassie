@@ -3,7 +3,7 @@ const { getLogger } = require("../lib/logger");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
-const parseTime = require("../utils/parseTime");
+const parseTime = require("../lib/parseTime");
 const db = require("../db");
 const echoChamberHandler = require("../startuptasks/data/handleEchoChamber");
 
