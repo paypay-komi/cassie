@@ -1,4 +1,6 @@
 const { buildMessage } = require("../../../lib/v2Reply");
+const vm = require("../../../lib/voiceMaster");
+
 module.exports = {
 	commandId: "1246b783-8cf7-4930-97eb-5e5180c04639",
 	name: "unlock",
@@ -18,10 +20,15 @@ module.exports = {
 		});
 		if (!vc || vc.ownerId !== message.author.id) return message.reply(buildMessage("You don't own this channel.", 0xe05252));
 
-		await prisma.voiceChannel.update({ where: { channelId }, data: { locked: false } });
-		const ch = guild.channels.cache.get(channelId);
-		if (ch) await ch.permissionOverwrites.edit(guild.roles.everyone, { Connect: true }).catch(() => {});
+		const channel = guild.channels.cache.get(channelId);
+		if (!channel) return message.reply(buildMessage("Channel not found.", 0xe05252));
 
-		return message.reply(buildMessage("🔓 Channel unlocked.", 0x57f287));
+		vc.locked = false;
+		await prisma.voiceChannel.update({ where: { channelId }, data: { locked: false } });
+
+		const cfg = await vm.getConfig(prisma, guild.id);
+		await vm.applyPermissions({ client: message.client, guild, channel, vc, cfg });
+
+		return message.reply(buildMessage("Channel unlocked.", 0x57f287));
 	},
 };

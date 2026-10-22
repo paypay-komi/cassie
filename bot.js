@@ -15,13 +15,15 @@ const { getLogger } = require("./lib/logger");
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.DirectMessages, // need this
-		GatewayIntentBits.DirectMessageReactions, // optional but recommended
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.DirectMessageReactions,
 		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessageReactions,
 	],
-	partials: [Partials.Channel], // required for DMs to fire MessageCreate
+	partials: [Partials.Channel],
 });
 client.on("error", (err) => {
 	const log = getLogger("Client");
