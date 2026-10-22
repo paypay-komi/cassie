@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:title" content="Cassie — Multipurpose Discord Bot">
-<meta property="og:description" content="Tags, reminders, AI chat, idea wall with voting, games, announcements, and more. Manage everything from a web dashboard.">
+<meta property="og:description" content="Tags, reminders, AI chat, leveling, temp voice channels, tickets, starboard, idea wall with voting, games, GIF tagging, and more. Manage everything from a web dashboard.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nekomi.tailef6033.ts.net">
 <meta property="og:image" content="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512">
@@ -33,6 +33,15 @@ body {
   line-height: 1.6;
   min-height: 100vh;
 }
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto !important; }
+}
 .wrap {
   max-width: 960px;
   margin: 0 auto;
@@ -44,7 +53,7 @@ header {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 60px;
+  margin-bottom: 44px;
 }
 header img {
   width: 48px;
@@ -56,17 +65,6 @@ header h1 {
   font-weight: 700;
   flex: 1;
 }
-header nav {
-  display: flex;
-  gap: 20px;
-  font-size: 14px;
-}
-header nav a {
-  color: var(--muted);
-  text-decoration: none;
-  transition: color 0.15s;
-}
-header nav a:hover { color: var(--text); }
 
 /* ── Hero ── */
 .hero {
@@ -112,7 +110,7 @@ header nav a:hover { color: var(--text); }
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
 }
 .btn-primary {
   background: var(--accent);
@@ -125,6 +123,8 @@ header nav a:hover { color: var(--text); }
   border: 1px solid var(--border);
 }
 .btn-secondary:hover { border-color: var(--accent); transform: translateY(-1px); }
+#hero-cta svg { display: none; }
+#hero-cta.is-logged-in svg { display: inline; }
 
 /* ── Features ── */
 .features {
@@ -134,45 +134,181 @@ header nav a:hover { color: var(--text); }
   margin: 60px 0;
 }
 .feature {
+  position: relative;
+  overflow: hidden;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
-  transition: border-color 0.15s;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
-.feature:hover { border-color: var(--accent); }
+.feature::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(88, 101, 242, 0.16), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.feature:hover, .feature:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px -12px rgba(88, 101, 242, 0.45);
+  outline: none;
+}
+.feature:hover::before { opacity: 1; }
+.feature .head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ficon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+.feature:hover .ficon, .feature.open .ficon { color: var(--accent); }
 .feature h3 {
   font-size: 16px;
-  margin-bottom: 8px;
+  flex: 1;
 }
-.feature p {
+.feature .chev {
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.3s, color 0.2s;
+  user-select: none;
+}
+.feature:hover .chev { color: var(--text); }
+.feature.open .chev { transform: rotate(180deg); }
+.feature > p {
   font-size: 14px;
   color: var(--muted);
 }
-
-/* ── Stats ── */
-.stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin: 40px 0 60px;
-  flex-wrap: wrap;
+.feature .body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
 }
-.stat {
-  text-align: center;
+.feature .body > div {
+  overflow: hidden;
+  min-height: 0;
 }
-.stat .num {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--accent);
-}
-.stat .label {
+.feature.open .body { grid-template-rows: 1fr; }
+html:not(.js) .feature .body { grid-template-rows: 1fr; }
+.feature .detail {
   font-size: 13px;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 4px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
+.feature .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.feature .chips code {
+  background: #12121a;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: #c9cdfb;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+/* ── Stats ── */
+.stats-section {
+  margin: 48px 0 64px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.stats-head {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.stats-head h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.stats-head p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 0;
+}
+.stat {
+  text-align: left;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: rgba(88, 101, 242, 0.13);
+  color: #aab0ff;
+}
+.stat-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stat .num {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.stat .label {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.stat-desc {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.stats-note {
+  max-width: 720px;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.stats-note strong { color: var(--text); font-weight: 600; }
 
 /* ── Footer ── */
 footer {
@@ -191,37 +327,74 @@ footer a {
   color: var(--muted);
   text-decoration: none;
 }
-footer a:hover { color: var(--text); }
+footer a:hover { color: var(--text); text-decoration: underline; }
 footer .links { display: flex; gap: 16px; }
 
 /* ── Responsive ── */
+@media (max-width: 760px) {
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
 @media (max-width: 600px) {
-  header { flex-direction: column; text-align: center; gap: 8px; margin-bottom: 40px; }
-  header nav { font-size: 13px; gap: 14px; }
+  header { margin-bottom: 32px; }
   .hero h2 { font-size: 28px; }
   .hero p { font-size: 16px; }
-  .stats { gap: 24px; }
+  .stats-section { margin: 36px 0 48px; padding-top: 32px; }
+  .stat { padding: 16px; }
+  .stat .num { font-size: 26px; }
+  .stat-desc { font-size: 12px; }
+  .stats-note { text-align: left; }
+  footer { justify-content: center; text-align: center; }
+  footer .links { gap: 14px; }
 }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="l-economy" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+    <symbol id="l-tag" viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+    <symbol id="l-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="l-ai" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol>
+    <symbol id="l-idea" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></symbol>
+    <symbol id="l-announce" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+    <symbol id="l-todo" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+    <symbol id="l-afk" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+    <symbol id="l-game" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
+    <symbol id="l-bf" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+    <symbol id="l-gif" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+    <symbol id="l-perms" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="l-echo" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="l-prefix" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></symbol>
+    <symbol id="l-animal" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+    <symbol id="l-voice" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
+    <symbol id="l-levels" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+    <symbol id="l-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="l-ticket" viewBox="0 0 24 24"><path d="M21 8V5H3v3a3 3 0 0 1 0 6v3h18v-3a3 3 0 0 1 0-6z"/></symbol>
+    <symbol id="l-count" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></symbol>
+    <symbol id="l-invite" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></symbol>
+    <symbol id="l-boost" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+    <symbol id="l-mod" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="l-server" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></symbol>
+    <symbol id="l-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="l-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+    <symbol id="l-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  </defs>
+</svg>
 <div class="wrap">
   <header>
-    <img id="bot-avatar-small" src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64" alt="Cassie">
+    <img id="bot-avatar-small" src="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64" alt="Cassie" width="48" height="48">
     <h1>Cassie</h1>
-    <nav>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-    </nav>
   </header>
 
   <section class="hero">
     <img class="banner" src="/site_banner.png" alt="Cassie banner">
     <h2>Your multipurpose Discord companion</h2>
-    <p>Tags, reminders, AI chat, economy, idea wall with voting, games, announcements, GIF tagging, and a full web dashboard — all in one bot.</p>
+    <p>Tags, reminders, AI chat, economy, leveling, temp voice channels, tickets, starboard, GIF tagging, and a full web dashboard — all in one bot.</p>
     <div class="btns">
-      <a class="btn btn-primary" href="/dashboard">Login with Discord</a>
+      <a class="btn btn-primary" id="hero-cta" href="/dashboard">
+        <span id="hero-cta-label">Login with Discord</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
       <a class="btn btn-secondary" href="/invite?ref=landing" target="_blank">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         Invite to Server
@@ -231,94 +404,238 @@ footer .links { display: flex; gap: 16px; }
 
   <section class="features">
     <div class="feature">
-      <h3>💰 Economy</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-economy"/></svg><h3>Economy</h3><span class="chev">▾</span></div>
       <p>Earn Cass Bits with daily streaks and work shifts. Send coins, climb the leaderboard, and let admins set tax rates, channel locks, and daily caps.</p>
+      <div class="body"><div>
+        <p class="detail">Full transaction history, vote streaks, and per-server economy tuning from the dashboard.</p>
+        <div class="chips"><code data-cmd="b08aa355-54ef-4226-8ff3-476a60627380">c.daily</code><code data-cmd="acd9cf91-fe8b-4f1f-9f27-e4508a262709">c.work</code><code data-cmd="e622eb55-e929-4c73-9ec8-1a0c06ee48e7">c.pay</code><code data-cmd="da755842-de42-4232-80e3-5cfb6dd8798e">c.balance</code><code data-cmd="fd15fb47-ac8c-4b08-bd85-d0a65dab03dc">c.leaderboard</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🏷️ Tags</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-tag"/></svg><h3>Tags</h3><span class="chev">▾</span></div>
       <p>Create custom text snippets your server can use on demand. Aliases, permissions, and full CRUD included.</p>
+      <div class="body"><div>
+        <p class="detail">Add, edit, and organize tags; per-tag usage info, rich embeds, and instant lookup by name.</p>
+        <div class="chips"><code data-cmd="2986f8de-bd20-44d4-9b8d-51e0d6d4b71a">c.tag add</code><code data-cmd="9d0b8ce5-bb87-42a4-bd84-ac47b288ceb8">c.tag</code><code data-cmd="37c4bb25-3d1d-414c-9032-e924543ea6c9">c.tag list</code><code data-cmd="72955a75-0960-4591-a994-d94adfcc6da1">c.tag edit</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>⏰ Reminders</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-clock"/></svg><h3>Reminders</h3><span class="chev">▾</span></div>
       <p>Set reminders with natural language times. Cassie DMs you when the time comes — even survives bot restarts.</p>
+      <div class="body"><div>
+        <p class="detail">"in 2 hours", "tomorrow 9am", "next friday" — list and cancel any of them any time.</p>
+        <div class="chips"><code data-cmd="113b9ef8-fa0d-4567-a77b-bdcad99d4021">c.remind</code><code data-cmd="7d6f0525-339e-4576-82d5-401bdc5ac0ea">c.reminders list</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🤖 AI Chat</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-ai"/></svg><h3>AI Chat</h3><span class="chev">▾</span></div>
       <p>Optional AI-powered chat with conversational context. Smart replies that keep up with the conversation.</p>
+      <div class="body"><div>
+        <p class="detail">Toggle per server. Also try the bad-advice generator for questionable life guidance.</p>
+        <div class="chips"><code data-cmd="2d1ce4a6-c5ec-47ed-a085-a9d9f1264b49">c.ai</code><code data-cmd="64743cf1-e287-4486-ada9-059864cc6af1">c.badidea</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>💡 Idea Wall</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-idea"/></svg><h3>Idea Wall</h3><span class="chev">▾</span></div>
       <p>Submit, browse, and vote on feature ideas. The community decides what gets built next. Built-in voting system.</p>
+      <div class="body"><div>
+        <p class="detail">Ideas live in the dashboard idea wall with voting, tags, and status tracking.</p>
+        <div class="chips"><code data-cmd="5426e56e-0f41-4f5f-bf9c-c8bde8bb58be">c.idea add</code><code data-cmd="f200ef06-ef2c-4124-bbb6-17703f3da8fa">c.idea view</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>📢 Announcements</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-announce"/></svg><h3>Announcements</h3><span class="chev">▾</span></div>
       <p>Broadcast messages to subscribed servers via webhooks. Subscribe/unsubscribe per guild with smart nagging.</p>
+      <div class="body"><div>
+        <p class="detail">Subscribe your server to Cassie news; unsubscribe whenever you like. No spam, just updates.</p>
+        <div class="chips"><code data-cmd="f47ac10b-58cc-4372-a567-0e02b2c3d479">c.subscribe</code><code data-cmd="e83b6c9d-1a4f-4e7b-8c2d-5f9a0b1c3e7f">c.unsubscribe</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🗂️ Todo &amp; Time Capsules</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-todo"/></svg><h3>Todo &amp; Time Capsules</h3><span class="chev">▾</span></div>
       <p>Personal todo lists with priorities and time capsules — messages delivered to your future self.</p>
+      <div class="body"><div>
+        <p class="detail">Mark items done, list open tasks, and schedule capsule messages days, weeks, or months ahead.</p>
+        <div class="chips"><code data-cmd="d20cee14-2adf-4300-bb10-7f9c19bfd63a">c.todo</code><code data-cmd="4a4927cc-f85a-4184-90bf-771f591094e7">c.todo view</code><code data-cmd="e187e953-dbfd-4c86-a71c-5c8050c34331">c.timecapsule send</code><code data-cmd="1a2f5440-28d8-4a05-b1f9-34e5008d5162">c.timecapsule list</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>💬 AFK</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-afk"/></svg><h3>AFK</h3><span class="chev">▾</span></div>
       <p>Set an AFK message. Cassie auto-notifies anyone who @mentions you, then clears it when you're back.</p>
+      <div class="body"><div>
+        <p class="detail">Set, unset, and gets cleared automatically on your next message.</p>
+        <div class="chips"><code data-cmd="8b8bb918-cc66-4b53-b81a-3563337d95cb">c.afk</code><code data-cmd="e0712c98-e91c-4b4c-a873-1bf5e3cff84e">c.afk remove</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🎰 Slots &amp; Games</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-game"/></svg><h3>Slots &amp; Games</h3><span class="chev">▾</span></div>
       <p>Play slots with NUKE paylines, or challenge friends to Checkers, Connect 4, Tic-Tac-Toe, Anagram, and Rock Paper Scissors.</p>
+      <div class="body"><div>
+        <p class="detail">Slots, blackjack, checkers, tic-tac-toe, anagram, rock-paper-scissors, 8ball, dice — all in chat.</p>
+        <div class="chips"><code data-cmd="abea06f4-75ce-41b3-bcbd-2a7a31e2ce45">c.slots</code><code data-cmd="e7b3a1c9-2d5f-4b8a-9c6e-1f0d3a7b2e8c">c.blackjack</code><code data-cmd="c9580f04-8e71-4709-9f1f-00a39d2493ff">c.games checkers</code><code data-cmd="4db15f25-6026-49b1-b170-3d8a3acd0853">c.games rps</code><code data-cmd="6075ee09-4a02-4bb3-9d4c-358e8b391fec">c.8ball</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🧠 Brainfuck</h3>
-      <p>Run Brainfuck code directly in chat with <code>c.bf</code>. Upload files, pipe output, and explore the esoteric programming language.</p>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-bf"/></svg><h3>Brainfuck</h3><span class="chev">▾</span></div>
+      <p>Run Brainfuck code directly in chat with <code data-cmd="a1b2c3d4-e5f6-7890-abcd-ef1234567890">c.bf</code>. Upload files, pipe output, and explore the esoteric programming language.</p>
+      <div class="body"><div>
+        <p class="detail">Inline code or file attachments, safe sandboxed execution with output delivery.</p>
+        <div class="chips"><code data-cmd="a1b2c3d4-e5f6-7890-abcd-ef1234567890">c.bf</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🏷️ GIF Tagger</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-gif"/></svg><h3>GIF Tagger</h3><span class="chev">▾</span></div>
       <p>Tag, categorize, and review reaction GIFs. Web dashboard for bulk operations, approval queue, and stats.</p>
+      <div class="body"><div>
+        <p class="detail">130+ reaction actions, near-duplicate detection with perceptual hashing, and an approval queue.</p>
+        <div class="chips"><code data-cmd="f91ffd2b-22c4-492a-8449-31e9c2dcad96">c.action hug</code><code data-cmd="c3ca3282-e9d9-44e0-b901-5b535488fb7c">c.action pat</code><code data-cmd="48a7ec00-b76f-416b-8fb8-156aa7a4bbe9">c.action bonk</code><code data-cmd="ebc2cdfe-f6d3-4011-9839-7628217d9bde">c.action submit</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>📋 Permissions</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-perms"/></svg><h3>Permissions</h3><span class="chev">▾</span></div>
       <p>Granular command overrides per channel, role, or user. Disable or enable anything from the web dashboard.</p>
+      <div class="body"><div>
+        <p class="detail">Bulk add overrides, alt+click to skip confirmations, and per-target toggles in the dashboard.</p>
+        <div class="chips"><code>Dashboard → Overrides</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🔁 Echo Chamber</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-echo"/></svg><h3>Echo Chamber</h3><span class="chev">▾</span></div>
       <p>Auto-delete and re-post messages with configurable delay. Great for announcements, queues, or fun.</p>
+      <div class="body"><div>
+        <p class="detail">Per-channel echo chance, delete/re-post delay windows, and queue inspection.</p>
+        <div class="chips"><code data-cmd="12379f7f-7dbd-46d6-acbb-e2ccbb0acb1c">c.echo create</code><code data-cmd="4634a657-8e59-4698-99c6-927793d2e0d9">c.echo configure</code><code data-cmd="e2e8254b-6c8a-4308-8e47-97899486e8a9">c.echo status</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>⚙️ Custom Prefix</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-prefix"/></svg><h3>Custom Prefix</h3><span class="chev">▾</span></div>
       <p>Set a per-server prefix so Cassie fits your vibe. No more conflicts with other bots.</p>
+      <div class="body"><div>
+        <p class="detail">Change it any time; reset back to the default with one command.</p>
+        <div class="chips"><code data-cmd="55d4379a-e6af-4c69-bf9f-15d2a91056f8">c.prefix set</code><code data-cmd="b3975091-61d1-481a-bdcd-d83171fbf55d">c.prefix reset</code></div>
+      </div></div>
     </div>
     <div class="feature">
-      <h3>🐱 Animal Stuff</h3>
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-animal"/></svg><h3>Animal Stuff</h3><span class="chev">▾</span></div>
       <p>Random cat and bunny images and facts. Lightweight fun for when you need a serotonin boost.</p>
+      <div class="body"><div>
+        <p class="detail">Cats, bunnies, and a mixed animal feed — images and facts on demand.</p>
+        <div class="chips"><code data-cmd="6fa13937-3dc7-4b3f-b0c0-82e843ab82bf">c.animal cat</code><code data-cmd="82f5e235-d8fc-4804-8b9c-b3309ffd7356">c.animal bunny</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-voice"/></svg><h3>Voicemaster</h3><span class="chev">▾</span></div>
+      <p>Temp voice channels on demand. Users join a hub and get their own channel — locked, named, and cleaned up automatically.</p>
+      <div class="body"><div>
+        <p class="detail">Claim, transfer, lock/unlock, hide, rename, set limits and bitrate, swap hubs, and kick users — all from chat or the dashboard.</p>
+        <div class="chips"><code data-cmd="5eda3135-d566-4089-b84d-a171cf2f7272">c.vm setup</code><code data-cmd="b181da81-7fdf-4607-9969-937300148ec4">c.vm hub</code><code data-cmd="28e939e1-53c1-410b-adb4-546113f28eda">c.vm claim</code><code data-cmd="7d9b9617-35ff-467f-8866-d8d931b22b8c">c.vm lock</code><code data-cmd="56b255bd-d010-45c1-b8fd-ee7fb8e58dc9">c.vm limit</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-levels"/></svg><h3>Levels &amp; XP</h3><span class="chev">▾</span></div>
+      <p>Chat and voice XP with rank cards, leaderboards, and role rewards. Members level up just by being active.</p>
+      <div class="body"><div>
+        <p class="detail">Per-role multipliers, voice XP multiplier, ignored channels and roles, and reward management in the dashboard.</p>
+        <div class="chips"><code data-cmd="2fe844f7-d0ef-484a-a272-9174060b1894">c.levels rank</code><code data-cmd="182386fe-39d8-46cb-bdd0-3c8093c25f8b">c.levels leaderboard</code><code data-cmd="7f3638f7-b4c3-466f-a5fa-b9f07a6b66c6">c.levels multiplier</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-star"/></svg><h3>Starboard</h3><span class="chev">▾</span></div>
+      <p>Surface your server's best messages. React with a star and the message gets reposted to the starboard channel.</p>
+      <div class="body"><div>
+        <p class="detail">Configurable star threshold, self-star toggle, ignored channels, and a live list of starred entries.</p>
+        <div class="chips"><code data-cmd="9bffe562-efac-4870-8ad8-959831a2abc1">c.starboard set</code><code data-cmd="c627c4b1-b213-4418-ac7f-58cad8b94e25">c.starboard threshold</code><code data-cmd="dd898e9e-2963-44a8-b93d-cab4fe50f0e8">c.starboard list</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-ticket"/></svg><h3>Tickets</h3><span class="chev">▾</span></div>
+      <p>Support tickets with panels, forms, and transcripts. Members open private channels your staff can manage.</p>
+      <div class="body"><div>
+        <p class="detail">Multiple panels with options, intake forms, add/remove users, close and transcript commands.</p>
+        <div class="chips"><code data-cmd="ce58ab45-29b8-4c24-89d7-c69e9b175d3c">c.tickets setup</code><code data-cmd="779e7d35-d1ff-4b5f-94f8-c46e50b7e800">c.tickets close</code><code data-cmd="a7d9ca49-0f61-4961-8973-9bfa6854d10a">c.tickets transcript</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-count"/></svg><h3>Counting</h3><span class="chev">▾</span></div>
+      <p>The classic counting game with a twist — saves, stats, and a leaderboard for your server's counting channel.</p>
+      <div class="body"><div>
+        <p class="detail">Configure the channel, track high scores, and see who's carrying the count.</p>
+        <div class="chips"><code data-cmd="c3d4e5f6-a7b8-9012-cdef-345678901234">c.counting configure</code><code data-cmd="b4c5d6e7-f8a9-0123-7890-456789012345">c.counting stats</code><code data-cmd="a3b4c5d6-e7f8-9012-6789-345678901234">c.counting leaderboard</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-invite"/></svg><h3>Invite Tracker</h3><span class="chev">▾</span></div>
+      <p>Know who invited whom. Real invite attribution with leaderboards, bonuses, and configurable rewards.</p>
+      <div class="body"><div>
+        <p class="detail">Per-user invite stats, join history, bonus invites, and full reset/config controls.</p>
+        <div class="chips"><code data-cmd="0d8d1291-97a3-4dcd-bce0-67909ea4b197">c.invites user</code><code data-cmd="c6113969-a0ea-4222-8508-af0812f82c69">c.invites leaderboard</code><code data-cmd="5f3c72ec-603b-4e09-a8b0-958705e206c7">c.invites bonus</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-boost"/></svg><h3>Boost Messages</h3><span class="chev">▾</span></div>
+      <p>Celebrate server boosts with custom messages and automatic role rewards for boosters.</p>
+      <div class="body"><div>
+        <p class="detail">Set the announcement channel, booster role, and custom message — status at a glance.</p>
+        <div class="chips"><code data-cmd="3c4d5e6f-7a8b-4c3d-9e4f-5a6b7c8d9e0f">c.boost channel</code><code data-cmd="4d5e6f70-8b9c-4d3e-9f50-6a7b8c9d0e1f">c.boost role</code><code data-cmd="2b3c4d5e-6f7a-4b2c-8d3e-4f5a6b7c8d9e">c.boost status</code></div>
+      </div></div>
+    </div>
+    <div class="feature">
+      <div class="head"><svg class="ficon" aria-hidden="true"><use href="#l-mod"/></svg><h3>Automod &amp; Moderation</h3><span class="chev">▾</span></div>
+      <p>Filters, regex rules, and escalating strikes that lead to timeouts. Full mod toolkit: ban, kick, jail, imute, purge.</p>
+      <div class="body"><div>
+        <p class="detail">Word/phrase/link filters with exemptions, strike escalation to timeout, warn history, jail &amp; mute with timeouts, case history and role management.</p>
+        <div class="chips"><code data-cmd="b49ae84f-5fbb-44c7-a03e-dbf8959113a2">c.automod enable</code><code data-cmd="f5014e83-c18a-4969-b999-7d52a3b95f90">c.mod warn</code><code data-cmd="3a791202-a7ca-43fd-9eb9-d37694314a41">c.mod jail</code><code data-cmd="b5e0c9a1-2d4e-4a8b-9c0d-1a2b3c4d5e6f">c.ban</code><code data-cmd="79a260ea-3cef-47ce-be5a-450c9ad868ab">c.mod purge</code></div>
+      </div></div>
     </div>
   </section>
 
-  <section class="stats">
-    <div class="stat"><div class="num" id="stat-guilds">{{guildCount}}</div><div class="label">Servers</div></div>
-    <div class="stat"><div class="num" id="stat-members">{{memberCount}}</div><div class="label">Members</div></div>
-    <div class="stat"><div class="num" id="stat-commands">{{cmdCount}}</div><div class="label">Commands Run</div></div>
-    <div class="stat"><div class="num" id="stat-users">{{userCount}}</div><div class="label">Users</div></div>
-  </section>
-
-  <section style="text-align:center;padding:20px 0 40px;font-size:14px;color:var(--muted)">
-    <a href="/dashboard" style="color:var(--accent);text-decoration:none;font-weight:600">Dashboard</a>
-    <span style="margin:0 12px;color:#444">·</span>
-    <a id="support-link" href="#" target="_blank" style="color:var(--accent);text-decoration:none">Support Server</a>
-    <span style="margin:0 12px;color:#444">·</span>
-    <a href="/privacy" style="color:var(--accent);text-decoration:none">Privacy</a>
-    <span style="margin:0 12px;color:#444">·</span>
-    <a href="/terms" style="color:var(--accent);text-decoration:none">Terms</a>
+  <section class="stats-section" aria-labelledby="stats-title">
+    <div class="stats-head">
+      <h2 id="stats-title">Cassie in numbers</h2>
+      <p>Live usage across every server Cassie is in.</p>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon"><svg aria-hidden="true"><use href="#l-server"/></svg></div>
+        <div class="num" id="stat-guilds">{{guildCount}}</div>
+        <div class="label">Servers</div>
+        <p class="stat-desc">Communities that currently have Cassie installed.</p>
+      </div>
+      <div class="stat">
+        <div class="stat-icon"><svg aria-hidden="true"><use href="#l-users"/></svg></div>
+        <div class="num" id="stat-members">{{memberCount}}</div>
+        <div class="label">Members</div>
+        <p class="stat-desc">Total members across those servers. Someone in three servers is counted three times.</p>
+      </div>
+      <div class="stat">
+        <div class="stat-icon"><svg aria-hidden="true"><use href="#l-terminal"/></svg></div>
+        <div class="num" id="stat-commands">{{cmdCount}}</div>
+        <div class="label">Commands Run</div>
+        <p class="stat-desc">Commands used across every server since Cassie launched.</p>
+      </div>
+      <div class="stat">
+        <div class="stat-icon"><svg aria-hidden="true"><use href="#l-user"/></svg></div>
+        <div class="num" id="stat-users">{{userCount}}</div>
+        <div class="label">Users</div>
+        <p class="stat-desc">Unique accounts that have run at least one command.</p>
+      </div>
+    </div>
+    <p class="stats-note"><strong>Members</strong> measures reach — it adds up each server's member list, so people in several servers are counted more than once. <strong>Users</strong> counts distinct people who have actually used a command.</p>
   </section>
 
   <footer>
     <span>&copy; 2026 Cassie. Not affiliated with Discord.</span>
-    <div class="links">
+    <nav class="links" aria-label="Footer">
       <a href="/dashboard">Dashboard</a>
+      <a id="support-link" href="#" target="_blank" rel="noopener">Support Server</a>
       <a href="/terms">Terms</a>
       <a href="/privacy">Privacy</a>
-    </div>
+    </nav>
   </footer>
 </div>
 <script>
+document.documentElement.classList.add('js');
+
 async function refreshStats() {
   try {
     const r = await fetch('/api/stats');
@@ -328,9 +645,16 @@ async function refreshStats() {
     const members = document.getElementById('stat-members');
     const cmds = document.getElementById('stat-commands');
     const users = document.getElementById('stat-users');
+    const formatStat = (val) => {
+      const n = Number(val);
+      return Number.isFinite(n) ? n.toLocaleString('en-US') : String(val);
+    };
     const flash = (el, val) => {
-      if (el && el.textContent !== String(val)) {
-        el.textContent = val;
+      if (!el) return;
+      const text = formatStat(val);
+      if (el.textContent !== text) {
+        el.textContent = text;
+        el.title = text;
         el.style.transition = 'color 0.3s';
         el.style.color = '#3ba55d';
         setTimeout(() => el.style.color = '', 1000);
@@ -362,6 +686,57 @@ fetch('/api/bot/avatar')
     if (sm) sm.src = d.url.replace('?size=512', '?size=64');
     if (lg) lg.src = d.url;
   });
+
+// Swap hero CTA for logged-in users
+fetch('/api/data/user')
+  .then(r => (r.ok ? r.json() : null))
+  .then(d => {
+    if (d && d.ok) {
+      document.getElementById('hero-cta-label').textContent = 'Go to Dashboard';
+      document.getElementById('hero-cta').classList.add('is-logged-in');
+    }
+  })
+  .catch(() => {});
+
+// Resolve command chips from the live command registry so they never go stale
+fetch('/api/landing-commands')
+  .then(r => (r.ok ? r.json() : null))
+  .then(d => {
+    if (!d || !d.ok) return;
+    document.querySelectorAll('code[data-cmd]').forEach(el => {
+      const commandPath = d.commands[el.dataset.cmd];
+      if (commandPath) el.textContent = d.prefix + commandPath;
+      else el.remove();
+    });
+  })
+  .catch(() => {});
+
+// Feature cards: spotlight hover + expand on click
+function toggleCard(card) {
+  const open = card.classList.toggle('open');
+  card.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.querySelectorAll('.feature').forEach(card => {
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-expanded', 'false');
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.removeProperty('--mx');
+    card.style.removeProperty('--my');
+  });
+  card.addEventListener('click', () => toggleCard(card));
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleCard(card);
+    }
+  });
+});
 </script>
 </body>
 </html>

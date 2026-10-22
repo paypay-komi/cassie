@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:title" content="Terms of Service - Cassie">
-<meta property="og:description" content="Terms of Service for Cassie Discord bot. CSAM zero-tolerance policy, user conduct rules, and legal terms.">
+<meta property="og:description" content="Terms of Service for Cassie Discord bot.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nekomi.tailef6033.ts.net/terms">
 <meta property="og:image" content="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512">
@@ -14,59 +14,122 @@
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" href="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64">
 <title>Terms of Service - Cassie</title>
-<!-- OG embed cache buster: bump ?v=N in the image URL to force Discord to refresh cached embed -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0f0f13;
-  --card: #1a1a22;
-  --text: #fff;
-  --secondary: #aaa;
+  --card: #14141a;
+  --text: #f2f3f5;
+  --body: #c4c6ce;
+  --muted: #8e9297;
   --accent: #5865F2;
+  --accent-hover: #4752c4;
   --border: #2a2a36;
+  --link: #8b95f6;
 }
-body {
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.7;
-  padding: 20px;
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 0 20px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 32px 0 64px; }
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
 }
-.wrap {
-  max-width: 800px;
-  margin: 0 auto;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px;
-}
-h1 { font-size: 26px; margin-bottom: 8px; color: var(--accent); }
-.updated { color: var(--secondary); font-size: 13px; margin-bottom: 30px; }
-h2 { font-size: 18px; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
-p { margin-bottom: 14px; color: #ccc; }
-ul { margin-bottom: 14px; padding-left: 20px; color: #ccc; }
+.page-header img { width: 32px; height: 32px; border-radius: 8px; }
+.brand { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; }
+.page-nav { margin-left: auto; display: flex; gap: 18px; font-size: 13px; }
+.page-nav a { color: var(--muted); text-decoration: none; }
+.page-nav a:hover, .page-nav a[aria-current="page"] { color: var(--text); }
+h1 { font-size: 28px; letter-spacing: -0.02em; margin-bottom: 6px; }
+.updated { color: var(--muted); font-size: 13px; margin-bottom: 36px; }
+h2 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; color: var(--text); }
+h3 { font-size: 14px; margin-top: 22px; margin-bottom: 6px; color: var(--text); }
+p { margin-bottom: 14px; color: var(--body); }
+ul { margin-bottom: 14px; padding-left: 20px; color: var(--body); }
 li { margin-bottom: 6px; }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.back { display: inline-block; margin-bottom: 20px; color: var(--secondary); font-size: 13px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+footer { border-top: 1px solid var(--border); margin-top: 48px; padding-top: 20px; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+@media (max-width: 600px) {
+  h1 { font-size: 24px; }
+  .page-nav { gap: 12px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
+  <header class="page-header">
+    <img src="/api/bot/avatar?redirect=1" alt="" width="32" height="32">
+    <a class="brand" href="/">Cassie</a>
+    <nav class="page-nav" aria-label="Site">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/terms" aria-current="page">Terms</a>
+      <a href="/privacy">Privacy</a>
+    </nav>
+  </header>
   <h1>Terms of Service</h1>
-  <p class="updated">Last updated: June 14, 2026</p>
+  <p class="updated">Last updated: September 27, 2026</p>
 
   <h2>1. Acceptance of Terms</h2>
   <p>By inviting Cassie ("the Bot") to your Discord server or using the web dashboard, you agree to these Terms of Service. If you do not agree, do not use the Bot.</p>
 
-  <h2>2. Description of Service</h2>
-  <p>Cassie is a multipurpose Discord bot providing moderation, utility, fun, and AI-powered features. The Bot also provides a web dashboard for server management via Discord OAuth authentication.</p>
-
-  <h2>3. Eligibility</h2>
+  <h2>2. Eligibility</h2>
   <p>You must be at least 13 years old to use the Bot, in compliance with Discord's Terms of Service. By using the Bot, you represent that you meet this requirement.</p>
 
-  <h2>4. User Conduct</h2>
+  <h2>3. Description of Service</h2>
+  <p>Cassie is a multipurpose Discord bot providing moderation, utility, entertainment, economy, and AI-powered features. The Bot also provides a web dashboard for server management via Discord OAuth authentication. The Bot runs on infrastructure operated by the developer; no hosting providers or cloud services are used for data processing or storage.</p>
+
+  <h2>4. Features</h2>
+  <p>The Bot provides the following categories of features. Server administrators control which features are enabled in their server.</p>
+  <ul>
+    <li><strong>Moderation</strong> &mdash; Ban, kick, timeout, warn, jail, image mute, reaction mute, purge, channel lock, role management, and moderation case logging.</li>
+    <li><strong>Auto-Moderation</strong> &mdash; Configurable filters for spam, mass mentions, NSFW, malicious links, excessive caps/emoji, and custom regex patterns. Includes a strike escalation system.</li>
+    <li><strong>Anti-Nuke &amp; Anti-Raid</strong> &mdash; Protection against compromised accounts performing destructive actions (mass bans, channel/role deletion) and mass-join raids.</li>
+    <li><strong>AI Chat</strong> &mdash; Conversational AI powered by a locally-hosted language model (Ollama, running on the developer's own hardware). The AI has access to tools including web search, calculator, server data lookups, and read-only database queries. The AI maintains per-user persistent memory.</li>
+    <li><strong>Economy</strong> &mdash; Virtual currency system with daily claims, work commands, leaderboards, and peer-to-peer transfers. Each server has its own independent economy.</li>
+    <li><strong>Gambling</strong> &mdash; Slot machine, blackjack, and coinflip games using virtual currency. See Section 5 for important disclaimers.</li>
+    <li><strong>Levels &amp; XP</strong> &mdash; Activity-based leveling from messages and voice time, with role rewards and milestones.</li>
+    <li><strong>Tags</strong> &mdash; User-created text snippets retrievable by command.</li>
+    <li><strong>Reminders &amp; To-Do Lists</strong> &mdash; Personal reminder and task management.</li>
+    <li><strong>Starboard</strong> &mdash; Community-curated message pinning based on reaction counts.</li>
+    <li><strong>VoiceMaster</strong> &mdash; Temporary voice channels created on-demand.</li>
+    <li><strong>Tickets</strong> &mdash; Support ticket system with forms, claiming, and transcripts.</li>
+    <li><strong>Invite Tracking</strong> &mdash; Track who invited whom, detect fake/alt accounts.</li>
+    <li><strong>Reaction Roles</strong> &mdash; Self-assign roles via message reactions.</li>
+    <li><strong>Echo Chamber</strong> &mdash; Anonymous delayed-message relay channels.</li>
+    <li><strong>Boost Notifications</strong> &mdash; Auto-thank users for server boosts.</li>
+    <li><strong>Court System</strong> &mdash; Community voting on playful "court cases."</li>
+    <li><strong>Action GIFs</strong> &mdash; ~140 animated reaction GIF commands (hug, slap, etc.).</li>
+    <li><strong>Utility</strong> &mdash; Ping, stats, time/timezone, dice roller, 8-ball, and other small tools.</li>
+  </ul>
+
+  <h2>5. Virtual Currency &amp; Gambling</h2>
+  <p>The Bot includes an economy and gambling system that uses a virtual currency ("Cass Bits"). Important disclaimers:</p>
+  <ul>
+    <li>The virtual currency has <strong>no real-world value</strong> and cannot be purchased, sold, exchanged for real money, or transferred between servers.</li>
+    <li>Each server maintains its own independent economy. Currency earned in one server cannot be used in another.</li>
+    <li>Server administrators can disable the economy and gambling features entirely.</li>
+    <li>The gambling games (slots, blackjack, coinflip) are randomized and use virtual currency only. They are not real-money gambling.</li>
+    <li>You are responsible for configuring appropriate gambling limits in your server.</li>
+  </ul>
+
+  <h2>6. AI Features</h2>
+  <p>The Bot includes AI-powered conversational features. By using the AI chat, you understand and agree that:</p>
+  <ul>
+    <li>The AI model runs locally on the developer's hardware. Your messages are processed locally and are <strong>not sent to third-party cloud AI services</strong>.</li>
+    <li>The AI has access to read-only tools that can query the Bot's database. User-scoped data (your todos, reminders, economy balance, chat history) is only accessible to you. The AI cannot access moderation configs, sessions, or other users' private data.</li>
+    <li>The AI maintains a persistent memory per user (~1000 words) that it can read and write during conversations. You can request deletion of your AI memory at any time.</li>
+    <li>Chat history is stored to provide conversational context. You can request deletion of your chat history at any time.</li>
+    <li>The AI's web search tool sends search queries to the LangSearch API (<code>api.langsearch.com</code>). Only the search query is transmitted; no personal data is attached.</li>
+    <li>The AI is a language model and may produce inaccurate, incomplete, or misleading information. Do not rely on the AI for medical, legal, financial, or safety-critical decisions.</li>
+  </ul>
+
+  <h2>7. User Conduct</h2>
   <p>You agree not to:</p>
   <ul>
     <li>Use the Bot for any illegal or unauthorized purpose</li>
@@ -76,18 +139,19 @@ a:hover { text-decoration: underline; }
     <li>Use the Bot to harass, spam, or harm others</li>
     <li>Attempt to access data you do not have permission to access</li>
     <li>Use automated tools to interact with the Bot in a way that violates Discord's Terms of Service</li>
+    <li>Circumvent command restrictions, permissions, or moderation actions applied to you</li>
   </ul>
 
-  <h2>5. Bot Availability</h2>
-  <p>The Bot is provided "as is" without any warranty. We reserve the right to modify, suspend, or discontinue the Bot at any time without notice. We are not liable for any damages arising from the use or inability to use the Bot.</p>
+  <h2>8. Server Administration</h2>
+  <p>By adding the Bot to your server or having Manage Server permissions, you acknowledge that:</p>
+  <ul>
+    <li>You are responsible for configuring the Bot's features, permissions, and restrictions in your server.</li>
+    <li>You are responsible for the actions of your moderators using the Bot's moderation tools.</li>
+    <li>You can disable any feature at any time through the dashboard or commands.</li>
+    <li>The Bot stores server-specific settings that persist until you remove them or remove the Bot.</li>
+  </ul>
 
-  <h2>6. Server Ownership &amp; Management</h2>
-  <p>By adding the Bot to your server, you confirm that you have the authority to manage server settings. Server administrators are responsible for configuring the Bot's behavior in their server, including command restrictions and permissions.</p>
-
-  <h2>7. User-Generated Content</h2>
-  <p>You are solely responsible for any content you create using the Bot (such as tags, reminders, and todo lists). We reserve the right to remove content that violates these terms or is otherwise objectionable.</p>
-
-  <h2>8. Prohibited Content &amp; Zero-Tolerance Policy</h2>
+  <h2>9. Prohibited Content &amp; Zero-Tolerance Policy</h2>
   <p>Cassie has a <strong>zero-tolerance policy</strong> regarding child sexual abuse material (CSAM), child exploitation content, and any content involving minors in sexual or exploitative contexts. This includes:</p>
   <ul>
     <li>CSAM images, videos, or links</li>
@@ -98,23 +162,27 @@ a:hover { text-decoration: underline; }
   </ul>
   <p>Violation of this policy will result in immediate and permanent ban from the Bot. Suspected CSAM will be reported to the National Center for Missing &amp; Exploited Children (NCMEC) via the CyberTipline and/or relevant law enforcement authorities, along with any identifying information available.</p>
 
-  <h2>9. Reporting Violations</h2>
-  <p>If you encounter content that violates these terms — especially CSAM, child exploitation, or other illegal material — please report it immediately to the Bot operator through the <a id="report-link" href="#">support server</a> or by direct message. Reports will be reviewed promptly and appropriate action will be taken, including reporting to law enforcement where required.</p>
+  <h2>10. Reporting Violations</h2>
+  <p>If you encounter content that violates these terms &mdash; especially CSAM, child exploitation, or other illegal material &mdash; please report it immediately to the Bot operator through the <a id="report-link" href="#">support server</a> or by direct message. Reports will be reviewed promptly and appropriate action will be taken, including reporting to law enforcement where required.</p>
 
-  <h2>10. Law Enforcement Cooperation</h2>
+  <h2>11. Law Enforcement Cooperation</h2>
   <p>We will cooperate with law enforcement authorities investigating illegal activity involving the Bot. This includes preserving and providing relevant data, reporting suspected CSAM to NCMEC's CyberTipline, and complying with valid legal requests. We may retain data beyond normal retention periods when reasonably necessary for an ongoing investigation.</p>
 
-  <h2>11. Limitation of Liability</h2>
+  <h2>12. Availability &amp; Modification</h2>
+  <p>The Bot is provided "as is" without any warranty. We reserve the right to modify, suspend, or discontinue the Bot at any time without notice. We are not liable for any damages arising from the use or inability to use the Bot.</p>
+
+  <h2>13. Limitation of Liability</h2>
   <p>To the maximum extent permitted by law, the Bot operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of data, profits, or service interruption.</p>
 
-  <h2>12. Termination</h2>
-  <p>We reserve the right to ban users or servers from using the Bot for violations of these terms. If you wish to stop using the Bot, you may remove it from your server and stop accessing the web dashboard.</p>
+  <h2>14. Termination</h2>
+  <p>We reserve the right to ban users or servers from using the Bot for violations of these terms. If you wish to stop using the Bot, you may remove it from your server, stop accessing the web dashboard, and request data deletion (see Privacy Policy).</p>
 
-  <h2>13. Changes to Terms</h2>
+  <h2>15. Changes to Terms</h2>
   <p>We may update these Terms of Service at any time. Continued use of the Bot after changes constitutes acceptance of the new terms.</p>
 
-  <h2>14. Contact</h2>
+  <h2>16. Contact</h2>
   <p>For questions about these terms, please contact the Bot operator through the <a id="support-link" href="#">support server</a> or via direct message.</p>
+  <footer>&copy; 2026 Cassie. Not affiliated with Discord.</footer>
 </div>
 <script>
 fetch('/api/invite/support')

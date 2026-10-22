@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:title" content="Privacy Policy - Cassie">
-<meta property="og:description" content="Privacy Policy for Cassie Discord bot. GDPR-compliant data practices, your rights, retention, and deletion requests.">
+<meta property="og:description" content="Privacy Policy for Cassie Discord bot.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nekomi.tailef6033.ts.net/privacy">
 <meta property="og:image" content="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=512">
@@ -14,125 +14,243 @@
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" href="https://cdn.discordapp.com/avatars/1461183051949412384/28589706755d6dda2b6f2b6e1b79fb31.png?size=64">
 <title>Privacy Policy - Cassie</title>
-<!-- OG embed cache buster: bump ?v=N in the image URL to force Discord to refresh cached embed -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0f0f13;
-  --card: #1a1a22;
-  --text: #fff;
-  --secondary: #aaa;
+  --card: #14141a;
+  --text: #f2f3f5;
+  --body: #c4c6ce;
+  --muted: #8e9297;
   --accent: #5865F2;
+  --accent-hover: #4752c4;
   --border: #2a2a36;
+  --link: #8b95f6;
 }
-body {
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.7;
-  padding: 20px;
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 0 20px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 32px 0 64px; }
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
 }
-.wrap {
-  max-width: 800px;
-  margin: 0 auto;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px;
-}
-h1 { font-size: 26px; margin-bottom: 8px; color: var(--accent); }
-.updated { color: var(--secondary); font-size: 13px; margin-bottom: 30px; }
-h2 { font-size: 18px; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
-p { margin-bottom: 14px; color: #ccc; }
-ul { margin-bottom: 14px; padding-left: 20px; color: #ccc; }
+.page-header img { width: 32px; height: 32px; border-radius: 8px; }
+.brand { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; }
+.page-nav { margin-left: auto; display: flex; gap: 18px; font-size: 13px; }
+.page-nav a { color: var(--muted); text-decoration: none; }
+.page-nav a:hover, .page-nav a[aria-current="page"] { color: var(--text); }
+h1 { font-size: 28px; letter-spacing: -0.02em; margin-bottom: 6px; }
+.updated { color: var(--muted); font-size: 13px; margin-bottom: 36px; }
+h2 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; color: var(--text); }
+h3 { font-size: 14px; margin-top: 22px; margin-bottom: 6px; color: var(--text); }
+p { margin-bottom: 14px; color: var(--body); }
+ul { margin-bottom: 14px; padding-left: 20px; color: var(--body); }
 li { margin-bottom: 6px; }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.back { display: inline-block; margin-bottom: 20px; color: var(--secondary); font-size: 13px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+footer { border-top: 1px solid var(--border); margin-top: 48px; padding-top: 20px; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+@media (max-width: 600px) {
+  h1 { font-size: 24px; }
+  .page-nav { gap: 12px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a href="/dashboard" class="back">&larr; Back to Dashboard</a>
+  <header class="page-header">
+    <img src="/api/bot/avatar?redirect=1" alt="" width="32" height="32">
+    <a class="brand" href="/">Cassie</a>
+    <nav class="page-nav" aria-label="Site">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/terms">Terms</a>
+      <a href="/privacy" aria-current="page">Privacy</a>
+    </nav>
+  </header>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: August 20, 2026</p>
+  <p class="updated">Last updated: September 27, 2026</p>
 
   <h2>1. Data Controller</h2>
-  <p>Cassie ("the Bot") is operated by an individual developer. For privacy-related inquiries, contact the operator through the <a id="support-link" href="#">support server</a> or via Discord direct message. Responses will be provided within 30 days.</p>
+  <p>Cassie ("the Bot") is operated by an individual developer. The Bot and its database are hosted on hardware owned and operated by the developer. No cloud hosting providers are used for data storage or processing. For privacy-related inquiries, contact the operator through the <a id="support-link" href="#">support server</a> or via Discord direct message.</p>
 
   <h2>2. Lawful Basis for Processing</h2>
   <p>We process your personal data under the following lawful bases as defined in Article 6 of the GDPR:</p>
   <ul>
-    <li><strong>Legitimate Interest (Article 6(1)(f))</strong> &mdash; for core Bot functionality: storing guild settings, tags, reminders, todo lists, AFK status, command overrides, command usage statistics, and member activity statistics. This processing is necessary to provide the service you intentionally use, and it does not override your fundamental rights and freedoms.</li>
-    <li><strong>Consent (Article 6(1)(a))</strong> &mdash; for AI chat history and message content used by AI features. You provide consent by actively using these features. You may withdraw consent at any time by ceasing to use AI features or requesting deletion of your data.</li>
+    <li><strong>Legitimate Interest (Article 6(1)(f))</strong> &mdash; for core Bot functionality: storing guild settings, tags, reminders, todo lists, AFK status, command overrides, economy data, level/XP data, moderation cases, and activity statistics. This processing is necessary to provide the service you intentionally use.</li>
+    <li><strong>Consent (Article 6(1)(a))</strong> &mdash; for AI chat history and persistent AI memory. You provide consent by actively using the AI chat feature. You may withdraw consent at any time by ceasing to use AI features or requesting deletion of your data.</li>
     <li><strong>Legal Obligation (Article 6(1)(c))</strong> &mdash; where we are required to retain or disclose data by applicable law (e.g., reporting illegal content to authorities).</li>
   </ul>
 
   <h2>3. Data We Collect</h2>
-  <p>Cassie collects and stores the following data when you use its features:</p>
+  <p>The Bot collects and stores the following data when you use its features:</p>
+
+  <h3>3.1 Identity Data</h3>
   <ul>
-    <li><strong>Discord User ID</strong> &mdash; used to identify you for custom prefixes, reminders, AFK status, todo lists, command usage statistics, chat history, and per-user command overrides.</li>
-    <li><strong>Discord Guild (Server) ID</strong> &mdash; used to store server-specific settings such as custom prefix, disabled commands, tags, and allow/deny overrides.</li>
-    <li><strong>Discord Channel ID</strong> &mdash; used for channel-specific command overrides and settings.</li>
-    <li><strong>Discord Role ID</strong> &mdash; used for role-based command overrides.</li>
-    <li><strong>Command Usage Data</strong> &mdash; we record which command was used, in which server, by whom, and when. This is used for statistics and diagnostics.</li>
-    <li><strong>Member Activity Statistics</strong> &mdash; for each server you are in, we keep a per-member count of messages sent and a cumulative total of time spent in voice channels. We only store these numeric counters tied to your Discord User ID and the server's ID. We do <strong>not</strong> store message content, voice audio, or recordings for this purpose, and bot accounts are excluded. This data is used solely to determine eligibility for automatic activity-based roles (see Section 5); it is not used to improve the Bot.</li>
-    <li><strong>Message Content</strong> &mdash; when you use AI/chat features, the messages you send are stored to provide conversational context. Retained until you request deletion.</li>
-    <li><strong>User-Created Content</strong> &mdash; tags, reminders, and todo list items you create are stored so they can be retrieved later.</li>
-    <li><strong>AFK Status</strong> &mdash; your AFK message is stored to notify others when you are away.</li>
-    <li><strong>Announcement Preferences</strong> &mdash; which servers have subscribed or opted out of announcement broadcasts, and when they were last notified.</li>
+    <li><strong>Discord User ID</strong> &mdash; used as the primary identifier for all user-specific features.</li>
+    <li><strong>Discord Username</strong> &mdash; stored for display purposes and user lookups.</li>
+    <li><strong>Discord Avatar URL</strong> &mdash; cached for display in rank cards and dashboard.</li>
+    <li><strong>Account Creation Date</strong> &mdash; used in AI context and anti-raid age checks.</li>
   </ul>
 
-  <h2>4. Web Dashboard Data</h2>
-  <p>When you log in to the web dashboard via Discord OAuth, we collect:</p>
+  <h3>3.2 Server Data</h3>
   <ul>
-    <li>Your Discord User ID, username, and avatar URL</li>
-    <li>Your Discord access token (used only during your session to fetch your guild list)</li>
+    <li><strong>Discord Guild (Server) ID</strong> &mdash; used to store server-specific settings.</li>
+    <li><strong>Guild Settings</strong> &mdash; custom prefix, disabled commands, command overrides (per-channel, per-role, per-user), tags, and feature configurations.</li>
+    <li><strong>Guild Statistics</strong> &mdash; member count, channel count, role count, command usage counts.</li>
   </ul>
-  <p>This data is stored in an encrypted session cookie and is deleted when you log out or after 7 days of inactivity. We do not use tracking cookies, analytics cookies, or any third-party cookies on the dashboard.</p>
 
-  <h2>5. How We Use Your Data</h2>
+  <h3>3.3 Activity Data</h3>
+  <ul>
+    <li><strong>Message Count</strong> &mdash; per-member count of messages sent in each server. Used for XP/leveling and auto-role eligibility.</li>
+    <li><strong>Voice Time</strong> &mdash; cumulative seconds spent in voice channels per server. Used for XP/leveling and auto-role eligibility.</li>
+    <li><strong>Command Usage</strong> &mdash; which commands are used, in which server, by whom, and when. Used for statistics and diagnostics.</li>
+  </ul>
+
+  <h3>3.4 User-Created Content</h3>
+  <ul>
+    <li><strong>Tags</strong> &mdash; custom text snippets you create in servers.</li>
+    <li><strong>Reminders</strong> &mdash; your scheduled reminders (content, time, channel preference).</li>
+    <li><strong>To-Do Lists</strong> &mdash; your personal task items.</li>
+    <li><strong>AFK Status</strong> &mdash; your AFK message and since-when timestamp.</li>
+    <li><strong>Timezone</strong> &mdash; your configured timezone for time commands.</li>
+    <li><strong>Custom Prefix</strong> &mdash; your personal command prefix override.</li>
+    <li><strong>Time Capsules</strong> &mdash; messages scheduled to be sent to you at a future date.</li>
+  </ul>
+
+  <h3>3.5 Economy Data</h3>
+  <ul>
+    <li><strong>Balance</strong> &mdash; your virtual currency balance per server.</li>
+    <li><strong>Transaction History</strong> &mdash; record of all currency earned, spent, and transferred.</li>
+    <li><strong>Work/Daily Streaks</strong> &mdash; streak tracking for daily claims and work commands.</li>
+    <li><strong>Vote Streaks</strong> &mdash; tracking for bot listing site vote rewards.</li>
+  </ul>
+
+  <h3>3.6 Level &amp; Progression Data</h3>
+  <ul>
+    <li><strong>XP and Level</strong> &mdash; your experience points and current level per server.</li>
+    <li><strong>Voice Time</strong> &mdash; total voice seconds contributing to XP.</li>
+    <li><strong>Role Rewards</strong> &mdash; roles automatically assigned at level milestones.</li>
+  </ul>
+
+  <h3>3.7 Moderation Data</h3>
+  <ul>
+    <li><strong>Moderation Cases</strong> &mdash; records of bans, kicks, timeouts, warns, and other actions taken against users, including the moderator, target, reason, and timestamp.</li>
+    <li><strong>Strike Counts</strong> &mdash; auto-moderation strike counts per user per server.</li>
+    <li><strong>Invoke Templates</strong> &mdash; custom message templates configured by server admins for moderation actions.</li>
+  </ul>
+
+  <h3>3.8 Ticket Data</h3>
+  <ul>
+    <li><strong>Ticket Records</strong> &mdash; support tickets including channel, owner, status, priority, subject, and form responses.</li>
+    <li><strong>Ticket Messages</strong> &mdash; messages sent within tickets.</li>
+    <li><strong>Ticket Notes</strong> &mdash; staff notes on tickets.</li>
+  </ul>
+
+  <h3>3.9 AI Data</h3>
+  <ul>
+    <li><strong>Chat History</strong> &mdash; messages you send to the AI chat, stored to provide conversational context.</li>
+    <li><strong>AI Memory</strong> &mdash; a persistent memory (~1000 words) that the AI reads and writes during your conversations. This is per-user and global (not per-server).</li>
+  </ul>
+
+  <h3>3.10 Web Dashboard Data</h3>
+  <ul>
+    <li><strong>Session Cookie</strong> &mdash; an HTTP-only session cookie (<code>connect.sid</code>) for authentication. Contains your Discord User ID, username, avatar, and OAuth access token. Expires after 7 days of inactivity or on logout.</li>
+    <li><strong>IP Address</strong> &mdash; logged temporarily during invite click tracking for fake account detection. Not stored long-term.</li>
+    <li><strong>User Agent</strong> &mdash; logged temporarily during invite click tracking. Not stored long-term.</li>
+  </ul>
+
+  <h3>3.11 Invite Tracking Data</h3>
+  <ul>
+    <li><strong>Invite Codes</strong> &mdash; tracked invite codes and their use counts.</li>
+    <li><strong>Join/Leave Records</strong> &mdash; which invite was used to join, and when the user left.</li>
+    <li><strong>Fake Account Flags</strong> &mdash; accounts flagged as likely fake or alt accounts.</li>
+  </ul>
+
+  <h3>3.12 Other Data</h3>
+  <ul>
+    <li><strong>Boost Streaks</strong> &mdash; server boost streak tracking per user.</li>
+    <li><strong>Court Cases &amp; Votes</strong> &mdash; community court cases and associated votes.</li>
+    <li><strong>Ideas &amp; Votes</strong> &mdash; feature ideas submitted and voted on.</li>
+    <li><strong>Vote Reminders</strong> &mdash; scheduled reminders for bot listing site votes.</li>
+    <li><strong>Reaction Roles</strong> &mdash; reaction role configurations per server.</li>
+    <li><strong>Starboard Entries</strong> &mdash; starred messages and their star counts.</li>
+    <li><strong>Temporary Voice Channels</strong> &mdash; created VoiceMaster channels and their settings.</li>
+    <li><strong>Echo Messages</strong> &mdash; queued anonymous messages in echo chambers.</li>
+    <li><strong>Announcement Preferences</strong> &mdash; which servers have subscribed or opted out of announcement broadcasts.</li>
+  </ul>
+
+  <h2>4. How We Use Your Data</h2>
   <p>Your data is used exclusively to provide the Bot's functionality:</p>
   <ul>
     <li>Processing commands and applying your settings</li>
-    <li>Remembering your custom prefix, reminders, tags, and todo lists</li>
-    <li>Enforcing command restrictions (disable/enable per server, channel, role, or user)</li>
+    <li>Tracking economy, levels, and activity for gamification features</li>
+    <li>Enforcing moderation actions and auto-moderation rules</li>
+    <li>Providing AI chat with conversational context and persistent memory</li>
     <li>Displaying statistics on the web dashboard</li>
-    <li>Automatically granting activity-based roles (such as @Trusted or @Verified) when you meet thresholds configured by your server's administrators &mdash; for example, a set number of messages, hours spent in voice chat, or days of server membership &mdash; without manual staff review. Server administrators can disable or fully configure this feature.</li>
-    <li>Improving the Bot based on aggregated command usage patterns (not individual profiles). Member activity statistics are not used for this purpose.</li>
+    <li>Detecting and preventing fake accounts and raids</li>
+    <li>Generating moderation case logs for server administrators</li>
   </ul>
+  <p>We do <strong>not</strong> use your data for advertising, profiling, or sale to third parties.</p>
 
-  <h2>6. Data Storage &amp; Retention</h2>
-  <p>All data is stored in a PostgreSQL database on the same machine running the Bot. We retain data for as long as it is needed to provide the Bot's functionality:</p>
+  <h2>5. AI Data Processing</h2>
+  <p>The Bot's AI features are powered by a <strong>locally-hosted language model</strong> (Ollama, running on the developer's own hardware). Your messages are processed locally and are <strong>not sent to third-party cloud AI services</strong>.</p>
+  <p>The AI has access to read-only database tools. To protect your privacy:</p>
   <ul>
-    <li><strong>Guild settings, tags, reminders, todo lists, time capsules, AFK status, command overrides, command usage statistics, member activity statistics, announcement preferences</strong> &mdash; retained indefinitely until you request deletion or remove the Bot from your server.</li>
-    <li><strong>Web dashboard session cookies</strong> &mdash; retained for up to 7 days of inactivity, or deleted on logout.</li>
+    <li><strong>User-scoped data</strong> (todos, reminders, economy, chat history, memory) is only accessible to the user making the request. The AI cannot read other users' personal data.</li>
+    <li><strong>Server-scoped data</strong> (tags, level config, starboard, etc.) is filtered to the current server.</li>
+    <li><strong>Blocked data</strong> &mdash; the AI cannot access sessions, moderation configs, admin settings, IP addresses, or any security-related data.</li>
+    <li>The AI has <strong>no write access</strong> to the database beyond your personal chat memory.</li>
+    <li>The AI <strong>cannot</strong> send messages, execute commands, or perform actions on your behalf.</li>
   </ul>
-  <p>You may request deletion of your data at any time (see Section 11). Data needed for ongoing investigations (e.g., reported illegal content) may be retained longer until the matter is resolved.</p>
+  <p>The AI's web search tool sends search queries to the LangSearch API (<code>api.langsearch.com</code>). Only the search query text is transmitted; no personal data is attached.</p>
 
-  <h2>7. Data Sharing</h2>
-  <p>We do not sell, trade, or share your personal data with third parties. Data is only accessible to the Bot operator for support, maintenance, and legal compliance purposes. We do not use third-party analytics, advertising, or tracking services.</p>
-
-  <h2>8. International Data Transfers</h2>
-  <p>The Bot and its database are hosted on servers located in the United States. If you access the Bot from the European Economic Area (EEA), the United Kingdom, or other regions, your personal data will be transferred to and processed in the United States. Such transfers are protected by appropriate safeguards, including the EU-US Data Privacy Framework and Standard Contractual Clauses where applicable.</p>
-
-  <h2>9. Data Security</h2>
-  <p>We take reasonable measures to protect your data, including encrypted database connections, secure session handling, and restricted access to the server. However, no method of electronic storage or transmission is 100% secure. In the event of a data breach that poses a risk to your rights and freedoms, we will notify the relevant supervisory authority within 72 hours and, where required, inform affected users.</p>
-
-  <h2>10. Your Rights Under GDPR</h2>
-  <p>As a data subject in the European Economic Area (EEA), you have the following rights under the General Data Protection Regulation:</p>
+  <h2>6. Third-Party Services</h2>
+  <p>We use the following third-party services:</p>
   <ul>
-    <li><strong>Right of Access (Article 15)</strong> &mdash; request a copy of the personal data we hold about you.</li>
-    <li><strong>Right to Rectification (Article 16)</strong> &mdash; request correction of inaccurate or incomplete data.</li>
-    <li><strong>Right to Erasure (Article 17)</strong> &mdash; request deletion of your data, also known as the "right to be forgotten."</li>
-    <li><strong>Right to Restriction of Processing (Article 18)</strong> &mdash; request that we stop processing your data while maintaining it in storage.</li>
-    <li><strong>Right to Data Portability (Article 20)</strong> &mdash; request your data in a machine-readable format (JSON) to transfer to another service.</li>
-    <li><strong>Right to Object (Article 21)</strong> &mdash; object to processing based on legitimate interest, including processing for analytics or service improvement.</li>
-    <li><strong>Right to Withdraw Consent (Article 7)</strong> &mdash; where processing is based on consent, you may withdraw at any time without affecting the lawfulness of prior processing.</li>
+    <li><strong>Discord API</strong> (<code>discord.com/api</code>) &mdash; for OAuth2 authentication, fetching your guild list, sending webhooks, and serving avatars. Subject to <a href="https://discord.com/privacy" target="_blank">Discord's Privacy Policy</a>.</li>
+    <li><strong>LangSearch API</strong> (<code>api.langsearch.com</code>) &mdash; used by the AI's web search tool. Only search queries are sent. No personal data is attached.</li>
+    <li><strong>OpenAI Moderation API</strong> (<code>api.openai.com/v1/moderations</code>) &mdash; used to screen feature idea submissions for policy violations. Only the submitted idea text is sent.</li>
+    <li><strong>Bot Listing Sites</strong> (top.gg, discordbotlist.com, discordlist.gg) &mdash; receive guild counts for listing purposes and send vote webhooks when users vote. Vote webhooks are cryptographically verified.</li>
+    <li><strong>APIs for Images</strong> &mdash; <code>api.bunnies.io</code> and <code>api.thecatapi.com</code> are used for random animal images. No personal data is sent.</li>
+    <li><strong>GitHub Webhooks</strong> &mdash; the Bot receives repository event webhooks (push, PR, etc.) for development tracking. Webhook signatures are HMAC-verified.</li>
   </ul>
-  <p>To exercise any of these rights, contact us through the support server or via Discord DM. We will respond within 30 days. You also have the right to lodge a complaint with your local data protection supervisory authority if you believe your rights have been violated.</p>
+  <p><strong>Not a third-party service:</strong> Ollama (the AI inference engine) runs locally on the developer's hardware. No data leaves the developer's machine for AI processing.</p>
 
-  <h2>11. How to Request Deletion</h2>
+  <h2>7. Data Storage &amp; Retention</h2>
+  <p>All data is stored in a PostgreSQL database on hardware owned and operated by the developer. We retain data for as long as it is needed to provide the Bot's functionality:</p>
+  <ul>
+    <li><strong>Guild settings, tags, economy, levels, moderation cases, activity statistics</strong> &mdash; retained until you request deletion or remove the Bot from your server.</li>
+    <li><strong>User content (todos, reminders, AFK, timezone, time capsules)</strong> &mdash; retained until you request deletion.</li>
+    <li><strong>AI chat history and memory</strong> &mdash; retained until you request deletion or use the <code>c.optout</code> command.</li>
+    <li><strong>Web dashboard sessions</strong> &mdash; deleted after 7 days of inactivity or on logout.</li>
+    <li><strong>Invite click tracking (IP, user agent)</strong> &mdash; not stored long-term; used temporarily for matching joins to invite links.</li>
+  </ul>
+
+  <h2>8. Data Sharing</h2>
+  <p>We do not sell, trade, or share your personal data with third parties. Data is only accessible to the Bot operator for support, maintenance, and legal compliance purposes. We do not use third-party analytics, advertising, or tracking services on the web dashboard.</p>
+
+  <h2>9. International Data Transfers</h2>
+  <p>The Bot and its database are hosted on servers located in the United States. If you access the Bot from the European Economic Area (EEA), the United Kingdom, or other regions, your personal data will be transferred to and processed in the United States.</p>
+
+  <h2>10. Data Security</h2>
+  <p>We take reasonable measures to protect your data, including encrypted database connections, secure session handling with HTTP-only cookies, CSRF protection on OAuth flows, and cryptographic verification of webhooks. However, no method of electronic storage or transmission is 100% secure. In the event of a data breach that poses a risk to your rights and freedoms, we will notify the relevant supervisory authority within 72 hours and, where required, inform affected users.</p>
+
+  <h2>11. Your Rights</h2>
+  <p>You have the following rights regarding your data:</p>
+  <ul>
+    <li><strong>Right of Access</strong> &mdash; You can export all your stored data at any time using the <code>c.mydata</code> command in Discord. This returns a JSON file with all data the Bot holds about you.</li>
+    <li><strong>Right to Erasure</strong> &mdash; You can request full deletion of your data (see Section 12).</li>
+    <li><strong>Right to Withdraw Consent</strong> &mdash; You can opt out of AI data processing using the <code>c.optout</code> command, which disables vote thank-you DMs and can be used to request AI data removal.</li>
+    <li><strong>Right to Data Portability</strong> &mdash; The <code>c.mydata</code> command provides your data in a machine-readable JSON format.</li>
+  </ul>
+  <p>To exercise any right not available through the above commands, contact us through the support server or via Discord DM. We will respond within 30 days. You also have the right to lodge a complaint with your local data protection supervisory authority.</p>
+
+  <h2>12. How to Request Deletion</h2>
   <p>To request full deletion of your data:</p>
   <ul>
     <li><strong>Option 1:</strong> Send a direct message to the Bot operator on Discord detailing your request.</li>
@@ -140,18 +258,19 @@ a:hover { text-decoration: underline; }
   </ul>
   <p>Please include your Discord User ID (right-click your profile &rarr; Copy ID) to help us locate your data. We will confirm receipt within 72 hours and complete the deletion within 30 days. Note that some data may be retained if required by law (e.g., records of illegal content reports).</p>
 
-  <h2>12. Children's Data</h2>
-  <p>Cassie is not intended for children under 13, in line with Discord's Terms of Service. However, the age of digital consent under GDPR varies between 13 and 16 depending on the EU member state. If you are below the age of digital consent in your country, you must have parental permission to use the Bot. We do not knowingly collect data from children below the applicable age. If we become aware that a child's data has been collected without appropriate consent, we will delete it promptly.</p>
+  <h2>13. Children's Data</h2>
+  <p>Cassie is not intended for children under 13, in line with Discord's Terms of Service. We do not knowingly collect data from children below the applicable age. If we become aware that a child's data has been collected without appropriate consent, we will delete it promptly.</p>
 
-  <h2>13. Contact</h2>
+  <h2>14. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. Changes will be posted here and the "Last updated" date will be revised. If significant changes are made, we will notify users via the support server. Continued use of the Bot after changes constitutes acceptance of the updated policy.</p>
+
+  <h2>15. Contact</h2>
   <p>For privacy-related inquiries, deletion requests, or any questions about this policy:</p>
   <ul>
     <li>Support server: <a id="support-link3" href="#">Join the server</a></li>
     <li>Discord DM: Message the Bot operator directly</li>
   </ul>
-
-  <h2>14. Changes to This Policy</h2>
-  <p>We may update this Privacy Policy from time to time. Changes will be posted here and the "Last updated" date will be revised. If significant changes are made, we will notify users via the support server. Continued use of the Bot after changes constitutes acceptance of the updated policy.</p>
+  <footer>&copy; 2026 Cassie. Not affiliated with Discord.</footer>
 </div>
 <script>
 fetch('/api/invite/support')
