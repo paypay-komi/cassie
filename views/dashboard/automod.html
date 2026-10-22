@@ -1,0 +1,61 @@
+<div class="page-header">
+  <div class="page-title">Automod</div>
+  <div class="page-desc">Automatically filter and moderate messages.</div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-6)">
+  <div class="card-body">
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Enable Automod</div>
+        <div class="toggle-desc">Automatically filter and moderate messages</div>
+      </div>
+      <div class="toggle" id="toggle-automod" data-disabled="true" onclick="window._toggleAutomod('enabled', this)" data-tooltip="Master switch for every automod filter and escalation rule.">
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Configuration</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="automod-config"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Filters</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="automod-filters"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Custom Regex</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="automod-regex"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Exemptions</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="automod-exemptions"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Strike Escalation</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="automod-strikes"></div>
+  </div>
+</div>

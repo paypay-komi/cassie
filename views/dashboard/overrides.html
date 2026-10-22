@@ -1,0 +1,94 @@
+<div class="page-header">
+  <div class="page-title">Overrides</div>
+  <div class="page-desc">Add exceptions to command permissions for specific channels, roles, or users. Overrides take priority over server-wide settings.</div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-6)">
+  <div class="card-header">
+    <div class="card-title">How Overrides Work</div>
+  </div>
+  <div class="card-body">
+    <div class="hierarchy-box">
+      <div class="h-row">User <span class="h-priority">— highest priority</span></div>
+      <div class="h-row"><span class="h-arrow">↑</span></div>
+      <div class="h-row">Role</div>
+      <div class="h-row"><span class="h-arrow">↑</span></div>
+      <div class="h-row">Channel</div>
+      <div class="h-row"><span class="h-arrow">↑</span></div>
+      <div class="h-row">Server-wide <span class="h-priority">— set in Commands tab</span></div>
+      <div class="h-tip"><strong>Tip:</strong> Disable a command server-wide in the <a href="#commands" onclick="switchTab('commands')">Commands</a> tab, then add <strong>Allow</strong> overrides here for the channels, roles, or users that should still be able to use it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Add Override</div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:var(--sp-4)">
+      <div class="add-override-form">
+        <div class="form-row" style="gap:var(--sp-3);flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="flex:1;min-width:140px">
+            <label class="form-label">Target Type</label>
+            <div class="custom-select-wrap" id="ov-type-wrap">
+              <button type="button" class="custom-select" id="ov-type-btn" data-value="channel" data-tooltip="Choose whether this override applies to a channel, role, or user.">
+                <span class="custom-select-text">Channel</span>
+                <span class="custom-select-arrow" aria-hidden="true"></span>
+              </button>
+              <div class="custom-select-list" id="ov-type-list">
+                <div class="custom-select-item" data-value="channel">Channel</div>
+                <div class="custom-select-item" data-value="role">Role</div>
+                <div class="custom-select-item" data-value="user">User</div>
+              </div>
+              <input type="hidden" id="ov-type" value="channel">
+            </div>
+          </div>
+          <div class="form-group" style="flex:2;min-width:200px">
+            <label class="form-label">Target</label>
+            <div class="autocomplete-wrap">
+              <input type="text" class="input" id="ov-target-input" placeholder="Type to search..." autocomplete="off" oninput="window._onOvTargetInput()" onfocus="window._onOvTargetInput()" data-tooltip="Search for the channel, role, or user this override should apply to.">
+              <div class="autocomplete-list" id="ov-target-list"></div>
+              <input type="hidden" id="ov-target">
+            </div>
+          </div>
+          <div class="form-group" style="flex:2;min-width:200px">
+            <label class="form-label">Command</label>
+            <div class="custom-select-wrap" id="ov-cmd-wrap">
+              <button type="button" class="custom-select" id="ov-cmd-btn" data-value="" data-tooltip="Choose the command this override applies to.">
+                <span class="custom-select-text">Select command...</span>
+                <span class="custom-select-arrow" aria-hidden="true"></span>
+              </button>
+              <div class="custom-select-list" id="ov-cmd-list"></div>
+              <input type="hidden" id="ov-cmd" value="">
+            </div>
+            <div class="form-hint" id="ov-cmd-badge"></div>
+          </div>
+          <div class="form-group" style="flex:1;min-width:140px">
+            <label class="form-label" style="display:flex;align-items:center;gap:var(--sp-1);cursor:pointer">
+              <input type="checkbox" id="ov-include-subs" style="width:14px;height:14px;accent-color:var(--accent)" data-tooltip="Also apply this override to every subcommand of the selected command."> Include subcommands
+            </label>
+            <div class="form-hint" id="ov-include-subs-hint" style="display:none">Applies to all child commands</div>
+          </div>
+          <div class="form-group" style="flex:0 0 auto">
+            <label class="form-label" style="display:flex;align-items:center;gap:var(--sp-1);cursor:pointer">
+              <input type="checkbox" id="ov-allowed" checked style="width:14px;height:14px;accent-color:var(--green)" data-tooltip="Checked allows the command; unchecked denies it for this target."> Allow
+            </label>
+          </div>
+          <div class="form-group" style="flex:0 0 auto">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary" onclick="window._addOverride()" style="width:100%" data-tooltip="Save this exception. Overrides take priority over server-wide command settings.">Add Override</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Existing Overrides</div>
+    <input type="text" class="search-input" id="ov-search" placeholder="Search overrides..." style="max-width:320px;margin-left:auto" data-tooltip="Filter existing overrides by target or command.">
+  </div>
+  <div id="ov-table-wrap"></div>
+</div>

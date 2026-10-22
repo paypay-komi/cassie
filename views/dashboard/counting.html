@@ -1,0 +1,133 @@
+<div class="page-header">
+  <div class="page-title">Counting</div>
+  <div class="page-desc">Set up a counting channel where members count up. Wrong numbers reset the count.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Configuration</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Counting</div>
+          <div class="toggle-desc">Activate the counting channel for this server</div>
+        </div>
+        <div class="toggle" id="counting-enabled" data-disabled="true" onclick="window._toggleSetting('enabled', this)" data-tooltip="Turn counting on or off without clearing its settings.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Counting Channel</div>
+          <div class="toggle-desc">The channel where members will count</div>
+        </div>
+        <select class="input" id="counting-channel" style="width:280px" onchange="window._saveChannel()" data-tooltip="The only channel where counting messages are accepted.">
+          <option value="">Select a channel...</option>
+        </select>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Reset on Fail</div>
+          <div class="toggle-desc">Reset count to 0 when someone gets it wrong</div>
+        </div>
+        <div class="toggle" id="counting-reset" data-disabled="true" onclick="window._toggleSetting('resetOnFail', this)" data-tooltip="A wrong count sets the next expected number back to 1; leaderboard scores are kept.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Delete Wrong Messages</div>
+          <div class="toggle-desc">Automatically delete incorrect count messages</div>
+        </div>
+        <div class="toggle" id="counting-delete" data-disabled="true" onclick="window._toggleSetting('deleteWrong', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">React on Wrong</div>
+          <div class="toggle-desc">Add ❌ reaction to wrong messages</div>
+        </div>
+        <div class="toggle" id="counting-reactwrong" data-disabled="true" onclick="window._toggleSetting('reactOnWrong', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">React on Correct</div>
+          <div class="toggle-desc">Add ✅ reaction to correct messages</div>
+        </div>
+        <div class="toggle" id="counting-reactcorrect" data-disabled="true" onclick="window._toggleSetting('reactOnCorrect', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Show Public Fail Message</div>
+          <div class="toggle-desc">Send a public message calling out the wrong count</div>
+        </div>
+        <div class="toggle" id="counting-showfail" data-disabled="true" onclick="window._toggleSetting('showOnFail', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Allow Decimals</div>
+          <div class="toggle-desc">Allow decimal numbers (e.g., 1.5, 2.25)</div>
+        </div>
+        <div class="toggle" id="counting-decimals" data-disabled="true" onclick="window._toggleSetting('allowDecimals', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Allow Math Expressions</div>
+          <div class="toggle-desc">Allow expressions like 2+2, 5*3, (10-2)/2</div>
+        </div>
+        <div class="toggle" id="counting-math" data-disabled="true" onclick="window._toggleSetting('allowMath', this)" data-tooltip="Accepts expressions such as 2+2 or 5*3 as the next number.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Allow Normal Text</div>
+          <div class="toggle-desc">Allow non-number messages in the channel (won't be deleted)</div>
+        </div>
+        <div class="toggle" id="counting-text" data-disabled="true" onclick="window._toggleSetting('allowText', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Auto-delete Fail Message (seconds)</div>
+          <div class="toggle-desc">0 = never delete the public fail message</div>
+        </div>
+        <input type="number" class="input" id="counting-failmsg-delete" value="0" min="0" max="60" step="1" style="width:100px" onchange="window._saveFailMsgDelete()" data-tooltip="Seconds before the public fail message is deleted; 0 keeps it.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Anti-Spam Cooldown</div>
+          <div class="toggle-desc">Minimum ms between counts from same user (0 = off)</div>
+        </div>
+        <input type="number" class="input" id="counting-cooldown" value="0" min="0" max="60000" step="1000" style="width:100px" onchange="window._saveCooldown()" data-tooltip="Minimum time in milliseconds before the same member can count again; 0 disables the check.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Current Stats</div>
+    <button class="btn btn-sm btn-danger" onclick="window._resetCount()" data-tooltip="Reset the current count and last counter; leaderboard scores are kept.">Reset Count</button>
+  </div>
+  <div class="card">
+    <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--sp-4);text-align:center">
+      <div>
+        <div style="font-size:2rem;font-weight:700;color:var(--accent)" id="stat-current">0</div>
+        <div class="stat-label">Current Count</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:700;color:var(--yellow)" id="stat-high">0</div>
+        <div class="stat-label" tabindex="0" data-tooltip="The highest count ever reached in this server.">High Score</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:700;color:var(--green)" id="stat-last">—</div>
+        <div class="stat-label">Last Counter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Leaderboard</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>User</th><th>Score</th><th>Correct</th><th>Wrong</th></tr></thead>
+      <tbody id="counting-leaderboard"></tbody>
+    </table>
+  </div>
+</div>

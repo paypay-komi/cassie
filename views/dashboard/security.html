@@ -1,0 +1,74 @@
+<div class="page-header">
+  <div class="page-title">Security</div>
+  <div class="page-desc">Protect your server from raids, nukes, and compromised accounts.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antinuke</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Antinuke</div>
+          <div class="toggle-desc">Protect your server from destructive actions by compromised accounts</div>
+        </div>
+        <div class="toggle" id="toggle-antinuke" data-disabled="true" onclick="window._toggleSecurity('antinuke', this)" data-tooltip="Master switch for destructive-action monitoring and punishments.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antinuke Modules</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="antinuke-modules"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antinuke Admins & Whitelist</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="antinuke-lists"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antiraid</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Antiraid</div>
+          <div class="toggle-desc">Detect and prevent mass-join raids and spam accounts</div>
+        </div>
+        <div class="toggle" id="toggle-antiraid" data-disabled="true" onclick="window._toggleSecurity('antiraid', this)" data-tooltip="Master switch for mass-join and new-account protection.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antiraid Modules</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="antiraid-modules"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Antiraid Whitelist</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="antiraid-whitelist"></div>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+<div class="page-header">
+  <div class="page-title">Levels</div>
+  <div class="page-desc">Configure XP gains, role rewards, and level up messages.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Level System</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Leveling</div>
+          <div class="toggle-desc">Earn XP for messages and voice activity</div>
+        </div>
+        <div class="toggle" id="toggle-levels" data-disabled="true" onclick="window._toggleLevel('enabled', this)" data-tooltip="Turn XP gain and level-up processing on or off.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Text XP Enabled</div>
+          <div class="toggle-desc">Gain XP from text messages</div>
+        </div>
+        <div class="toggle" id="toggle-text-enabled" data-disabled="true" onclick="window._toggleLevel('textEnabled', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Voice XP Enabled</div>
+          <div class="toggle-desc">Gain XP from voice activity</div>
+        </div>
+        <div class="toggle" id="toggle-voice-enabled" data-disabled="true" onclick="window._toggleLevel('voiceEnabled', this)"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">DM Level Up</div>
+          <div class="toggle-desc">Send level up notification via DM</div>
+        </div>
+        <div class="toggle" id="toggle-dm-levelup" data-disabled="true" onclick="window._toggleLevel('dmLevelUp', this)" data-tooltip="Also send the level-up notice by DM; the configured announcement channel still receives one.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Stack Roles</div>
+          <div class="toggle-desc">Keep previous role rewards when leveling up</div>
+        </div>
+        <div class="toggle" id="toggle-stack-roles" data-disabled="true" onclick="window._toggleLevel('stackRoles', this)" data-tooltip="Keep every earned role reward; when off, only the highest eligible reward is kept.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Text Multiplier</div>
+          <div class="toggle-desc">XP multiplier for text messages</div>
+        </div>
+        <input type="number" class="input" id="level-text-mult" value="1" min="0" max="10" step="0.1" style="width:80px" onchange="window._saveLevelConfig('textMultiplier', this.value)" data-tooltip="Multiplies XP earned from text messages; 1 keeps the base rate.">
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Voice Multiplier</div>
+          <div class="toggle-desc">XP multiplier for voice activity (per minute)</div>
+        </div>
+        <input type="number" class="input" id="level-voice-mult" value="1" min="0" max="10" step="0.1" style="width:80px" onchange="window._saveLevelConfig('voiceMultiplier', this.value)" data-tooltip="Multiplies XP earned per minute in voice; 1 keeps the base rate.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Role Rewards</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="level-role-rewards"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">XP Multipliers</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="level-multipliers"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Ignored Channels & Roles</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="level-ignores"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Milestones</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="level-milestones"></div>
+  </div>
+</div>

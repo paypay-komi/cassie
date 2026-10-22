@@ -1,0 +1,47 @@
+<div class="page-header has-icon">
+  <img class="page-header-icon" id="overview-guild-icon" alt="" style="display:none">
+  <div class="page-header-text">
+    <div class="page-title" id="overview-guild-name">Server Overview</div>
+    <div class="page-desc" id="overview-guild-desc"></div>
+  </div>
+</div>
+
+<div class="stats-grid" id="statGrid"></div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Command Prefix</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row prefix-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Server Prefix</div>
+          <div class="toggle-desc">The prefix used to invoke Cassie commands in this server (default: c.)</div>
+        </div>
+        <div class="prefix-controls">
+          <input type="text" class="input prefix-input" id="prefix-input" maxlength="10" aria-label="Server command prefix" data-tooltip="Text commands use this prefix; slash commands always start with /." data-tooltip-pos="bottom">
+          <button class="btn btn-primary btn-sm" onclick="window._savePrefix()" data-tooltip="Save the new prefix for text commands." data-tooltip-pos="bottom">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Getting Started</div>
+    <button class="btn btn-sm btn-ghost" onclick="window._skipAll()" data-tooltip="Skip every setup item that is not already complete; you can still change each item later.">Skip All</button>
+  </div>
+  <div class="checklist" id="checklist"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Quick Actions</div>
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-top:var(--sp-3)">
+    <a class="btn btn-secondary" href="#commands" onclick="switchTab('commands')">Manage Commands</a>
+    <a class="btn btn-secondary" href="#overrides" onclick="switchTab('overrides')">Set Overrides</a>
+    <a class="btn btn-secondary" href="#tags" onclick="switchTab('tags')">Create Tags</a>
+    <a class="btn btn-secondary" href="#automod" onclick="switchTab('automod')">Configure Automod</a>
+  </div>
+</div>

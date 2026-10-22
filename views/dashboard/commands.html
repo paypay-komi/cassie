@@ -1,0 +1,18 @@
+<div class="page-header">
+  <div class="page-title">Commands</div>
+  <div class="page-desc">Manage which commands are available in this server. Disabled commands cannot be used by anyone unless overridden.</div>
+</div>
+
+<div class="section-header" style="margin-bottom:var(--sp-3)">
+  <input type="text" class="search-input" id="cmd-search" placeholder="Search commands..." style="max-width:320px" data-tooltip="Filter the command list by name.">
+  <div style="display:flex;gap:var(--sp-2);margin-left:auto">
+    <button class="btn btn-sm btn-secondary" id="cmd-expand-all" data-tooltip="Expand every command group to show its subcommands.">Expand All</button>
+    <button class="btn btn-sm btn-secondary" id="cmd-collapse-all" data-tooltip="Collapse every command group.">Collapse All</button>
+  </div>
+</div>
+
+<div class="info-banner" style="margin-bottom:var(--sp-4)">
+  Toggle a command <strong>OFF</strong> to disable it <strong>server-wide</strong>. Disabling a parent command also disables all its subcommands. Use the <a href="#overrides" onclick="switchTab('overrides')">Overrides</a> tab to add exceptions for specific channels, roles, or users.
+</div>
+
+<div id="cmd-list"></div>

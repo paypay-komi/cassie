@@ -1,0 +1,39 @@
+<div class="page-header">
+  <div class="page-title">Voice Channels</div>
+  <div class="page-desc">Temporary voice channels that users can create and manage.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">VoiceMaster</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable VoiceMaster</div>
+          <div class="toggle-desc">Allow users to create temporary voice channels</div>
+        </div>
+        <div class="toggle" id="toggle-vm" data-disabled="true" onclick="window._toggleVM('enabled', this)" data-tooltip="Disabling stops new temporary channels from being created; existing ones remain until empty.">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Configuration</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="vm-config"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Hubs</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="vm-hubs"></div>
+  </div>
+</div>

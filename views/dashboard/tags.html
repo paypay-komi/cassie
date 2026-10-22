@@ -1,0 +1,36 @@
+<div class="page-header">
+  <div class="page-title">Tags</div>
+  <div class="page-desc">Create custom text responses that can be invoked with <code>c.tag <name></code>.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Create Tag</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <form id="tag-form" onsubmit="event.preventDefault(); window._createTag()">
+        <div class="form-row" style="gap:var(--sp-3);flex-wrap:wrap">
+          <div class="form-group" style="flex:0 0 180px">
+            <label class="form-label">Name</label>
+            <input type="text" class="input" id="tag-name" placeholder="Tag name" maxlength="100" required data-tooltip="Members invoke this tag with c.tag followed by this name.">
+          </div>
+          <div class="form-group" style="flex:1;min-width:240px">
+            <label class="form-label">Content</label>
+            <textarea class="input" id="tag-content" placeholder="Tag content (supports newlines)" rows="2" required data-tooltip="Text Cassie sends when the tag is invoked. Line breaks are preserved."></textarea>
+          </div>
+          <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end">
+            <button type="submit" class="btn btn-primary" data-tooltip="Create the tag with this name and content.">Create</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Tags</div>
+  </div>
+  <div id="tag-list"></div>
+</div>

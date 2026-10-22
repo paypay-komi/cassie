@@ -18,74 +18,120 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
   --bg: #0f0f13;
-  --sidebar: #15151c;
+  --sidebar: #14141a;
   --card: #1a1a22;
-  --hover: #22222c;
-  --text: #fff;
-  --secondary: #b5bac1;
+  --hover: #22222b;
+  --text: #f2f3f5;
+  --secondary: #c4c6ce;
   --muted: #8e9297;
   --accent: #5865F2;
   --accent-hover: #4752c4;
   --border: #2a2a36;
-  --green: #28a745;
-  --blue: #007bff;
+  --green: #3ba55d;
+  --blue: #8b93f8;
   --red: #ed4245;
+  --focus-ring: 0 0 0 3px rgba(88,101,242,0.28);
 }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   display: flex;
   flex-direction: column;
   height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
+a { color: var(--accent); }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 6px; }
+
 header {
+  height: 52px;
   background: var(--sidebar);
-  padding: 15px 24px;
+  padding: 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
+  gap: 16px;
 }
-header h1 { font-size: 20px; color: var(--accent); }
-.user-info { color: var(--secondary); font-size: 14px; }
-.header-actions { display: flex; align-items: center; gap: 14px; }
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.brand:hover { text-decoration: none; color: #fff; }
+.brand img { width: 24px; height: 24px; border-radius: 7px; display: block; }
+.header-nav { display: flex; align-items: center; gap: 16px; margin-left: 8px; }
+.header-nav a { font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+.header-nav a:hover { color: var(--text); }
+.header-actions { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.search-wrap { position: relative; }
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  line-height: 0;
+}
+.search-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
 .search-input {
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 12px 8px 32px;
-  border-radius: 6px;
+  padding: 0 12px 0 32px;
+  height: 34px;
+  border-radius: 8px;
   width: 220px;
-  font-size: 14px;
-  transition: border-color 0.15s;
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 .search-input::placeholder { color: var(--muted); }
-.search-input:focus { outline: none; border-color: var(--accent); }
-.search-wrap { position: relative; }
-.search-wrap .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.search-input:hover { border-color: #3a3a48; }
+.search-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.user-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--secondary); white-space: nowrap; }
+.user-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--hover); }
+.user-avatar-fallback { width: 24px; height: 24px; border-radius: 50%; background: var(--hover); display: grid; place-items: center; font-size: 11px; color: var(--muted); }
+
 .guild-grid {
   flex: 1;
-  padding: 20px 24px;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-content: start;
   gap: 16px;
   overflow-y: auto;
 }
 .guild-card {
+  position: relative;
+  appearance: none;
+  text-align: center;
+  font: inherit;
+  color: inherit;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 24px;
+  padding: 24px 20px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
 }
-.guild-card:hover { background: var(--hover); border-color: var(--accent); transform: translateY(-2px); }
+.guild-card:hover { background: var(--hover); border-color: #3a3a48; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+.guild-card:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
 .guild-card.hidden { display: none; }
 .guild-icon {
   width: 72px; height: 72px; border-radius: 18px;
@@ -95,62 +141,238 @@ header h1 { font-size: 20px; color: var(--accent); }
   margin-bottom: 14px;
 }
 .guild-icon img { width: 100%; height: 100%; object-fit: cover; }
-.guild-name { text-align: center; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.guild-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .guild-label { font-size: 12px; }
 .manage-label { color: var(--green); font-weight: 600; }
 .invite-label { color: var(--blue); font-weight: 600; }
-.guild-stats {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 4px;
+.guild-stats { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ── Loading skeletons ── */
+.skeleton-block {
+  background: linear-gradient(90deg, var(--hover) 25%, #2c2c38 50%, var(--hover) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.guild-card.skeleton-card { pointer-events: none; }
+.guild-icon.skeleton-block { border-radius: 18px; }
+.sk-line { height: 12px; border-radius: 6px; }
+.sk-line.w60 { width: 60%; margin-bottom: 10px; }
+.sk-line.w40 { width: 40%; }
+.sk-bar { display: inline-block; width: 90px; height: 12px; vertical-align: middle; }
+
+/* ── Card entrance ── */
+.guild-card.enter { animation: cardIn 0.35s ease both; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-.modal-box { background: var(--card); border-radius: 12px; padding: 28px; width: 360px; max-width: 90vw; text-align: center; position: relative; }
-.modal-box h2 { margin: 0 0 10px; font-size: 18px; }
-.modal-box p { margin: 0 0 20px; color: var(--secondary); font-size: 14px; line-height: 1.5; }
-.modal-box .invite-btn { padding: 10px 24px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; transition: 0.15s; }
+/* ── Empty state ── */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 72px 24px;
+  color: var(--secondary);
+}
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.empty-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 420px; margin-bottom: 20px; }
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 18px;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); text-decoration: none; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  width: 380px;
+  max-width: 90vw;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+  animation: modalIn 0.16s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalIn { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.modal-box h2 { margin: 0 0 10px; font-size: 17px; }
+.modal-box p { margin: 0 0 20px; color: var(--secondary); font-size: 13px; line-height: 1.6; }
+.modal-box .invite-btn { height: 36px; padding: 0 22px; background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; transition: background 0.15s; }
 .modal-box .invite-btn:hover { background: var(--accent-hover); }
-.modal-box .refresh-btn { margin-top: 12px; padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: none; }
-.modal-box .refresh-btn:hover { background: #555; }
-.modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
-.modal-close:hover { color: var(--text); }
+.modal-box .refresh-btn { margin-top: 10px; height: 32px; padding: 0 14px; background: transparent; color: var(--secondary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12px; display: none; }
+.modal-box .refresh-btn:hover { background: var(--hover); color: var(--text); }
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close:hover { background: var(--hover); color: var(--text); }
 
 .guild-grid::-webkit-scrollbar { width: 8px; }
 .guild-grid::-webkit-scrollbar-track { background: transparent; }
 .guild-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-@media (max-width: 700px) {
-  header { flex-direction: column; gap: 10px; text-align: center; padding: 12px 16px; }
-  .header-actions { width: 100%; }
-  .search-input { width: 100%; }
+footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg);
+}
+footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+footer a:hover { color: var(--text); }
+footer .sep { margin: 0 8px; color: #3a3a48; }
+
+/* ── Page transition ── */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s;
+}
+.page-transition.show { opacity: 1; visibility: visible; }
+.page-transition-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--secondary);
+  font-size: 14px;
+}
+.page-transition .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .guild-card.enter, .modal-overlay.open, .modal-box { animation: none; }
+  .skeleton-block { animation: none; }
+  .page-transition .spinner { animation: none; border-top-color: var(--accent); }
+}
+
+@media (max-width: 760px) {
+  header { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 10px; }
+  .header-nav { display: none; }
+  .header-actions { width: 100%; gap: 12px; }
   .search-wrap { flex: 1; }
-  .guild-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); padding: 16px; gap: 12px; }
-  .guild-icon { width: 56px; height: 56px; font-size: 22px; }
+  .search-input { width: 100%; }
+  .user-info { font-size: 12px; }
+  .guild-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding: 16px; gap: 12px; }
+  .guild-card { padding: 18px 14px; }
+  .guild-icon { width: 56px; height: 56px; font-size: 22px; border-radius: 14px; margin-bottom: 10px; }
+  footer { padding: 10px 16px; }
 }
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;align-items:center;gap:12px">
-    <h1>Cassie</h1>
-    <a href="/" style="color:var(--muted);font-size:13px;text-decoration:none">Home</a>
-    <a href="/privacy" style="color:var(--muted);font-size:13px;text-decoration:none">Privacy</a>
-    <a href="/terms" style="color:var(--muted);font-size:13px;text-decoration:none">Terms</a>
-  </div>
+  <a class="brand" href="/">
+    <img src="/api/bot/avatar?redirect=1" alt="">
+    <span>Cassie</span>
+  </a>
+  <nav class="header-nav" aria-label="Site">
+    <a href="/">Home</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+  </nav>
   <div class="header-actions">
-    <div class="search-wrap">
-      <span class="search-icon">&#128269;</span>
-      <input class="search-input" id="guildSearch" placeholder="Search servers..." oninput="filterGuilds()">
+    <div class="search-wrap" role="search">
+      <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></span>
+      <input class="search-input" id="guildSearch" placeholder="Search servers..." aria-label="Search servers" oninput="filterGuilds()">
     </div>
-    <div class="user-info" id="userInfo">Loading...</div>
+    <div class="user-info" id="userInfo"><span class="skeleton-block sk-bar"></span></div>
   </div>
 </header>
 <div class="guild-grid" id="guildGrid"></div>
 
+<div class="page-transition" id="pageTransition" aria-hidden="true">
+  <div class="page-transition-inner" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <span id="pageTransitionText">Opening server&hellip;</span>
+  </div>
+</div>
+
 <div class="modal-overlay" id="inviteModal">
-  <div class="modal-box">
-    <button class="modal-close" id="closeBtn">&times;</button>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
+    <button class="modal-close" id="closeBtn" aria-label="Close">&times;</button>
     <h2 id="modalTitle">Invite Server</h2>
     <p id="modalText">The bot isn't in this server yet.</p>
     <button class="invite-btn" id="inviteBtn">Invite Bot</button>
@@ -172,16 +394,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   const refreshBtn = document.getElementById('refreshBtn');
   const closeBtn = document.getElementById('closeBtn');
 
+  // Skeleton loading state
+  renderSkeletons();
+  document.getElementById('userInfo').innerHTML = '<span class="skeleton-block sk-bar"></span>';
+
   // Load user
   const userRes = await fetch('/api/data/user', { credentials: 'include' });
   const userData = await userRes.json();
-  if (userData.ok) document.getElementById('userInfo').textContent = userData.username;
+  const userInfo = document.getElementById('userInfo');
+  if (userData.ok) {
+    const name = escape(userData.username || '');
+    const avatar = userData.avatar
+      ? `<img class="user-avatar" src="https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=64" alt="">`
+      : `<span class="user-avatar-fallback">${escape((userData.username || '?').charAt(0).toUpperCase())}</span>`;
+    userInfo.innerHTML = avatar + '<span>' + name + '</span>';
+  } else {
+    userInfo.textContent = '';
+  }
 
   // Load guilds
   const res = await fetch('/api/data/guilds', { credentials: 'include' });
   const data = await res.json();
   if (!data.ok) {
-    guildGrid.innerHTML = '<p style="color:var(--red);text-align:center;padding:60px 20px">Unauthorized. <a href="/login" style="color:var(--accent)">Login again</a>.</p>';
+    guildGrid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h2 class="empty-title">Session expired</h2>
+        <p class="empty-desc">Your dashboard session is no longer valid. Log in again to view your servers.</p>
+        <a class="btn-primary" href="/login">Log in</a>
+      </div>`;
     return;
   }
 
@@ -197,18 +438,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (data.guilds.length === 0) {
     guildGrid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted)">
-        <div style="font-size:48px;margin-bottom:16px">📋</div>
-        <h2 style="color:var(--text);margin:0 0 8px">No Servers Found</h2>
-        <p style="margin:0 0 16px;font-size:14px;max-width:400px;margin-left:auto;margin-right:auto">
-          You don't have <strong>Manage Server</strong> permissions on any servers that Cassie is in.
-          Create your own or ask an owner to grant you permissions.
-        </p>
-        <a href="https://discord.com/create" target="_blank"
-           style="display:inline-block;padding:10px 24px;background:var(--accent);color:#fff;
-                  border-radius:6px;text-decoration:none;font-size:15px;font-weight:600">
-          Create a Server
-        </a>
+      <div class="empty-state">
+        <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
+        <h2 class="empty-title">No servers found</h2>
+        <p class="empty-desc">You don't have <strong>Manage Server</strong> permissions on any servers that Cassie is in. Create your own or ask an owner to grant you permissions.</p>
+        <a class="btn-primary" href="https://discord.com/create" target="_blank" rel="noopener">Create a Server</a>
       </div>`;
     return;
   }
@@ -216,59 +450,147 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderGuilds(data.guilds);
 });
 
+function renderSkeletons(count = 12) {
+  const guildGrid = document.getElementById('guildGrid');
+  guildGrid.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const card = document.createElement('div');
+    card.className = 'guild-card skeleton-card';
+    card.setAttribute('aria-hidden', 'true');
+    card.innerHTML = `
+      <div class="guild-icon skeleton-block"></div>
+      <div class="sk-line skeleton-block w60"></div>
+      <div class="sk-line skeleton-block w40"></div>
+    `;
+    guildGrid.appendChild(card);
+  }
+}
+
+function formatCount(n) {
+  if (n >= 10000) return (Math.round(n / 100) / 10).toLocaleString() + 'k';
+  return n.toLocaleString();
+}
+
+let navigatingAway = false;
+
+function navigateToGuild(guildId, guildName) {
+  if (navigatingAway) return;
+  navigatingAway = true;
+  const overlay = document.getElementById('pageTransition');
+  document.getElementById('pageTransitionText').textContent = 'Opening ' + guildName + '…';
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => {
+    window.location.href = '/guild/' + guildId;
+  });
+}
+
+window.addEventListener('pageshow', () => {
+  navigatingAway = false;
+  const overlay = document.getElementById('pageTransition');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+});
+
 function renderGuilds(guilds) {
   const guildGrid = document.getElementById('guildGrid');
   guildGrid.innerHTML = '';
-  guilds.forEach(g => {
-    const card = document.createElement('div');
-    card.className = 'guild-card';
+  guilds.forEach((g, i) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'guild-card enter';
+    card.style.animationDelay = Math.min(i * 25, 300) + 'ms';
     card.dataset.id = g.id;
+    card.setAttribute('aria-label', g.name + ' — ' + (g.botIn ? 'manage server' : 'invite Cassie'));
+    const stats = g.botIn && g.memberCount != null
+      ? `<div class="guild-stats">${formatCount(g.memberCount)} members</div>`
+      : '';
+    const ownerTag = g.owner ? ' · Owner' : '';
     card.innerHTML = `
-      <div class="guild-icon">${g.icon ? `<img src="${g.icon}" alt="">` : g.fallback}</div>
+      <div class="guild-icon">${g.icon ? `<img src="${escape(g.icon)}" alt="">` : escape(g.fallback)}</div>
       <div class="guild-name">${escape(g.name)}</div>
-      <div class="guild-label ${g.botIn ? 'manage-label' : 'invite-label'}">${g.botIn ? 'Manage' : 'Invite'}</div>
+      <div class="guild-label ${g.botIn ? 'manage-label' : 'invite-label'}">${g.botIn ? 'Manage' : 'Invite'}${ownerTag}</div>
+      ${stats}
     `;
-    card.addEventListener('click', () => {
-      if (g.botIn) window.location.href = `/guild/${g.id}`;
-      else showInviteModal(g);
-    });
+    if (g.botIn) {
+      card.addEventListener('click', () => navigateToGuild(g.id, g.name));
+    } else {
+      card.addEventListener('click', () => showInviteModal(g));
+    }
     guildGrid.appendChild(card);
   });
+  if (document.getElementById('guildSearch').value.trim()) filterGuilds();
 }
 
 function filterGuilds() {
   const q = document.getElementById('guildSearch').value.toLowerCase().trim();
-  document.querySelectorAll('.guild-card').forEach(card => {
-    const name = card.querySelector('.guild-name').textContent.toLowerCase();
-    card.classList.toggle('hidden', q !== '' && !name.includes(q));
+  let visible = 0;
+  document.querySelectorAll('.guild-card:not(.skeleton-card)').forEach(card => {
+    const nameEl = card.querySelector('.guild-name');
+    if (!nameEl) return;
+    const name = nameEl.textContent.toLowerCase();
+    const hide = q !== '' && !name.includes(q);
+    card.classList.toggle('hidden', hide);
+    if (!hide) visible++;
   });
+  const grid = document.getElementById('guildGrid');
+  const loading = grid.querySelector('.skeleton-card');
+  let empty = document.getElementById('searchEmpty');
+  if (!visible && q !== '' && !loading) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.id = 'searchEmpty';
+      empty.className = 'empty-state';
+      empty.innerHTML = '<h2 class="empty-title">No matching servers</h2><p class="empty-desc"></p>';
+      grid.appendChild(empty);
+    }
+    empty.querySelector('.empty-desc').textContent = 'No servers match “' + q + '”.';
+    empty.hidden = false;
+  } else if (empty) {
+    empty.hidden = true;
+  }
+}
+
+let _modalOpener = null;
+function closeInviteModal() {
+  document.getElementById('inviteModal').style.display = 'none';
+  if (_modalOpener && document.contains(_modalOpener)) _modalOpener.focus();
+  _modalOpener = null;
 }
 
 function showInviteModal(guild) {
+  _modalOpener = document.activeElement;
   document.getElementById('modalTitle').textContent = `Invite to ${guild.name}`;
   document.getElementById('modalText').textContent = 'Cassie isn\'t in this server yet. Click below to invite her.';
   document.getElementById('inviteBtn').onclick = () => {
     window.open(`/invite?ref=dashboard&perms=${perms}&guild_id=${guild.id}`, '_blank', 'noopener');
-    document.getElementById('inviteModal').style.display = 'none';
+    closeInviteModal();
     document.getElementById('refreshBtn').style.display = '';
   };
   document.getElementById('refreshBtn').onclick = () => window.location.reload();
   closeModalBehavior('inviteModal');
   document.getElementById('inviteModal').style.display = 'flex';
+  document.getElementById('inviteBtn').focus();
 }
 
 function closeModalBehavior(modalId) {
   const overlay = document.getElementById(modalId);
-  const closeBtn = overlay.querySelector('.modal-close');
-  closeBtn.onclick = () => overlay.style.display = 'none';
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
-  const keydown = (e) => {
-    if (e.key === 'Escape' && overlay.style.display === 'flex') {
-      overlay.style.display = 'none';
-      document.removeEventListener('keydown', keydown);
-    }
-  };
-  document.addEventListener('keydown', keydown);
+  if (overlay.dataset.bound) return;
+  overlay.dataset.bound = '1';
+  overlay.querySelector('.modal-close').onclick = closeInviteModal;
+  overlay.onclick = (e) => { if (e.target === overlay) closeInviteModal(); };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.style.display === 'flex') closeInviteModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || overlay.style.display !== 'flex') return;
+    const focusables = [...overlay.querySelectorAll('button')].filter(b => b.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 }
 
 function escape(str) {
@@ -277,15 +599,15 @@ function escape(str) {
   return d.innerHTML;
 }
 </script>
-<div style="padding:12px 24px;text-align:center;border-top:1px solid var(--border);flex-shrink:0;font-size:12px;color:var(--muted)">
-  <a href="/" style="color:var(--muted);text-decoration:none">Home</a>
-  <span style="margin:0 8px;color:#444">&middot;</span>
-  <a href="/privacy" style="color:var(--muted);text-decoration:none">Privacy</a>
-  <span style="margin:0 8px;color:#444">&middot;</span>
-  <a href="/terms" style="color:var(--muted);text-decoration:none">Terms</a>
-  <span style="margin:0 8px;color:#444">&middot;</span>
-  <a id="foot-support" href="#" target="_blank" style="color:var(--muted);text-decoration:none">Support</a>
-</div>
+<footer>
+  <a href="/">Home</a>
+  <span class="sep">&middot;</span>
+  <a href="/privacy">Privacy</a>
+  <span class="sep">&middot;</span>
+  <a href="/terms">Terms</a>
+  <span class="sep">&middot;</span>
+  <a id="foot-support" href="#" target="_blank" rel="noopener">Support</a>
+</footer>
 <script>
 fetch('/api/invite/support').then(r=>r.json()).then(d=>{if(d.ok)document.getElementById('foot-support').href=d.url;});
 fetch('/api/bot/avatar').then(r=>r.json()).then(d=>{

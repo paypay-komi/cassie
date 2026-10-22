@@ -2,1441 +2,828 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cassie - Guild</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0f0f13;
-  --sidebar: #15151c;
-  --card: #1a1a22;
-  --hover: #22222c;
-  --text: #fff;
-  --secondary: #aaa;
-  --accent: #5865F2;
-  --green: #28a745;
-  --red: #ed4245;
-}
-body {
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-/* ── Header ── */
-.header {
-  background: var(--sidebar);
-  padding: 12px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #2a2a36;
-  flex-shrink: 0;
-  z-index: 10;
-}
-.back-btn { color: var(--secondary); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 4px; transition: 0.15s; }
-.back-btn:hover { color: var(--text); background: var(--hover); }
-.header h1 { color: var(--accent); font-size: 18px; }
-#guild-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--secondary);
-}
-#guild-header img {
-  width: 24px; height: 24px; border-radius: 6px;
-}
-/* ── Body (sidebar + content) ── */
-.body-wrap {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-/* ── Sidebar ── */
-.sidebar {
-  width: 200px;
-  background: var(--sidebar);
-  padding: 12px 0;
-  border-right: 1px solid #2a2a36;
-  flex-shrink: 0;
-  overflow-y: auto;
-}
-.sidebar-item {
-  padding: 10px 16px;
-  cursor: pointer;
-  color: var(--secondary);
-  font-size: 14px;
-  transition: 0.15s;
-  border-left: 3px solid transparent;
-}
-.sidebar-item:hover { background: var(--hover); color: var(--text); }
-.sidebar-item.active {
-  background: #2a2a36;
-  color: var(--text);
-  border-left-color: var(--accent);
-}
-/* ── Content ── */
-.content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-/* ── Section titles ── */
-.section-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  color: var(--text);
-}
-/* ── Stat grid ── */
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.stat-card {
-  background: var(--card);
-  border: 1px solid #2a2a36;
-  border-radius: 8px;
-  padding: 16px;
-}
-.stat-card .stat-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--secondary);
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-}
-.stat-card .stat-value {
-  font-size: 22px;
-  font-weight: bold;
-}
-/* ── Prefix row ── */
-.prefix-row {
-  background: var(--card);
-  border: 1px solid #2a2a36;
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.prefix-row label {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--secondary);
-  letter-spacing: 0.5px;
-}
-.prefix-row input {
-  background: #22222c;
-  border: 1px solid #333;
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 80px;
-}
-.prefix-row .status {
-  font-size: 12px;
-  color: var(--green);
-  opacity: 0;
-  transition: 0.2s;
-}
-.prefix-row .status.show { opacity: 1; }
-/* ── Search input ── */
-.search-input {
-  background: var(--card);
-  border: 1px solid #2a2a36;
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 4px;
-  width: 100%;
-  margin-bottom: 12px;
-  font-size: 14px;
-}
-/* ── Command list ── */
-.command-group { margin-bottom: 16px; }
-.command-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 4px;
-}
-.command-row .cmd-name { font-size: 14px; }
-.parent-row {
-  background: rgba(88,101,242,0.08);
-  border: 1px solid rgba(88,101,242,0.2);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 2px;
-}
-.parent-row .cmd-parent {
-  font-weight: 700;
-  color: var(--accent);
-}
-.child-row {
-  padding-left: 10px;
-  border-left: 2px solid #2a2a36;
-}
-.child-row .cmd-child {
-  font-size: 13px;
-  color: var(--secondary);
-}
-/* ── Toggle ── */
-.toggle {
-  width: 40px; height: 22px;
-  border-radius: 11px;
-  background: #444;
-  cursor: pointer;
-  position: relative;
-  transition: 0.2s;
-  flex-shrink: 0;
-}
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 16px; height: 16px;
-  background: #fff;
-  border-radius: 50%;
-  transition: 0.2s;
-}
-.toggle.on { background: var(--accent); }
-.toggle.on::after { transform: translateX(18px); }
-/* ── Override table ── */
-.override-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-.override-table th {
-  text-align: left;
-  padding: 8px;
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--secondary);
-  border-bottom: 1px solid #2a2a36;
-}
-.override-table td {
-  padding: 8px;
-  font-size: 13px;
-  border-bottom: 1px solid #2a2a36;
-}
-.override-table .del-btn {
-  background: none; border: none; color: var(--red); cursor: pointer; font-size: 13px;
-}
-/* ── Add override form ── */
-.add-override {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.add-override select, .add-override input {
-  background: #22222c;
-  border: 1px solid #333;
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-.add-override label { font-size: 12px; color: var(--secondary); display: flex; align-items: center; gap: 4px; }
-/* ── Override target autocomplete ── */
-.autocomplete-wrap { position: relative; width: 220px; }
-.autocomplete-wrap input { width: 100%; }
-.autocomplete-list {
-  position: absolute; top: 100%; left: 0; right: 0;
-  background: #1a1a22; border: 1px solid #333; border-top: none;
-  max-height: 200px; overflow-y: auto; z-index: 100;
-  display: none;
-}
-.autocomplete-list .ac-item {
-  padding: 6px 10px; cursor: pointer; font-size: 13px;
-  display: flex; align-items: center; gap: 8px;
-}
-.autocomplete-list .ac-item:hover { background: #2a2a36; }
-.autocomplete-list .ac-item .ac-id {
-  font-size: 10px; color: var(--secondary); font-family: monospace; margin-left: auto;
-}
-.autocomplete-list .ac-highlight { background: #2a2a36; }
-/* ── Tags ── */
-.tag-card {
-  background: var(--card);
-  border: 1px solid #2a2a36;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.tag-card .tag-name { font-weight: bold; font-size: 15px; margin-bottom: 6px; }
-.tag-card .tag-meta { font-size: 11px; color: var(--secondary); margin-bottom: 6px; }
-.tag-card .tag-content {
-  background: #22222c;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-bottom: 8px;
-}
-.tag-card .tag-actions { display: flex; gap: 8px; }
-.tag-card .tag-edit-area { margin-bottom: 8px; }
-.tag-card .tag-edit-area textarea {
-  width: 100%;
-  background: #22222c;
-  border: 1px solid #333;
-  color: var(--text);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  resize: vertical;
-  min-height: 60px;
-}
-.add-tag {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.add-tag input, .add-tag textarea {
-  background: #22222c;
-  border: 1px solid #333;
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-.add-tag textarea { min-height: 36px; resize: vertical; }
-/* ── Buttons ── */
-.btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: 0.15s;
-}
-.btn:hover { background: #4752C4; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn-green { background: var(--green); }
-.btn-green:hover { background: #218838; }
-.btn-red { background: var(--red); }
-.btn-red:hover { background: #c0392b; }
-.btn-ghost { background: none; color: var(--accent); padding: 4px 8px; }
-.btn-ghost:hover { background: var(--hover); }
-/* ── Loading ── */
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--secondary);
-  font-size: 14px;
-}
-/* ── Message ── */
-.msg {
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-.msg-error { background: #2a1515; border: 1px solid #5a2020; color: #ff6b6b; }
-.msg-success { background: #152a15; border: 1px solid #205a20; color: #6bff6b; }
-/* ── Info card ── */
-.info-card {
-  background: #15152a;
-  border: 1px solid #2a2a4a;
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 13px;
-  color: var(--secondary);
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-.info-card a {
-  color: var(--accent);
-  cursor: pointer;
-  text-decoration: underline;
-}
-.info-card a:hover { color: #7983f5; }
-.info-card strong { color: var(--text); }
-/* ── Hierarchy box ── */
-.hierarchy-box {
-  background: #15152a;
-  border: 1px solid #2a2a4a;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 18px;
-  font-size: 13px;
-  line-height: 1.6;
-}
-.hierarchy-box .h-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--secondary);
-  margin-bottom: 8px;
-}
-.hierarchy-box .h-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 0;
-  color: var(--secondary);
-}
-.hierarchy-box .h-row .h-arrow {
-  color: #444;
-  font-size: 11px;
-  width: 14px;
-  text-align: center;
-}
-.hierarchy-box .h-row.h-top { color: var(--text); }
-.hierarchy-box .h-row.h-bot { color: #666; }
-.hierarchy-box .h-tip {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #2a2a4a;
-  color: var(--secondary);
-  font-size: 12px;
-}
-.hierarchy-box .h-tip a {
-  color: var(--accent);
-  cursor: pointer;
-  text-decoration: underline;
-}
-/* ── State badge ── */
-.state-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-left: 8px;
-}
-.state-badge.enabled { background: #152a15; color: #4caf50; border: 1px solid #2a5a2a; }
-.state-badge.disabled { background: #2a1515; color: #f44336; border: 1px solid #5a2020; }
-/* ── Override target with name + id ── */
-.ov-target-name { font-size: 13px; }
-.ov-target-id { font-size: 10px; color: var(--secondary); font-family: monospace; }
-/* ── Scrollbar ── */
-.content::-webkit-scrollbar { width: 8px; }
-.content::-webkit-scrollbar-track { background: transparent; }
-.content::-webkit-scrollbar-thumb { background: #2a2a36; border-radius: 4px; }
-/* ── Confirm Modal ── */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-.modal-box { background: #1a1a22; border-radius: 12px; padding: 24px; width: 380px; max-width: 90vw; text-align: center; position: relative; }
-.confirm-box h2 { margin: 0 0 12px; font-size: 18px; color: var(--text); }
-.confirm-box p { margin: 0; color: var(--secondary); }
-.modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: #888; font-size: 22px; cursor: pointer; }
-.modal-close:hover { color: white; }
-.confirm-box .btn { min-width: 80px; }
-.del-btn[title] { position: relative; }
-
-/* ── Mobile sidebar ── */
-.hamburger { display: none; position: fixed; top: 14px; left: 14px; z-index: 100; background: var(--sidebar); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 20px; padding: 6px 10px; cursor: pointer; }
-.sidebar-overlay { display: none; }
-@media (max-width: 700px) {
-  .hamburger { display: block; }
-  .body-wrap .sidebar { position: fixed; top: 0; left: -220px; width: 220px; height: 100vh; z-index: 99; transition: left 0.2s; }
-  .body-wrap .sidebar.open { left: 0; }
-  .sidebar-overlay.open { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 98; }
-  .body-wrap { padding-top: 0; }
-  .header { padding-left: 50px; }
-}
-
-/* ── Settings tab ── */
-.settings-row { margin-bottom: 16px; }
-.settings-row label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--secondary); margin-bottom: 6px; }
-.settings-row input, .settings-row select { background: #22222c; border: 1px solid #333; color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 14px; width: 100%; max-width: 300px; }
-.settings-row input:focus, .settings-row select:focus { outline: none; border-color: var(--accent); }
-.settings-help { font-size: 12px; color: var(--secondary); margin-top: 4px; }
-
-/* ── Setup checklist ── */
-.setup-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
-.setup-item .check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #444; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-.setup-item .check.done { border-color: var(--green); background: var(--green); color: #fff; }
-.setup-item .setup-text { font-size: 13px; flex: 1; }
-.setup-item .setup-action { font-size: 12px; }
-
-/* ── Permissions tab ── */
-
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Server Dashboard — Cassie</title>
+<link rel="icon" type="image/png" href="/api/bot/avatar?redirect=1">
+<link rel="stylesheet" href="/guild.css">
 </head>
 <body>
-
-<div class="header">
-  <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">☰</button>
-  <div style="display:flex;align-items:center;gap:12px">
-    <a href="/dashboard" class="back-btn">← Dashboard</a>
-    <h1>Cassie</h1>
-    <a href="/" style="color:#555;font-size:11px;text-decoration:none">Home</a>
-    <a href="/privacy" style="color:#555;font-size:11px;text-decoration:none">Privacy</a>
-    <a href="/terms" style="color:#555;font-size:11px;text-decoration:none">Terms</a>
-    <a id="guild-support" href="#" style="color:#555;font-size:11px;text-decoration:none">Support</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+  <symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4"/><path d="M8 23h8"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></symbol>
+</svg>
+<a class="skip-link" href="#tab-content">Skip to content</a>
+<div class="topbar">
+  <button class="hamburger" id="hamburger" data-tooltip="Open or close the navigation menu." data-tooltip-pos="bottom" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="false"><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
+  <a class="topbar-brand" href="/dashboard">
+    <img src="/api/bot/avatar?redirect=1" alt="">
+    <span>Cassie</span>
+  </a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-guild">
+    <img id="guildIcon" alt="" style="display:none">
+    <span class="topbar-guild-name" id="guildName">Loading&hellip;</span>
   </div>
-  <div id="guild-header">
-    <span id="guild-name">Loading...</span>
-    <img id="guild-icon" src="" alt="" style="display:none">
+  <div class="topbar-spacer"></div>
+  <span class="save-indicator" id="saveIndicator" data-tooltip="Changes save automatically; this flashes after a successful save." data-tooltip-pos="bottom" role="status" aria-live="polite">Saved</span>
+  <div class="topbar-links">
+    <a class="topbar-link" href="/dashboard">Dashboard</a>
+    <a class="topbar-link" href="/privacy">Privacy</a>
+    <a class="topbar-link" href="/terms">Terms</a>
   </div>
 </div>
 
-<div class="body-wrap">
+<div class="body-layout">
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-item active" data-tab="overview">📊 Overview</div>
-    <div class="sidebar-item" data-tab="commands">⚙️ Commands</div>
-    <div class="sidebar-item" data-tab="overrides">🔐 Overrides</div>
-    <div class="sidebar-item" data-tab="tags">🏷️ Tags</div>
-    <div class="sidebar-item" data-tab="settings">⚡ Settings</div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Configuration</div>
+      <button type="button" class="sidebar-item active" data-tab="overview" data-tooltip="Server stats, the setup checklist, and quick actions." data-tooltip-pos="right" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg>Overview</button>
+      <button type="button" class="sidebar-item" data-tab="commands" data-tooltip="Enable commands and see which ones are disabled server-wide." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-terminal"/></svg>Commands</button>
+      <button type="button" class="sidebar-item" data-tab="overrides" data-tooltip="Allow or deny commands for specific channels, roles, or users." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Overrides</button>
+      <button type="button" class="sidebar-item" data-tab="tags" data-tooltip="Reusable text responses members can call with the tag command." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg>Tags</button>
+      <button type="button" class="sidebar-item" data-tab="settings" data-tooltip="Prefix, echo chamber summary, and announcement settings." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>Settings</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Automation</div>
+      <button type="button" class="sidebar-item" data-tab="automod" data-tooltip="Automatic message filters and the actions they take." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>Automod</button>
+      <button type="button" class="sidebar-item" data-tab="starboard" data-tooltip="Repost messages after they reach a reaction threshold." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg>Starboard</button>
+      <button type="button" class="sidebar-item" data-tab="counting" data-tooltip="The counting channel, rules, and server leaderboard." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-hash"/></svg>Counting</button>
+      <button type="button" class="sidebar-item" data-tab="levels" data-tooltip="XP rates, level-up roles, multipliers, and milestones." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-trend"/></svg>Levels</button>
+      <button type="button" class="sidebar-item" data-tab="echochambers" data-tooltip="Randomly delete and repost messages through a webhook." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-repeat"/></svg>Echo Chambers</button>
+      <button type="button" class="sidebar-item" data-tab="invites" data-tooltip="Invite attribution, welcome messages, and fake-account checks." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Invites</button>
+      <button type="button" class="sidebar-item" data-tab="boosts" data-tooltip="Boost announcements and the automatic booster role." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-rocket"/></svg>Boosts</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Moderation</div>
+      <button type="button" class="sidebar-item" data-tab="moderation" data-tooltip="Jail, media mutes, warnings, and moderation messages." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-tool"/></svg>Moderation</button>
+      <button type="button" class="sidebar-item" data-tab="security" data-tooltip="Antinuke and antiraid protection modules." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Security</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Utilities</div>
+      <button type="button" class="sidebar-item" data-tab="voicemaster" data-tooltip="Temporary voice channels and their control panel." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg>Voice Master</button>
+      <button type="button" class="sidebar-item" data-tab="tickets" data-tooltip="Support ticket panels and open-ticket limits." data-tooltip-pos="right"><svg class="icon" aria-hidden="true"><use href="#i-ticket"/></svg>Tickets</button>
+    </div>
+    <div class="sidebar-utility">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </div>
   </div>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <div class="content" id="content"></div>
-</div>
 
-<!-- Confirm Modal -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal-box confirm-box">
-    <button class="modal-close" id="confirmClose">&times;</button>
-    <h2 id="confirmTitle">Confirm</h2>
-    <p id="confirmMsg" style="font-size:14px;line-height:1.5"></p>
-    <p id="confirmNote" style="font-size:11px;color:#888;margin-top:8px;display:none"></p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
-      <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
-      <button class="btn btn-red" id="confirmOk">Delete</button>
+  <div class="main">
+    <div class="main-inner" id="tab-content" aria-busy="true">
+      <div class="page-skeleton" aria-hidden="true">
+        <div class="gsk-bar gsk-title"></div>
+        <div class="gsk-bar gsk-desc"></div>
+        <div class="gsk-stats">
+          <div class="gsk-stat"></div>
+          <div class="gsk-stat"></div>
+          <div class="gsk-stat"></div>
+          <div class="gsk-stat"></div>
+        </div>
+        <div class="gsk-panel"></div>
+        <div class="gsk-panel short"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<script>
-const guildId = window.location.pathname.split('/')[2];
+<div class="tab-progress" id="tabProgress" aria-hidden="true"></div>
+<div class="tab-overlay" id="tabOverlay" aria-hidden="true">
+  <div class="tab-overlay-inner" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <span id="tabOverlayLabel">Loading&hellip;</span>
+  </div>
+</div>
 
-// ── Utilities ──
-async function api(url, opts = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-box" id="profileModalContent" role="dialog" aria-modal="true" aria-label="User profile" style="width:480px;max-width:92vw;padding:0;overflow:hidden;max-height:85vh;overflow-y:auto"></div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+    <h2 id="confirmTitle">Confirm</h2>
+    <p id="confirmBody"></p>
+    <div id="confirmHint" style="margin-top:var(--sp-2);font-size:var(--text-xs);color:var(--text-2);display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="promptModal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="promptTitle">
+    <h2 id="promptTitle">Input</h2>
+    <div class="form-group" style="margin-top:var(--sp-3)">
+      <label class="form-label" for="promptInput" id="promptLabel"></label>
+      <input class="input" id="promptInput" autocomplete="off">
+      <textarea class="input" id="promptTextarea" style="display:none;width:100%;min-height:120px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="promptCancel">Cancel</button>
+      <button class="btn btn-primary" id="promptOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pickerModal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" style="width:480px;max-width:92vw">
+    <h2 id="pickerTitle">Select</h2>
+    <p id="pickerDesc" style="margin-bottom:var(--sp-3)"></p>
+    <div id="pickerContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="pickerCancel">Cancel</button>
+      <button class="btn btn-primary" id="pickerOk" style="display:none">Select</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+<script>
+const guildId = (location.pathname.match(/\/guild\/(\d+)/) || [])[1] || '';
+
+const TABS = ['overview','commands','overrides','tags','settings','automod','starboard','counting','levels','echochambers','invites','boosts','moderation','security','voicemaster','tickets'];
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function api(path, opts) {
   try {
-    const res = await fetch(url, { ...opts, credentials: 'include', signal: controller.signal });
-    clearTimeout(timeout);
-    return res.json();
-  } catch (e) {
-    clearTimeout(timeout);
-    return { ok: false, error: e.name === 'AbortError' ? 'timeout' : 'network_error' };
+    const res = await fetch(path, opts || {});
+    let data = null;
+    try { data = await res.json(); } catch {}
+    if (!res.ok) return { ok: false, error: (data && data.error) || ('HTTP ' + res.status) };
+    return data || { ok: false, error: 'invalid_response' };
+  } catch {
+    return { ok: false, error: 'network_error' };
   }
 }
 
-function escape(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
+function toast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
+  el.textContent = msg;
+  el.onclick = () => el.remove();
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
 }
 
-function showMsg(inner, type = 'error') {
-  const el = document.getElementById('content');
-  el.innerHTML = `<div class="msg msg-${type}">${inner}</div>`;
+let savedTimer = null;
+function showSaved() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => el.classList.remove('show'), 1500);
 }
 
-function confirmAsync(title, msg, note) {
+function showMsg(text, type) {
+  const host = document.getElementById('tab-content');
+  if (!host) return;
+  let el = document.getElementById('tab-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tab-msg';
+    host.prepend(el);
+  }
+  el.className = 'msg ' + (type === 'success' ? 'msg-success' : 'msg-error');
+  el.textContent = text;
+  if (type === 'success') setTimeout(() => { if (el.parentNode) el.remove(); }, 4000);
+}
+
+function setToggle(id, on) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('on', !!on);
+  el.dataset.disabled = String(!on);
+}
+
+let loadSeq = 0;
+const tabProgress = document.getElementById('tabProgress');
+const tabOverlay = document.getElementById('tabOverlay');
+const tabOverlayLabel = document.getElementById('tabOverlayLabel');
+let overlayTimer = null;
+
+const TAB_SKELETON = `<div class="page-skeleton" aria-hidden="true">
+  <div class="gsk-bar gsk-title"></div>
+  <div class="gsk-bar gsk-desc"></div>
+  <div class="gsk-stats">
+    <div class="gsk-stat"></div><div class="gsk-stat"></div>
+    <div class="gsk-stat"></div><div class="gsk-stat"></div>
+  </div>
+  <div class="gsk-panel"></div>
+  <div class="gsk-panel short"></div>
+</div>`;
+
+function setTabBusy(on, label) {
+  const host = document.getElementById('tab-content');
+  if (host) host.setAttribute('aria-busy', String(!!on));
+  tabProgress.classList.toggle('show', !!on);
+  clearTimeout(overlayTimer);
+  if (!on) {
+    tabOverlay.classList.remove('show');
+    tabOverlay.setAttribute('aria-hidden', 'true');
+    return;
+  }
+  overlayTimer = setTimeout(() => {
+    tabOverlayLabel.textContent = label || 'Loading…';
+    tabOverlay.classList.add('show');
+    tabOverlay.setAttribute('aria-hidden', 'false');
+  }, 160);
+}
+
+async function switchTab(tab) {
+  if (!tab || !TABS.includes(tab)) tab = 'overview';
+  hideTooltip();
+  const seq = ++loadSeq;
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    const active = el.dataset.tab === tab;
+    el.classList.toggle('active', active);
+    if (active) el.setAttribute('aria-current', 'page');
+    else el.removeAttribute('aria-current');
+  });
+  if (location.hash !== '#' + tab) history.replaceState(null, '', '#' + tab);
+  const host = document.getElementById('tab-content');
+  const tabLabel = document.querySelector(`.sidebar-item[data-tab="${tab}"]`)?.textContent.trim() || 'dashboard';
+  host.innerHTML = TAB_SKELETON;
+  closeSidebar();
+  setTabBusy(true, 'Loading ' + tabLabel + '…');
+  try {
+    const res = await fetch('/dashboard/' + tab + '.html');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    if (seq !== loadSeq) return;
+    host.innerHTML = html;
+    const mod = await import('/dashboard/' + tab + '.js?v=' + Date.now());
+    if (seq !== loadSeq) return;
+    if (typeof mod.init === 'function') {
+      await mod.init({ guildId, api, esc, showMsg, toast, showSaved, confirmAsync, inputAsync, textareaAsync, emojiPickerAsync, channelPickerWithReloadAsync, setToggle, switchTab, showProfileModal });
+    }
+    if (seq !== loadSeq) return;
+    setTabBusy(false);
+  } catch (e) {
+    if (seq !== loadSeq) return;
+    setTabBusy(false);
+    host.innerHTML = '<div class="msg msg-error" style="margin-top:var(--sp-4)">Failed to load this tab: ' + esc(e.message) + '</div>';
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
+}
+
+function focusModal(modal) {
+  hideTooltip();
+  const target = modal.querySelector('input:not([type="hidden"]), textarea, select, button');
+  if (target) setTimeout(() => target.focus(), 30);
+}
+
+/* Keyboard access for toggle widgets (role=switch) */
+function enhanceToggles(root) {
+  const scope = root || document;
+  const toggles = [...scope.querySelectorAll('.toggle')];
+  if (scope.nodeType === 1 && scope.matches('.toggle')) toggles.push(scope);
+  toggles.forEach(t => {
+    if (!t.hasAttribute('role')) t.setAttribute('role', 'switch');
+    t.setAttribute('tabindex', '0');
+    t.setAttribute('aria-checked', t.classList.contains('on') ? 'true' : 'false');
+  });
+}
+const toggleObserver = new MutationObserver(muts => {
+  for (const m of muts) {
+    if (m.type === 'attributes' && m.target.classList.contains('toggle')) {
+      m.target.setAttribute('aria-checked', m.target.classList.contains('on') ? 'true' : 'false');
+    } else if (m.type === 'childList') {
+      m.addedNodes.forEach(n => { if (n.nodeType === 1) enhanceToggles(n); });
+    }
+  }
+});
+toggleObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+enhanceToggles(document);
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if ((e.key === ' ' || e.key === 'Enter') && t.classList && t.classList.contains('toggle')) {
+    e.preventDefault();
+    t.click();
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  const modal = [...document.querySelectorAll('.modal-overlay')].find(m => m.style.display === 'flex');
+  if (!modal) return;
+  const focusables = [...modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+
+document.addEventListener('click', e => { window._altClickHeld = e.altKey; }, true);
+
+let _lastFocus = null;
+function rememberFocus() { _lastFocus = document.activeElement; }
+function restoreFocus() {
+  if (_lastFocus && document.contains(_lastFocus)) _lastFocus.focus();
+  _lastFocus = null;
+}
+
+let _confirmResolve = null;
+function confirmAsync(title, bodyHtml, hint) {
+  if (window._altClickHeld) return Promise.resolve(true);
   return new Promise(resolve => {
-    const overlay = document.getElementById('confirmModal');
-    document.getElementById('confirmTitle').textContent = title;
-    document.getElementById('confirmMsg').innerHTML = msg;
-    const noteEl = document.getElementById('confirmNote');
-    if (note) { noteEl.textContent = note; noteEl.style.display = ''; }
-    else { noteEl.style.display = 'none'; }
-    const ok = document.getElementById('confirmOk');
-    const cancel = document.getElementById('confirmCancel');
-    const close = document.getElementById('confirmClose');
-    const done = result => {
-      overlay.style.display = 'none';
-      ok.onclick = cancel.onclick = close.onclick = overlay.onclick = null;
-      resolve(result);
-    };
-    ok.onclick = () => done(true);
-    cancel.onclick = () => done(false);
-    close.onclick = () => done(false);
-    overlay.onclick = e => { if (e.target === overlay) done(false); };
-    overlay.style.display = 'flex';
-    // Keyboard shortcuts
-    const keydown = e => {
-      if (e.key === 'Escape') { done(false); document.removeEventListener('keydown', keydown); }
-      if (e.key === 'Enter') { done(true); document.removeEventListener('keydown', keydown); }
-    };
-    document.addEventListener('keydown', keydown);
+    if (_confirmResolve) { _confirmResolve(false); }
+    _confirmResolve = resolve;
+    rememberFocus();
+    document.getElementById('confirmTitle').textContent = title || 'Confirm';
+    document.getElementById('confirmBody').innerHTML = bodyHtml || '';
+    const hintEl = document.getElementById('confirmHint');
+    if (hint) { hintEl.textContent = hint; hintEl.style.display = 'block'; } else { hintEl.style.display = 'none'; }
+    const modal = document.getElementById('confirmModal');
+    modal.style.display = 'flex';
+    focusModal(modal);
+  });
+}
+function closeConfirm(value) {
+  document.getElementById('confirmModal').style.display = 'none';
+  const r = _confirmResolve;
+  _confirmResolve = null;
+  restoreFocus();
+  if (r) r(value);
+}
+
+let _promptResolve = null;
+function openPrompt(title, label, value, placeholder, multiline) {
+  return new Promise(resolve => {
+    if (_promptResolve) { _promptResolve(null); }
+    _promptResolve = resolve;
+    rememberFocus();
+    document.getElementById('promptTitle').textContent = title || 'Input';
+    document.getElementById('promptLabel').textContent = label || '';
+    document.getElementById('promptLabel').htmlFor = multiline ? 'promptTextarea' : 'promptInput';
+    const inp = document.getElementById('promptInput');
+    const ta = document.getElementById('promptTextarea');
+    if (multiline) {
+      inp.style.display = 'none';
+      ta.style.display = 'block';
+      ta.value = value || '';
+      ta.placeholder = placeholder || '';
+      setTimeout(() => ta.focus(), 30);
+    } else {
+      ta.style.display = 'none';
+      inp.style.display = 'block';
+      inp.value = value || '';
+      inp.placeholder = placeholder || '';
+      setTimeout(() => inp.focus(), 30);
+    }
+    document.getElementById('promptModal').style.display = 'flex';
+  });
+}
+function closePrompt(value) {
+  document.getElementById('promptModal').style.display = 'none';
+  const r = _promptResolve;
+  _promptResolve = null;
+  restoreFocus();
+  if (r) r(value);
+}
+function inputAsync(title, label, placeholder, value) {
+  return openPrompt(title, label, value, placeholder, false);
+}
+function textareaAsync(title, label, value, placeholder) {
+  return openPrompt(title, label, value, placeholder, true);
+}
+
+let _pickerResolve = null;
+function closePicker(value) {
+  document.getElementById('pickerModal').style.display = 'none';
+  const r = _pickerResolve;
+  _pickerResolve = null;
+  restoreFocus();
+  if (r) r(value);
+}
+function openPicker(title, desc, contentHtml, onReady) {
+  return new Promise(resolve => {
+    if (_pickerResolve) { _pickerResolve(null); }
+    _pickerResolve = resolve;
+    rememberFocus();
+    document.getElementById('pickerTitle').textContent = title || 'Select';
+    document.getElementById('pickerDesc').textContent = desc || '';
+    const content = document.getElementById('pickerContent');
+    content.innerHTML = contentHtml;
+    const ok = document.getElementById('pickerOk');
+    ok.style.display = 'none';
+    document.getElementById('pickerModal').style.display = 'flex';
+    focusModal(document.getElementById('pickerModal'));
+    if (onReady) onReady(content);
   });
 }
 
-// ── Sidebar ──
-function setActiveTab(tab) {
-  document.querySelectorAll('.sidebar-item').forEach(s => {
-    s.classList.toggle('active', s.dataset.tab === tab);
+function emojiPickerAsync(title, desc, defaultEmojis, customEmojis) {
+  let html = '';
+  if (defaultEmojis && defaultEmojis.length) {
+    html += '<div class="pill-list">' + defaultEmojis.map(e =>
+      '<button type="button" class="btn btn-secondary picker-emoji" data-emoji="' + esc(e) + '" style="font-size:18px;height:36px;width:36px;padding:0">' + e + '</button>'
+    ).join('') + '</div>';
+  }
+  if (customEmojis && customEmojis.length) {
+    html += '<div class="pill-list" style="margin-top:var(--sp-3)">' + customEmojis.map(e => {
+      const tag = (e.animated ? '<a:' : '<:') + e.name + ':' + e.id + '>';
+      return '<button type="button" class="btn btn-secondary picker-emoji" data-emoji="' + esc(tag) + '" style="height:36px;padding:0 var(--sp-2)">' +
+        '<img src="https://cdn.discordapp.com/emojis/' + e.id + (e.animated ? '.gif' : '.png') + '?size=20" alt="" style="width:18px;height:18px"> ' + esc(e.name) + '</button>';
+    }).join('') + '</div>';
+  }
+  html += '<div class="form-group" style="margin-top:var(--sp-4)"><label class="form-label">Or type an emoji</label><input class="input" id="pickerEmojiInput" placeholder="e.g. ⭐" style="width:100%"></div>';
+  return openPicker(title, desc, html, content => {
+    content.querySelectorAll('.picker-emoji').forEach(btn => {
+      btn.onclick = () => closePicker(btn.dataset.emoji);
+    });
+    const inp = content.querySelector('#pickerEmojiInput');
+    const ok = document.getElementById('pickerOk');
+    ok.style.display = '';
+    ok.onclick = () => closePicker(inp.value.trim() || null);
+    inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); ok.click(); } };
   });
 }
 
-function switchTab(tab) {
-  setActiveTab(tab);
-  loadTab(tab);
-  window.location.hash = tab;
+async function channelPickerWithReloadAsync(title, desc, gId) {
+  let channels = [];
+  async function load() {
+    const tgt = await api('/api/data/guild-targets?guildId=' + encodeURIComponent(gId));
+    channels = tgt.ok ? (tgt.channels || []).filter(c => c.type === 0 || c.type === 5) : [];
+  }
+  await load();
+  function optionsHtml() {
+    if (!channels.length) return '<option value="">No channels found</option>';
+    return channels.map(c => '<option value="' + esc(c.id) + '">#' + esc(c.name) + '</option>').join('');
+  }
+  return openPicker(title, desc,
+    '<div class="form-row"><div class="form-group" style="flex:1"><label class="form-label">Channel</label><select class="input" id="pickerChannelSelect" style="width:100%">' + optionsHtml() + '</select></div>' +
+    '<button type="button" class="btn btn-secondary" id="pickerReload">Reload</button></div>',
+    content => {
+      const ok = document.getElementById('pickerOk');
+      ok.style.display = '';
+      ok.onclick = () => {
+        const sel = content.querySelector('#pickerChannelSelect');
+        closePicker(sel.value || null);
+      };
+      content.querySelector('#pickerReload').onclick = async () => {
+        const btn = content.querySelector('#pickerReload');
+        btn.disabled = true;
+        await load();
+        content.querySelector('#pickerChannelSelect').innerHTML = optionsHtml();
+        btn.disabled = false;
+      };
+    });
 }
+
+function closeProfile() {
+  document.getElementById('profileModal').style.display = 'none';
+  restoreFocus();
+}
+function showProfileModal(userId, guildIdArg) {
+  const overlay = document.getElementById('profileModal');
+  const content = document.getElementById('profileModalContent');
+
+  rememberFocus();
+  content.innerHTML = '<div class="loading" style="padding:var(--sp-8)">Loading...</div>';
+  overlay.style.display = 'flex';
+  focusModal(overlay);
+
+  api('/api/data/guild-user-info?userId=' + userId + '&guildId=' + guildIdArg).then(res => {
+    if (!res.ok) throw new Error(res.error || 'Failed to load profile');
+    const u = res.user;
+
+    const displayName = u.member?.nickname || u.globalName || u.username;
+    const hasGlobalName = u.globalName && u.globalName !== u.username;
+
+    const avatarUrl = u.avatar
+      ? 'https://cdn.discordapp.com/avatars/' + u.id + '/' + u.avatar + '.' + (u.avatar.startsWith('a_') ? 'gif' : 'png') + '?size=256'
+      : 'https://cdn.discordapp.com/embed/avatars/' + (parseInt(u.discriminator) % 5) + '.png';
+
+    const bannerUrl = u.banner
+      ? 'https://cdn.discordapp.com/banners/' + u.id + '/' + u.banner + '.' + (u.banner.startsWith('a_') ? 'gif' : 'png') + '?size=512'
+      : null;
+
+    const avatarDecoUrl = u.avatarDecoration
+      ? 'https://cdn.discordapp.com/avatar-decoration/' + u.avatarDecoration.asset + '.' + (u.avatarDecoration.animated ? 'gif' : 'png') + '?size=128'
+      : null;
+
+    const flags = [];
+    const flagMap = {
+      STAFF: 'Discord Staff', PARTNER: 'Partner', HYPESQUAD: 'HypeSquad Events',
+      BUG_HUNTER_LEVEL_1: 'Bug Hunter 1', BUG_HUNTER_LEVEL_2: 'Bug Hunter 2',
+      VERIFIED_BOT: 'Verified Bot', VERIFIED_DEVELOPER: 'Verified Developer',
+      EARLY_VERIFIED_BOT_DEVELOPER: 'Early Bot Developer', ACTIVE_DEVELOPER: 'Active Developer',
+      CERTIFIED_MODERATOR: 'Certified Moderator'
+    };
+    for (const f of u.flags) if (flagMap[f]) flags.push(flagMap[f]);
+
+    const bannerBg = u.bannerColor
+      ? 'linear-gradient(135deg, ' + u.bannerColor + ', ' + u.bannerColor + 'aa)'
+      : 'linear-gradient(135deg, var(--accent), #7289da)';
+
+    const bannerHtml = bannerUrl
+      ? '<img src="' + bannerUrl + '" alt="" style="width:100%;height:120px;object-fit:cover">'
+      : '<div style="height:120px;background:' + bannerBg + '"></div>';
+
+    const avatarDecoHtml = avatarDecoUrl
+      ? '<img src="' + avatarDecoUrl + '" alt="" style="position:absolute;bottom:-4px;right:-4px;width:48px;height:48px;border-radius:50%;border:2px solid var(--bg-0);object-fit:cover">'
+      : '';
+
+    const discriminatorHtml = u.discriminator !== '0'
+      ? '<span style="color:var(--text-2);font-size:var(--text-sm)">#' + u.discriminator + '</span>'
+      : '';
+
+    const botHtml = u.bot ? '<span class="badge badge-blue" style="font-size:var(--text-xs)">Bot</span>' : '';
+    const systemHtml = u.system ? '<span class="badge badge-yellow" style="font-size:var(--text-xs)">System</span>' : '';
+
+    const flagsHtml = flags.length
+      ? '<div style="margin-top:var(--sp-2);display:flex;flex-wrap:wrap;gap:var(--sp-1)">' + flags.map(f => '<span class="badge badge-blue" style="font-size:var(--text-xs)">' + esc(f) + '</span>').join('') + '</div>'
+      : '';
+
+    let serverProfileHtml = '';
+    if (u.member) {
+      const roles = u.member.roles.filter(r => r.name !== '@everyone').slice(0, 10);
+      serverProfileHtml =
+        '<div class="card" style="margin-top:var(--sp-4)">' +
+          '<div class="card-header">' +
+            '<div class="card-title" style="font-size:var(--text-sm);font-weight:600">Server Profile</div>' +
+          '</div>' +
+          '<div class="card-body" style="display:flex;flex-direction:column;gap:var(--sp-2)">' +
+            (u.member.nickname ? '<div><strong>Server Nickname:</strong> ' + esc(u.member.nickname) + '</div>' : '') +
+            '<div><strong>Joined:</strong> ' + new Date(u.member.joinedAt).toLocaleDateString() + '</div>' +
+            (u.member.premiumSince ? '<div><strong>Boosting since:</strong> ' + new Date(u.member.premiumSince).toLocaleDateString() + '</div>' : '') +
+            (roles.length ? '<div><strong>Roles (' + u.member.roles.length + '):</strong></div><div class="pill-list">' + roles.map(r => '<span class="pill" style="background:' + (r.color ? '#' + r.color.toString(16).padStart(6, '0') : 'var(--bg-3)') + ';border-color:' + (r.color ? '#' + r.color.toString(16).padStart(6, '0') : 'var(--border)') + '">' + esc(r.name) + '</span>').join('') + '</div>' : '') +
+          '</div>' +
+        '</div>';
+    }
+
+    content.innerHTML = bannerHtml +
+      '<div style="padding:var(--sp-5);display:flex;gap:var(--sp-4);position:relative;margin-top:-40px">' +
+        '<div style="position:relative;flex-shrink:0">' +
+          '<img src="' + avatarUrl + '" alt="" style="width:110px;height:110px;border-radius:50%;border:4px solid var(--bg-0);object-fit:cover">' +
+          avatarDecoHtml +
+        '</div>' +
+        '<div style="flex:1;min-width:0;padding-top:var(--sp-3)">' +
+          '<div style="display:flex;align-items:baseline;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1)">' +
+            '<span style="font-size:var(--text-xl);font-weight:600;color:var(--text-0)">' + esc(displayName) + '</span>' +
+            (hasGlobalName && !u.member?.nickname ? '<span style="font-size:var(--text-sm);color:var(--text-1);font-weight:400">@' + esc(u.username) + '</span>' : '') +
+            discriminatorHtml + botHtml + systemHtml +
+          '</div>' +
+          flagsHtml +
+          '<div style="margin-top:var(--sp-2);font-size:var(--text-xs);color:var(--text-2)"><strong>Created:</strong> ' + new Date(u.createdAt).toLocaleDateString() + '</div>' +
+        '</div>' +
+      '</div>' +
+      serverProfileHtml +
+      '<div style="padding:var(--sp-4);border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:var(--sp-2)">' +
+        '<button class="btn btn-ghost" onclick="closeProfile()">Close</button>' +
+      '</div>';
+    focusModal(overlay);
+  }).catch(e => {
+    content.innerHTML = '<div class="msg msg-error" style="margin:var(--sp-4);padding:var(--sp-4)">' + esc(e.message) + '</div>';
+  });
+}
+
+document.getElementById('confirmOk').onclick = () => closeConfirm(true);
+document.getElementById('confirmCancel').onclick = () => closeConfirm(false);
+document.getElementById('confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirm(false); });
+
+document.getElementById('promptOk').onclick = () => {
+  const ta = document.getElementById('promptTextarea');
+  const inp = document.getElementById('promptInput');
+  const val = ta.style.display === 'block' ? ta.value : inp.value;
+  closePrompt(val);
+};
+document.getElementById('promptCancel').onclick = () => closePrompt(null);
+document.getElementById('promptModal').addEventListener('click', e => { if (e.target.id === 'promptModal') closePrompt(null); });
+document.getElementById('promptInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('promptOk').click(); } });
+
+document.getElementById('pickerCancel').onclick = () => closePicker(null);
+document.getElementById('pickerModal').addEventListener('click', e => { if (e.target.id === 'pickerModal') closePicker(null); });
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('confirmModal').style.display === 'flex') closeConfirm(false);
+  if (document.getElementById('promptModal').style.display === 'flex') closePrompt(null);
+  if (document.getElementById('pickerModal').style.display === 'flex') closePicker(null);
+  if (document.getElementById('profileModal').style.display === 'flex') closeProfile();
+});
+
+document.getElementById('profileModal').addEventListener('click', e => {
+  if (e.target.id === 'profileModal') closeProfile();
+});
+
+/* ---------- Tooltips ---------- */
+const tooltipEl = document.createElement('div');
+tooltipEl.className = 'tooltip';
+tooltipEl.id = 'tooltip';
+tooltipEl.setAttribute('role', 'tooltip');
+tooltipEl.setAttribute('aria-hidden', 'true');
+document.body.appendChild(tooltipEl);
+
+let tooltipTarget = null;
+let tooltipShowTimer = null;
+let tooltipHideTimer = null;
+let tooltipTouchTimer = null;
+
+function restoreTooltipTrigger(target) {
+  if (!target || target.dataset.tooltipDesc !== '1') return;
+  const ids = (target.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== 'tooltip');
+  if (ids.length) target.setAttribute('aria-describedby', ids.join(' '));
+  else target.removeAttribute('aria-describedby');
+  delete target.dataset.tooltipDesc;
+}
+
+function tooltipPlacement(target, rect, width, height) {
+  const gap = 8;
+  const edge = 8;
+  const top = rect.top >= height + gap + edge;
+  const bottom = window.innerHeight - rect.bottom >= height + gap + edge;
+  const left = rect.left >= width + gap + edge;
+  const right = window.innerWidth - rect.right >= width + gap + edge;
+  let placement = target.dataset.tooltipPos || 'auto';
+
+  if (placement === 'auto') placement = top ? 'top' : bottom ? 'bottom' : right ? 'right' : 'left';
+  if (placement === 'top' && !top) placement = bottom ? 'bottom' : right ? 'right' : 'left';
+  if (placement === 'bottom' && !bottom) placement = top ? 'top' : right ? 'right' : 'left';
+  if (placement === 'right' && !right) placement = left ? 'left' : top ? 'top' : 'bottom';
+  if (placement === 'left' && !left) placement = right ? 'right' : top ? 'top' : 'bottom';
+  return placement;
+}
+
+function positionTooltip(target) {
+  const rect = target.getBoundingClientRect();
+  const gap = 8;
+  const edge = 8;
+  const width = tooltipEl.offsetWidth;
+  const height = tooltipEl.offsetHeight;
+  const placement = tooltipPlacement(target, rect, width, height);
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  let left = 0;
+  let top = 0;
+
+  if (placement === 'top' || placement === 'bottom') {
+    left = Math.round(rect.left + rect.width / 2 - width / 2);
+    left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
+    top = placement === 'top' ? Math.round(rect.top - height - gap) : Math.round(rect.bottom + gap);
+    top = Math.max(edge, Math.min(top, viewportHeight - height - edge));
+    const arrowX = Math.max(12, Math.min(rect.left + rect.width / 2 - left, width - 12));
+    tooltipEl.style.setProperty('--tooltip-arrow-x', arrowX + 'px');
+  } else {
+    top = Math.round(rect.top + rect.height / 2 - height / 2);
+    top = Math.max(edge, Math.min(top, viewportHeight - height - edge));
+    left = placement === 'left' ? Math.round(rect.left - width - gap) : Math.round(rect.right + gap);
+    left = Math.max(edge, Math.min(left, viewportWidth - width - edge));
+    const arrowY = Math.max(12, Math.min(rect.top + rect.height / 2 - top, height - 12));
+    tooltipEl.style.setProperty('--tooltip-arrow-y', arrowY + 'px');
+  }
+
+  tooltipEl.dataset.placement = placement;
+  tooltipEl.style.left = left + 'px';
+  tooltipEl.style.top = top + 'px';
+}
+
+function showTooltip(target) {
+  if (!target || !target.isConnected) return;
+  const text = target.dataset.tooltip;
+  if (!text) return;
+  clearTimeout(tooltipHideTimer);
+  if (tooltipTarget && tooltipTarget !== target) restoreTooltipTrigger(tooltipTarget);
+  tooltipTarget = target;
+  tooltipEl.textContent = text;
+  tooltipEl.setAttribute('aria-hidden', 'false');
+  tooltipEl.classList.add('visible');
+  if (!(target.getAttribute('aria-describedby') || '').split(/\s+/).includes('tooltip')) {
+    target.setAttribute('aria-describedby', ((target.getAttribute('aria-describedby') || '') + ' tooltip').trim());
+    target.dataset.tooltipDesc = '1';
+  }
+  positionTooltip(target);
+  requestAnimationFrame(() => {
+    if (tooltipTarget === target) tooltipEl.classList.add('show');
+  });
+}
+
+function hideTooltip() {
+  clearTimeout(tooltipShowTimer);
+  clearTimeout(tooltipHideTimer);
+  tooltipEl.classList.remove('show', 'visible');
+  tooltipEl.setAttribute('aria-hidden', 'true');
+  restoreTooltipTrigger(tooltipTarget);
+  tooltipTarget = null;
+}
+
+function scheduleTooltipShow(target) {
+  clearTimeout(tooltipHideTimer);
+  clearTimeout(tooltipShowTimer);
+  tooltipShowTimer = setTimeout(() => showTooltip(target), 140);
+}
+
+function scheduleTooltipHide() {
+  clearTimeout(tooltipShowTimer);
+  clearTimeout(tooltipHideTimer);
+  tooltipHideTimer = setTimeout(hideTooltip, 80);
+}
+
+document.addEventListener('pointerover', e => {
+  if (e.pointerType === 'touch') return;
+  const target = e.target.closest('[data-tooltip]');
+  if (!target) return;
+  if (e.relatedTarget && target.contains(e.relatedTarget)) return;
+  if (target === tooltipTarget) return;
+  scheduleTooltipShow(target);
+});
+
+document.addEventListener('pointerout', e => {
+  const target = e.target.closest('[data-tooltip]');
+  if (!target) return;
+  if (e.relatedTarget && target.contains(e.relatedTarget)) return;
+  scheduleTooltipHide();
+});
+
+document.addEventListener('focusin', e => {
+  const target = e.target.closest('[data-tooltip]');
+  if (target) showTooltip(target);
+});
+
+document.addEventListener('focusout', e => {
+  const target = e.target.closest('[data-tooltip]');
+  if (!target) return;
+  if (e.relatedTarget && target.contains(e.relatedTarget)) return;
+  hideTooltip();
+});
+
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+  const target = e.target.closest('[data-tooltip]');
+  if (!target) return;
+  clearTimeout(tooltipTouchTimer);
+  showTooltip(target);
+  tooltipTouchTimer = setTimeout(() => {
+    if (tooltipTarget === target) hideTooltip();
+  }, 4500);
+});
+
+document.addEventListener('scroll', () => {
+  if (!tooltipTarget) return;
+  const rect = tooltipTarget.getBoundingClientRect();
+  if (rect.bottom < 0 || rect.top > window.innerHeight) hideTooltip();
+  else positionTooltip(tooltipTarget);
+}, true);
+window.addEventListener('resize', hideTooltip);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideTooltip(); });
 
 document.querySelectorAll('.sidebar-item').forEach(item => {
-  item.addEventListener('click', () => {
-    switchTab(item.dataset.tab);
-  });
+  item.addEventListener('click', () => switchTab(item.dataset.tab));
 });
 
-// ── Mobile sidebar toggle ──
-document.addEventListener('click', (e) => {
+document.getElementById('hamburger').addEventListener('click', () => {
   const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const hamburger = document.getElementById('hamburger');
-  if (e.target === hamburger || e.target.closest('#hamburger')) {
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
-    return;
-  }
-  if (e.target === overlay || e.target.closest('.sidebar-overlay')) {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('open');
-  }
+  const open = sidebar.classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open', open);
+  document.getElementById('hamburger').setAttribute('aria-expanded', String(open));
 });
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
 
-// Close sidebar when a tab is selected on mobile
-document.addEventListener('click', (e) => {
-  const item = e.target.closest('.sidebar-item');
-  if (item && window.innerWidth <= 700) {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('open');
-  }
-});
-
-// ── Close autocomplete on outside click ──
-document.addEventListener('click', (e) => {
-  const wrap = document.getElementById('ov-target-list');
-  if (wrap && !e.target.closest('.autocomplete-wrap')) {
-    wrap.style.display = 'none';
-  }
-});
-
-// Autocomplete item selection via event delegation
-document.addEventListener('click', (e) => {
-  const item = e.target.closest('.ac-item');
-  if (item) {
-    selectTarget(item.dataset.id, item.dataset.label);
-  }
-});
-
-// ── Overview Tab ──
-async function loadOverview() {
-  const el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">Loading stats...</div>';
-
-  const data = await api(`/api/data/guild-stats?guildId=${guildId}`);
-  if (!data.ok) { showMsg('Failed to load stats.'); return; }
-  const s = data.stats;
-
-  // Guild header
-  document.getElementById('guild-name').textContent = s.guildName;
-  if (s.guildIcon) {
-    const icon = document.getElementById('guild-icon');
-    icon.src = s.guildIcon;
-    icon.style.display = '';
-  }
-
-  let html = '<div class="section-title">Server Stats</div><div class="stat-grid">';
-
-  const stats = [
-    { label: 'Members', value: s.memberCount.toLocaleString() },
-    { label: 'Channels', value: s.channelCount.toLocaleString() },
-    { label: 'Roles', value: s.roleCount.toLocaleString() },
-    { label: 'Commands Used', value: (s.totalCommands || 0).toLocaleString() },
-    { label: 'Disabled Cmds', value: (s.disabledCmdCount || 0).toLocaleString() },
-    { label: 'Overrides', value: (s.overrideCount || 0).toLocaleString() },
-    { label: 'Echo Chambers', value: (s.echoChamberCount || 0).toLocaleString() },
-    { label: 'Announcements', value: s.announcementSubscribed ? 'Active' : 'Inactive' },
-    { label: 'Tags', value: (s.tagCount || 0).toLocaleString() },
-  ];
-  for (const st of stats) {
-    html += `<div class="stat-card"><div class="stat-label">${st.label}</div><div class="stat-value">${st.value}</div></div>`;
-  }
-  html += '</div>';
-
-  html += `<div class="section-title">Bot Prefix</div>
-    <div class="prefix-row">
-      <label>Prefix</label>
-      <input type="text" id="prefix-input" value="${escape(s.prefix)}" maxlength="10">
-      <button class="btn" onclick="savePrefix()">Save</button>
-      <span class="status" id="prefix-status">Saved</span>
-    </div>`;
-
-  // Setup checklist
-  html += '<div class="section-title" style="margin-top:24px">Getting Started</div>';
-  const checks = [
-    { label: 'Set your custom prefix', check: s.prefix !== 'c.', tip: 'Change it below' },
-    { label: 'Configure command permissions', check: s.overrideCount > 0, tip: 'Use the Overrides tab' },
-    { label: 'Create your first tag', check: s.tagCount > 0, tip: 'Use the Tags tab' },
-    { label: 'Disable unwanted commands', check: s.disabledCmdCount > 0, tip: 'Use the Commands tab' },
-  ];
-  for (const c of checks) {
-    html += `<div class="setup-item"><div class="check ${c.check ? 'done' : ''}">${c.check ? '✓' : ''}</div>
-      <span class="setup-text">${c.label}</span>
-      <span class="setup-action" style="color:var(--secondary);font-size:12px">${c.check ? '' : c.tip}</span></div>`;
-  }
-
-  el.innerHTML = html;
-}
-
-async function savePrefix() {
-  const input = document.getElementById('prefix-input');
-  const status = document.getElementById('prefix-status');
-  const prefix = input.value.trim();
-  if (!prefix) return;
-  const data = await api('/api/data/guild-settings-update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, prefix }),
-  });
-  if (data.ok) {
-    status.classList.add('show');
-    setTimeout(() => status.classList.remove('show'), 2000);
-  }
-}
-
-// ── Commands Tab ──
-async function loadCommands() {
-  const el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">Loading commands...</div>';
-
-  const data = await api(`/api/data/guild-commands?guildId=${guildId}`);
-  if (!data.ok) { showMsg('Failed to load commands.'); return; }
-
-  let html = '<div class="section-title">Commands</div>';
-  html += '<input type="text" class="search-input" id="cmd-search" placeholder="Search commands..." oninput="filterCommands()">';
-  html += '<div class="info-card">Toggle a command <strong>OFF</strong> to disable it <strong>server-wide</strong>. Disabling a parent command also disables all its subcommands. Then use the <a onclick="switchTab(\'overrides\')">Overrides</a> tab to add exceptions for specific channels, roles, or users.</div>';
-  html += '<div id="cmd-list"></div>';
-  el.innerHTML = html;
-
-  // Build parent → children map for arbitrary depth
-  const childrenByParent = {};
-  for (const cmd of data.commands) {
-    const pid = cmd.parentId || '__root__';
-    if (!childrenByParent[pid]) childrenByParent[pid] = [];
-    childrenByParent[pid].push(cmd);
-  }
-
-  // Render a command node and all its descendants recursively
-  function renderNode(cmd, depth) {
-    const hasChildren = childrenByParent[cmd.id] && childrenByParent[cmd.id].length > 0;
-    const rowClass = hasChildren ? 'parent-row' : 'child-row';
-    const nameClass = hasChildren ? 'cmd-parent' : 'cmd-child';
-    const indent = depth * 18;
-    const on = cmd.disabled ? '' : ' on';
-    let html = `<div class="command-row ${rowClass}" data-name="${escape(cmd.name).toLowerCase()}" style="margin-left:${indent}px">
-      <span class="cmd-name ${nameClass}">${escape(cmd.name)}</span>
-      <div class="toggle${on}" data-id="${cmd.id}" data-disabled="${cmd.disabled}" onclick="toggleCmd(this)"></div>
-    </div>`;
-    const children = (childrenByParent[cmd.id] || []).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-    for (const child of children) {
-      html += renderNode(child, depth + 1);
+(async () => {
+  const stats = await api('/api/data/guild-stats?guildId=' + encodeURIComponent(guildId));
+  if (stats.ok && stats.stats) {
+    document.getElementById('guildName').textContent = stats.stats.guildName || 'Server';
+    if (stats.stats.guildIcon) {
+      const img = document.getElementById('guildIcon');
+      img.src = stats.stats.guildIcon;
+      img.style.display = '';
     }
-    return html;
-  }
-
-  let listHtml = '';
-  const roots = (childrenByParent['__root__'] || []).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-  for (const root of roots) {
-    listHtml += `<div class="command-group" data-group="${escape(root.name)}">`;
-    listHtml += renderNode(root, 0);
-    listHtml += '</div>';
-  }
-  document.getElementById('cmd-list').innerHTML = listHtml;
-  console.log('[Commands] loaded', data.commands.length, 'commands, disabled IDs:', data.debug?.disabledIds);
-}
-
-async function toggleCmd(el) {
-  const cmdId = el.dataset.id;
-  const newDisabled = el.dataset.disabled !== 'true';
-
-  // Optimistic toggle
-  el.dataset.disabled = String(newDisabled);
-  el.classList.toggle('on', !newDisabled);
-
-  const data = await api('/api/data/guild-command-toggle', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, commandId: cmdId, disabled: newDisabled }),
-  });
-
-  // Always refetch to sync every toggle with the real server state
-  const cmdData = await api(`/api/data/guild-commands?guildId=${guildId}`);
-  if (cmdData.ok) {
-    const disabledMap = {};
-    for (const cmd of cmdData.commands) {
-      disabledMap[cmd.id] = cmd.disabled;
-    }
-    document.querySelectorAll('.toggle').forEach(t => {
-      const id = t.dataset.id;
-      if (disabledMap[id] !== undefined) {
-        const isDisabled = disabledMap[id];
-        t.dataset.disabled = String(isDisabled);
-        t.classList.toggle('on', !isDisabled);
-      }
-    });
-    // Update cached disabled set for the Overrides tab badges
-    _ovDisabledSet = new Set(
-      cmdData.commands.filter(c => c.disabled).map(c => c.id)
-    );
-  } else if (!data.ok) {
-    // API failed AND refetch failed — revert the optimistic toggle
-    el.dataset.disabled = String(!newDisabled);
-    el.classList.toggle('on', newDisabled);
-  }
-}
-
-function filterCommands() {
-  const q = document.getElementById('cmd-search').value.toLowerCase();
-  document.querySelectorAll('.command-row').forEach(row => {
-    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
-  });
-  document.querySelectorAll('.command-group').forEach(g => {
-    const visible = [...g.querySelectorAll('.command-row')].some(r => r.style.display !== 'none');
-    g.style.display = visible ? '' : 'none';
-  });
-}
-
-// ── Overrides Tab ──
-let targetData = { channels: [], roles: [], members: [] };
-let selectedTargetId = '';
-let _ovDisabledSet = new Set();
-let _ovCmdNames = {};
-let _ovCmdParent = {};
-let _ovChildrenMap = {};
-
-function _fullCmdName(id) {
-  const parts = [];
-  let cur = id;
-  while (cur && _ovCmdNames[cur]) {
-    parts.unshift(_ovCmdNames[cur]);
-    cur = _ovCmdParent[cur];
-  }
-  return parts.join(' ');
-}
-let _memberSearchTimeout = null;
-
-function getTargetName(type, id) {
-  const arr = type === 'channel' ? targetData.channels
-    : type === 'role' ? targetData.roles
-    : targetData.members;
-  const found = arr.find(t => t.id === id);
-  if (!found) return null;
-  if (type === 'user') {
-    return found.displayName && found.displayName !== found.username
-      ? `${found.username} (${found.displayName})`
-      : found.username;
-  }
-  return found.name;
-}
-
-async function loadOverrides() {
-  const el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">Loading overrides...</div>';
-
-  // Fetch overrides, commands, and target data in parallel
-  const [ovData, cmdData, tgtData] = await Promise.all([
-    api(`/api/data/guild-overrides-list?guildId=${guildId}`),
-    api(`/api/data/guild-commands?guildId=${guildId}`),
-    api(`/api/data/guild-targets?guildId=${guildId}`),
-  ]);
-
-  if (!ovData.ok) { showMsg('Failed to load overrides.'); return; }
-
-  // Cache target data for autocomplete
-  if (tgtData.ok) targetData = tgtData;
-
-  // Build command lookups
-  _ovCmdNames = {};
-  _ovCmdParent = {};
-  _ovDisabledSet = new Set();
-  _ovChildrenMap = {};
-  if (cmdData.ok) {
-    for (const cmd of cmdData.commands) {
-      _ovCmdNames[cmd.id] = cmd.name;
-      if (cmd.disabled) _ovDisabledSet.add(cmd.id);
-      if (cmd.parentId) {
-        _ovCmdParent[cmd.id] = cmd.parentId;
-        if (!_ovChildrenMap[cmd.parentId]) _ovChildrenMap[cmd.parentId] = [];
-        _ovChildrenMap[cmd.parentId].push(cmd.id);
-      }
-    }
-  }
-
-  // ── Hierarchy info box ──
-  let html = `<div class="hierarchy-box">
-    <div class="h-title">How Overrides Work</div>
-    <div class="h-row h-top"><span>👤</span> User <span style="color:var(--secondary);font-size:12px">— highest priority</span></div>
-    <div class="h-row"><span class="h-arrow">↑</span></div>
-    <div class="h-row"><span>🔷</span> Role</div>
-    <div class="h-row"><span class="h-arrow">↑</span></div>
-    <div class="h-row"><span>📢</span> Channel</div>
-    <div class="h-row"><span class="h-arrow">↑</span></div>
-    <div class="h-row h-bot"><span>🏠</span> Server-wide <span style="color:var(--secondary);font-size:12px">— set in <a onclick="switchTab('commands')">Commands</a> tab</span></div>
-    <div class="h-tip">💡 <strong>Tip:</strong> Disable a command server-wide in the <a onclick="switchTab('commands')">Commands</a> tab, then add <strong>Allow</strong> overrides here for the channels/roles/users that should still be able to use it.</div>
-  </div>`;
-
-  html += '<div class="section-title">Add Override</div>';
-
-  // Build command options (sorted alphabetically by full path)
-  let cmdOpts = '<option value="">Select command...</option>';
-  if (cmdData.ok) {
-    const sorted = [...cmdData.commands].sort((a, b) => {
-      return _fullCmdName(a.id).localeCompare(_fullCmdName(b.id));
-    });
-    for (const cmd of sorted) {
-      cmdOpts += `<option value="${cmd.id}">${escape(_fullCmdName(cmd.id))}</option>`;
-    }
-  }
-
-  html += `<div class="add-override">
-    <select id="ov-type" onchange="onOvTypeChange()"><option value="channel">Channel</option><option value="role">Role</option><option value="user">User</option></select>
-    <div class="autocomplete-wrap">
-      <input id="ov-target-input" placeholder="Type to search..." oninput="onOvTargetInput()" onfocus="onOvTargetInput()" autocomplete="off">
-      <div class="autocomplete-list" id="ov-target-list"></div>
-      <input type="hidden" id="ov-target">
-    </div>
-    <select id="ov-cmd" style="max-width:200px" onchange="onOvCmdChange()">${cmdOpts}</select>
-    <span id="ov-cmd-badge"></span>
-    <label id="ov-include-subs-wrap" style="display:none;font-size:12px"><input type="checkbox" id="ov-include-subs"> Include subcommands</label>
-    <label><input type="checkbox" id="ov-allowed" checked> Allow</label>
-    <button class="btn" onclick="addOverride()">Add</button>
-  </div>`;
-
-  html += '<div class="section-title">Existing Overrides</div>';
-  html += '<input type="text" class="search-input" id="ov-search" placeholder="Search overrides..." oninput="filterOverrides()" style="margin-bottom:8px">';
-
-  const sections = [
-    { label: 'Channel', key: 'channels', idKey: 'channelId', type: 'channel' },
-    { label: 'Role', key: 'roles', idKey: 'roleId', type: 'role' },
-    { label: 'User', key: 'users', idKey: 'userId', type: 'user' },
-  ];
-
-  const allOverrides = [];
-  for (const sec of sections) {
-    for (const ov of ovData[sec.key] || []) {
-      allOverrides.push({ type: sec.type, label: sec.label, targetId: ov[sec.idKey], commandId: ov.commandId, allowed: ov.allowed });
-    }
-  }
-
-  // Group overrides by (type, target) and build command trees
-  const groups = {};
-  for (const ov of allOverrides) {
-    const key = `${ov.type}:${ov.targetId}`;
-    if (!groups[key]) groups[key] = { type: ov.type, targetId: ov.targetId, label: ov.label, overrides: [] };
-    groups[key].overrides.push(ov);
-  }
-
-  if (allOverrides.length === 0) {
-    html += '<div style="color:var(--secondary);font-size:13px">No overrides configured.</div>';
+    document.title = (stats.stats.guildName || 'Server') + ' — Cassie';
   } else {
-    html += '<table class="override-table"><thead><tr><th>Type</th><th>Target</th><th>Command</th><th>Access</th><th></th></tr></thead><tbody>';
-
-    let groupIdx = 0;
-    for (const key in groups) {
-      const group = groups[key];
-      const tgtName = getTargetName(group.type, group.targetId);
-      let tgtHtml;
-      if (tgtName) {
-        tgtHtml = `<div class="ov-target-name">${escape(tgtName)}</div><div class="ov-target-id">${escape(group.targetId)}</div>`;
-      } else {
-        tgtHtml = `<span class="ov-target-id">${escape(group.targetId)}</span>`;
-      }
-
-      // Build tree: find root commands (no parent in this group)
-      const cmdIds = new Set(group.overrides.map(o => o.commandId));
-
-      const roots = group.overrides.filter(o => {
-        const parentId = _ovCmdParent[o.commandId];
-        return !parentId || !cmdIds.has(parentId);
-      });
-      roots.sort((a, b) => _fullCmdName(a.commandId).localeCompare(_fullCmdName(b.commandId)));
-
-      // Flatten tree to rows with proper tree-drawing prefixes
-      function flattenChildren(parentOv, depth, ancestorPrefix) {
-        const rows = [];
-        const children = group.overrides
-          .filter(o => _ovCmdParent[o.commandId] === parentOv.commandId)
-          .sort((a, b) => _fullCmdName(a.commandId).localeCompare(_fullCmdName(b.commandId)));
-        for (let i = 0; i < children.length; i++) {
-          const isLast = i === children.length - 1;
-          const connector = isLast ? '└ ' : '├ ';
-          const prefix = ancestorPrefix + connector;
-          rows.push({ ov: children[i], depth: depth + 1, prefix });
-          const childPrefix = ancestorPrefix + (isLast ? '   ' : '│  ');
-          rows.push(...flattenChildren(children[i], depth + 1, childPrefix));
-        }
-        return rows;
-      }
-
-      const treeRows = [];
-      for (const root of roots) {
-        treeRows.push({ ov: root, depth: 0, prefix: '' });
-        treeRows.push(...flattenChildren(root, 0, ''));
-      }
-
-      // Render rows with indentation
-      const bgColor = groupIdx % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02)';
-      groupIdx++;
-
-      for (let i = 0; i < treeRows.length; i++) {
-        const { ov, depth, prefix } = treeRows[i];
-        const name = _fullCmdName(ov.commandId) || ov.commandId.slice(0, 8) + '...';
-
-        html += `<tr data-type="${ov.type}" data-target="${ov.targetId}" data-command="${ov.commandId}" style="${bgColor}">
-          <td>${ov.label}</td>
-          <td>${tgtHtml}</td>
-          <td style="font-size:13px">${depth > 0 ? `<span style="color:#555;font-family:monospace;white-space:pre">${escape(prefix)}</span>` : ''}${escape(name)}</td>
-          <td style="color:${ov.allowed ? 'var(--green)' : 'var(--red)'}">${ov.allowed ? 'Allow' : 'Deny'}</td>
-          <td><button class="del-btn" title="Alt+click to skip confirm" onclick="deleteOverride(event,'${ov.type}','${ov.targetId}','${ov.commandId}')">✕</button></td>
-        </tr>`;
-      }
-    }
-    html += '</tbody></table>';
+    document.getElementById('guildName').textContent = 'Dashboard';
   }
+})();
 
-  el.innerHTML = html;
-}
-
-function onOvCmdChange() {
-  const badge = document.getElementById('ov-cmd-badge');
-  const cmdId = document.getElementById('ov-cmd').value;
-  if (!cmdId) {
-    badge.innerHTML = '';
-    document.getElementById('ov-include-subs-wrap').style.display = 'none';
-    return;
-  }
-  const disabled = _ovDisabledSet.has(cmdId);
-  badge.innerHTML = `<span class="state-badge ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Disabled' : 'Enabled'}</span>`;
-  // Show "Include subcommands" checkbox if this command has children
-  const hasChildren = _ovChildrenMap[cmdId] && _ovChildrenMap[cmdId].length > 0;
-  document.getElementById('ov-include-subs-wrap').style.display = hasChildren ? '' : 'none';
-}
-
-function onOvTypeChange() {
-  if (_memberSearchTimeout) {
-    clearTimeout(_memberSearchTimeout);
-    _memberSearchTimeout = null;
-  }
-  document.getElementById('ov-target-input').value = '';
-  document.getElementById('ov-target').value = '';
-  selectedTargetId = '';
-  document.getElementById('ov-target-list').style.display = 'none';
-}
-
-function onOvTargetInput() {
-  const type = document.getElementById('ov-type').value;
-  const q = document.getElementById('ov-target-input').value.toLowerCase().trim();
-  const list = document.getElementById('ov-target-list');
-
-  // Clear hidden input when user types — forces explicit selection from dropdown
-  document.getElementById('ov-target').value = '';
-  selectedTargetId = '';
-
-  // Cancel any pending member search
-  if (_memberSearchTimeout) {
-    clearTimeout(_memberSearchTimeout);
-    _memberSearchTimeout = null;
-  }
-
-  // User search uses the server-side API
-  if (type === 'user') {
-    if (q.length < 2) {
-      list.style.display = 'none';
-      return;
-    }
-    list.innerHTML = '<div class="ac-item" style="color:var(--secondary);cursor:default">Searching...</div>';
-    list.style.display = 'block';
-    _memberSearchTimeout = setTimeout(async () => {
-      const data = await api(`/api/data/guild-member-search?guildId=${guildId}&q=${encodeURIComponent(q)}`);
-      if (!data.ok || !data.members || data.members.length === 0) {
-        list.innerHTML = '<div class="ac-item" style="color:var(--secondary);cursor:default">No users found</div>';
-        list.style.display = q.length >= 2 ? 'block' : 'none';
-        return;
-      }
-      let html = '';
-      for (const m of data.members.slice(0, 50)) {
-        const label = m.displayName && m.displayName !== m.username
-          ? `${m.username} (${m.displayName})`
-          : m.username;
-        html += `<div class="ac-item" data-id="${escape(m.id)}" data-label="${escape(label)}">
-          ${escape(label)}
-          <span class="ac-id">${escape(m.id)}</span>
-        </div>`;
-      }
-      list.innerHTML = html;
-      list.style.display = 'block';
-    }, 300);
-    return;
-  }
-
-  // Channels and roles — filter from cached data
-  const items = type === 'channel' ? (targetData.channels || []) : (targetData.roles || []);
-  if (!q || items.length === 0) { list.style.display = 'none'; return; }
-
-  const filtered = items
-    .map(item => {
-      const label = item.name;
-      const idx = label.toLowerCase().indexOf(q);
-      const idIdx = item.id.startsWith(q) ? 0 : -1;
-      return { item, label, score: idIdx === 0 ? 0 : (idx >= 0 ? idx : 999) };
-    })
-    .filter(x => x.score < 999)
-    .sort((a, b) => a.score - b.score);
-
-  if (filtered.length === 0) { list.style.display = 'none'; return; }
-
-  let html = '';
-  for (const { item, label } of filtered.slice(0, 50)) {
-    const color = type === 'role' && item.color && item.color !== '#000000'
-      ? `<span style="color:${item.color};font-size:16px">●</span>`
-      : '';
-    html += `<div class="ac-item" data-id="${escape(item.id)}" data-label="${escape(label)}">
-      ${color}${escape(label)}
-      <span class="ac-id">${escape(item.id)}</span>
-    </div>`;
-  }
-  list.innerHTML = html;
-  list.style.display = 'block';
-}
-
-function selectTarget(id, label) {
-  document.getElementById('ov-target-input').value = label;
-  document.getElementById('ov-target').value = id;
-  selectedTargetId = id;
-  document.getElementById('ov-target-list').style.display = 'none';
-}
-
-function _collectDescendants(cmdId, map) {
-  const ids = [];
-  const children = map[cmdId] || [];
-  for (const childId of children) {
-    ids.push(childId, ..._collectDescendants(childId, map));
-  }
-  return ids;
-}
-
-async function addOverride() {
-  const type = document.getElementById('ov-type').value;
-  const targetId = document.getElementById('ov-target').value;
-  const commandId = document.getElementById('ov-cmd').value;
-  const allowed = document.getElementById('ov-allowed').checked;
-  if (!targetId || !commandId) { showMsg('Select a target and command.', 'error'); return; }
-
-  const ids = [commandId];
-  const includeSubs = document.getElementById('ov-include-subs');
-  if (includeSubs.style.display !== 'none' && includeSubs.checked) {
-    ids.push(..._collectDescendants(commandId, _ovChildrenMap));
-  }
-
-  // Show loading state
-  const btn = document.querySelector('.add-override .btn');
-  const origText = btn.textContent;
-  btn.textContent = 'Saving...';
-  btn.disabled = true;
-
-  const results = await Promise.all(ids.map(id =>
-    api('/api/data/guild-overrides', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guildId, type, targetId, commandId: id, allowed }),
-    })
-  ));
-
-  btn.textContent = origText;
-  btn.disabled = false;
-
-  if (results.every(r => r.ok)) loadOverrides();
-  else showMsg('Failed to add some overrides.', 'error');
-}
-
-function filterOverrides() {
-  const q = document.getElementById('ov-search').value.toLowerCase();
-  document.querySelectorAll('.override-table tbody tr').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-
-async function deleteOverride(ev, type, targetId, commandId) {
-  // Alt+click → skip all confirmations
-  const skipConfirm = ev.altKey;
-
-  // Find child overrides first (before any API calls)
-  const childIds = _collectDescendants(commandId, _ovChildrenMap);
-  const childRows = [];
-  if (childIds.length > 0) {
-    const table = document.querySelector('.override-table');
-    if (table) {
-      for (const row of table.querySelectorAll('tbody tr')) {
-        if (childIds.includes(row.dataset.command) && row.dataset.type === type && row.dataset.target === targetId) {
-          childRows.push(row);
-        }
-      }
-    }
-  }
-
-  const cmdLabel = _fullCmdName(commandId) || commandId.slice(0, 8);
-
-  // Ask both questions before any deletion
-  if (!skipConfirm) {
-    if (!(await confirmAsync('Delete Override', `Remove override for <code style="background:#222;padding:2px 6px;border-radius:4px;font-size:13px">${escape(cmdLabel)}</code>?`, 'Alt+click ✕ to skip confirmations'))) return;
-  }
-
-  let deleteChildren = false;
-  if (!skipConfirm && childRows.length > 0) {
-    deleteChildren = await confirmAsync(
-      'Subcommand Overrides',
-      `Also delete <strong>${childRows.length}</strong> subcommand override${childRows.length > 1 ? 's' : ''} for this target?`,
-      'Click No to keep subcommand overrides'
-    );
-  } else if (skipConfirm && childRows.length > 0) {
-    deleteChildren = true; // Alt+click deletes everything
-  }
-
-  // NOW do all deletions
-  const results = await Promise.all([
-    api('/api/data/guild-overrides-delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guildId, type, targetId, commandId }),
-    }),
-    ...(deleteChildren ? childRows.map(row =>
-      api('/api/data/guild-overrides-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guildId, type, targetId, commandId: row.dataset.command }),
-      })
-    ) : []),
-  ]);
-  if (!results[0].ok) return;
-
-  // Remove rows from DOM
-  if (deleteChildren) childRows.forEach(r => r.remove());
-  const mainRow = ev?.target?.closest?.('tr');
-  if (mainRow) mainRow.remove();
-
-  // If last row, show empty state
-  const tbody = document.querySelector('.override-table tbody');
-  if (tbody && !tbody.querySelector('tr')) {
-    const table = tbody.closest('table');
-    const search = table.previousElementSibling;
-    const sectionTitle = search?.previousElementSibling || table.previousElementSibling;
-    table.remove();
-    if (search?.id === 'ov-search') search.remove();
-    sectionTitle.insertAdjacentHTML('afterend', '<div style="color:var(--secondary);font-size:13px">No overrides configured.</div>');
-  }
-}
-
-// ── Tags Tab ──
-async function loadTags() {
-  const el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">Loading tags...</div>';
-
-  const data = await api(`/api/data/guild-tags?guildId=${guildId}`);
-  if (!data.ok) { showMsg('Failed to load tags.'); return; }
-
-  let html = '<div class="section-title">Add Tag</div>';
-  html += `<div class="add-tag">
-    <input id="tag-name" placeholder="Tag name" style="width:150px">
-    <textarea id="tag-content" placeholder="Tag content" style="width:300px" rows="1"></textarea>
-    <button class="btn" onclick="createTag()">Create</button>
-  </div>`;
-
-  html += '<div class="section-title">Tags</div>';
-
-  if (data.tags.length === 0) {
-    html += '<div style="color:var(--secondary);font-size:13px">No tags yet.</div>';
-  } else {
-    for (const tag of data.tags) {
-      const date = new Date(tag.createdAt).toLocaleDateString();
-      html += `<div class="tag-card" id="tag-${escape(tag.name)}">
-        <div class="tag-name">${escape(tag.name)}</div>
-        <div class="tag-meta">${tag.uses} uses · Created ${date}</div>
-        <div class="tag-content" id="tagc-${escape(tag.name)}">${escape(tag.content)}</div>
-        <div class="tag-actions">
-          <button class="btn btn-sm btn-ghost" data-tagname="${escape(tag.name)}" onclick="editTag(this.dataset.tagname)">Edit</button>
-          <button class="btn btn-sm btn-ghost" data-tagname="${escape(tag.name)}" style="color:var(--red)" onclick="deleteTag(this.dataset.tagname)">Delete</button>
-        </div>
-      </div>`;
-    }
-  }
-
-  el.innerHTML = html;
-}
-
-async function createTag() {
-  const name = document.getElementById('tag-name').value.trim();
-  const content = document.getElementById('tag-content').value.trim();
-  if (!name || !content) return;
-  const data = await api('/api/data/guild-tags-create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, name, content }),
-  });
-  if (data.ok) loadTags();
-  else showMsg(data.error || 'Failed to create tag.', 'error');
-}
-
-function editTag(name) {
-  const contentEl = document.getElementById(`tagc-${name}`);
-  const currentText = contentEl.textContent;
-  contentEl.innerHTML = `<div class="tag-edit-area"><textarea id="edit-${escape(name)}">${escape(currentText)}</textarea></div>
-    <button class="btn btn-sm btn-green" data-tagname="${escape(name)}" onclick="saveTagEdit(this.dataset.tagname)">Save</button>
-    <button class="btn btn-sm btn-ghost" onclick="loadTags()">Cancel</button>`;
-}
-
-async function saveTagEdit(name) {
-  const content = document.getElementById(`edit-${name}`).value.trim();
-  if (!content) return;
-  const data = await api('/api/data/guild-tag-update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, name, content }),
-  });
-  if (data.ok) loadTags();
-}
-
-async function deleteTag(name) {
-  if (!(await confirmAsync('Delete Tag', `Remove tag <code style="background:#222;padding:2px 6px;border-radius:4px">${escape(name)}</code> permanently?`))) return;
-  const data = await api('/api/data/guild-tags-delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, name }),
-  });
-  if (data.ok) loadTags();
-}
-
-// ── Settings Tab ──
-async function loadSettings() {
-  const el = document.getElementById('content');
-  el.innerHTML = '<div class="loading">Loading settings...</div>';
-
-  const [statsData, echoData, announceData] = await Promise.all([
-    api(`/api/data/guild-stats?guildId=${guildId}`),
-    api(`/api/data/guild-echo-chamber?guildId=${guildId}`),
-    api(`/api/data/guild-announcement?guildId=${guildId}`),
-  ]);
-  if (!statsData.ok) { showMsg('Failed to load settings.'); return; }
-
-  const prefix = statsData.stats?.prefix || 'c.';
-
-  let html = '<div class="section-title">Server Settings</div>';
-
-  // Prefix
-  html += `<div class="settings-row">
-    <label>Command Prefix</label>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" id="settings-prefix" value="${escape(prefix)}" maxlength="10" style="max-width:100px">
-      <button class="btn" onclick="saveSettingsPrefix()">Save</button>
-      <span class="status" id="settings-prefix-status" style="font-size:12px;color:var(--green);opacity:0;transition:0.2s">Saved</span>
-    </div>
-    <div class="settings-help">The prefix used to invoke Cassie commands in this server (default: <code>c.</code>)</div>
-  </div>`;
-
-  // Echo Chamber
-  html += `<div class="settings-row" style="margin-top:24px">
-    <label>Echo Chamber</label>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">`;
-  if (echoData.ok && echoData.channels.length > 0) {
-    for (const ch of echoData.channels) {
-      const d1 = (ch.deleteDelayMin / 1000).toFixed(0);
-      const d2 = ch.deleteDelayMax >= 86400000 ? '24h' : (ch.deleteDelayMax / 1000).toFixed(0) + 's';
-      const e1 = ch.echoDelayMin === 0 ? '0s' : (ch.echoDelayMin / 1000).toFixed(0) + 's';
-      const e2 = ch.echoDelayMax >= 86400000 ? '24h' : (ch.echoDelayMax / 1000).toFixed(0) + 's';
-      html += `<div style="font-size:13px;margin-bottom:10px">
-        <strong style="color:var(--text)">#${ch.channelId.slice(0,8)}…</strong>
-        <span style="color:var(--secondary);margin-left:8px">${ch.pendingCount} pending</span>
-      </div>
-      <table style="width:100%;font-size:12px;color:var(--secondary);border-collapse:collapse">
-        <tr><td style="padding:2px 8px 2px 0">Echo Chance</td><td>${ch.echoChance}%</td></tr>
-        <tr><td style="padding:2px 8px 2px 0">Delete Delay</td><td>${d1}s – ${d2}</td></tr>
-        <tr><td style="padding:2px 8px 2px 0">Echo Delay</td><td>${e1} – ${e2}</td></tr>
-      </table>`;
-      if (echoData.channels.length > 1) html += '<hr style="border-color:#2a2a36;margin:8px 0">';
-    }
-  } else {
-    html += `<div style="font-size:13px;color:var(--secondary);margin-bottom:8px">
-      No echo chambers set up. Use <code>${escape(prefix)}echochamber create</code> in a channel.</div>`;
-  }
-  html += `</div></div>`;
-
-  // Announcements
-  html += `<div class="settings-row" style="margin-top:24px">
-    <label>Announcement Subscriptions</label>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">`;
-  if (announceData.ok) {
-    if (announceData.subscribed) {
-      html += `<div style="font-size:13px;color:var(--green);margin-bottom:6px">✓ Subscribed</div>
-        <div style="font-size:12px;color:var(--secondary)">Channel: <code style="background:#222;padding:1px 5px;border-radius:3px">${announceData.channelId}</code></div>`;
-    } else if (announceData.optedOut) {
-      html += `<div style="font-size:13px;color:var(--secondary);margin-bottom:6px">Opted out of announcements.</div>`;
-    } else {
-      html += `<div style="font-size:13px;color:var(--secondary);margin-bottom:6px">Not set up. Run <code>${escape(prefix)}announce subscribe</code> in your announcement channel.</div>`;
-    }
-    if (announceData.lastNagged) {
-      const d = new Date(announceData.lastNagged);
-      html += `<div style="font-size:11px;color:#555;margin-top:4px">Last reminded: ${d.toLocaleDateString()}</div>`;
-    }
-  } else {
-    html += `<div style="font-size:13px;color:var(--secondary)">Could not load announcement status.</div>`;
-  }
-  html += `</div></div>`;
-
-  el.innerHTML = html;
-}
-
-async function saveSettingsPrefix() {
-  const input = document.getElementById('settings-prefix');
-  const status = document.getElementById('settings-prefix-status');
-  const prefix = input.value.trim();
-  if (!prefix) return;
-  const data = await api('/api/data/guild-settings-update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guildId, prefix }),
-  });
-  if (data.ok) {
-    status.style.opacity = '1';
-    setTimeout(() => status.style.opacity = '0', 2000);
-  }
-}
-
-// ── Router ──
-async function loadTab(tab) {
-  setActiveTab(tab);
-  try {
-    if (tab === 'overview') await loadOverview();
-    else if (tab === 'commands') await loadCommands();
-    else if (tab === 'overrides') await loadOverrides();
-    else if (tab === 'tags') await loadTags();
-    else if (tab === 'settings') await loadSettings();
-  } catch (e) {
-    console.error(e);
-    showMsg('An error occurred.', 'error');
-  }
-}
-
-const validTabs = ['overview', 'commands', 'overrides', 'tags', 'settings'];
-const initialTab = validTabs.includes(window.location.hash.replace('#', '')) ? window.location.hash.replace('#', '') : 'overview';
-loadTab(initialTab);
-
-// Load support link
-fetch('/api/invite/support')
-  .then(r => r.json())
-  .then(d => { if (d.ok) document.getElementById('guild-support').href = d.url; });
+const initialTab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+switchTab(initialTab);
 </script>
 </body>
 </html>

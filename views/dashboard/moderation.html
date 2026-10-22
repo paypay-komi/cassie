@@ -1,0 +1,76 @@
+<div class="page-header">
+  <div class="page-title">Moderation</div>
+  <div class="page-desc">Configure jail, image mute, reaction mute, and warn punishments.</div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Jail</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row" style="padding-top:0">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Jail</div>
+          <div class="toggle-desc">Isolate problematic users in a restricted channel</div>
+        </div>
+        <div class="toggle" id="toggle-jail" data-disabled="true" onclick="window._toggleMod('jail', this)" data-tooltip="Jail commands apply the configured jail role and restrict the member to the jail channel.">
+      </div>
+    </div>
+    <div class="card-body" id="jail-config"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Image Mute</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row" style="padding-top:0">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Image Mute</div>
+          <div class="toggle-desc">Prevent users from posting images/embeds</div>
+        </div>
+        <div class="toggle" id="toggle-imute" data-disabled="true" onclick="window._toggleMod('imute', this)" data-tooltip="Image mute commands apply the configured image mute role.">
+      </div>
+    </div>
+    <div class="card-body" id="imute-config"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Reaction Mute</div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="toggle-row" style="padding-top:0">
+        <div class="toggle-info">
+          <div class="toggle-label">Enable Reaction Mute</div>
+          <div class="toggle-desc">Prevent users from reacting to messages</div>
+        </div>
+        <div class="toggle" id="toggle-rmute" data-disabled="true" onclick="window._toggleMod('rmute', this)" data-tooltip="Reaction mute commands apply the configured reaction mute role.">
+      </div>
+    </div>
+    <div class="card-body" id="rmute-config"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Warn Punishments</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="warn-punishments"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Invoke Templates</div>
+  </div>
+  <div class="card">
+    <div class="card-body" id="invoke-templates"></div>
+  </div>
+</div>
