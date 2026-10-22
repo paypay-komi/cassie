@@ -89,7 +89,7 @@ module.exports = {
 module.exports = {
 	name: "${eventName}",
 	async execute(payload, client) {
-		const { getLogger } = require("../lib/logger");
+		const { getLogger } = require("../../../../lib/logger");
 		getLogger("GitHub").info("Received ${eventName} event:", payload);
 	},
 };
@@ -97,7 +97,10 @@ module.exports = {
 
 			const filePath = path.join(
 				process.cwd(),
-				"github-events",
+				"routes",
+				"api",
+				"github",
+				"github-handlers",
 				`${eventName}.js`
 			);
 

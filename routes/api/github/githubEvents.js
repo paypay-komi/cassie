@@ -8,7 +8,7 @@ const log = getLogger("GitHubEvents");
 function reloadGitHubEvents() {
 	eventHandlers.clear();
 
-	const eventsPath = path.join(process.cwd(), "github-events");
+	const eventsPath = path.join(process.cwd(), "routes", "api", "github", "github-handlers");
 	const files = fs.readdirSync(eventsPath);
 
 	for (const file of files) {
