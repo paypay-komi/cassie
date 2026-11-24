@@ -13,7 +13,7 @@ const TYPING_REFRESH_INTERVAL = 8000; // Discord's typing indicator expires afte
 const MEMORY_WORD_LIMIT = 1000;
 
 const OLLAMA_URL = "http://localhost:11434/api/chat";
-const MODEL = "qwen3.5:9b";
+const MODEL = process.env.OLLAMA_MODEL || "qwen3.5:9b";
 function buildTimezoneBody(tzData) {
 	const timezone = resolveTimezoneLabel(tzData);
 	const dt = DateTime.now().setZone(timezone);

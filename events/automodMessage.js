@@ -1,5 +1,6 @@
 const { getLogger } = require("../lib/logger");
 const automation = require("../lib/automation");
+const { scoreToxicity } = require("../lib/toxicity");
 
 const log = getLogger("Automod");
 const spamTracker = new Map();
@@ -110,8 +111,21 @@ module.exports = {
 		}
 	}
 
+	// Toxicity filter (opt-in, runs locally via transformers.js). threshold = percent, default 90.
+	// Defaults to "warn" unless the filter has its own punishment set.
+	let punishCfg = cfg;
+	const toxFilter = automation.getFilter(cfg, "toxicity");
+	if (toxFilter && toxFilter.enabled && !triggered && content.trim()) {
+		const result = await scoreToxicity(content);
+		if (result && result.score * 100 >= (toxFilter.threshold || 90)) {
+			triggered = true;
+			triggerType = "toxicity";
+			if (!toxFilter.punishment) punishCfg = { ...cfg, punishment: "warn" };
+		}
+	}
+
 	if (triggered) {
-		const action = await automation.applyAutomodPunishment(client, guild, message.member, cfg, triggerType);
+		const action = await automation.applyAutomodPunishment(client, guild, message.member, punishCfg, triggerType);
 		if (action === "delete") {
 			await message.delete().catch(() => {});
 		}

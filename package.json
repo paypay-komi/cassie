@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node sharder.js",
+    "test": "node --test test/*.test.js",
     "dev": "node sharder.js",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
@@ -14,6 +15,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@quixo3/prisma-session-store": "^3.1.20",

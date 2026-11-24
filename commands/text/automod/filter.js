@@ -1,7 +1,7 @@
 const { PermissionsBitField } = require("discord.js");
 const { buildMessage } = require("../../../lib/v2Reply");
 const automation = require("../../../lib/automation");
-const FILTER_TYPES = ["keyword", "caps", "emoji", "images", "invites", "links", "malicious", "massmention", "nsfw", "repetition", "spam", "walloftext"];
+const FILTER_TYPES = ["keyword", "caps", "emoji", "images", "invites", "links", "malicious", "massmention", "nsfw", "repetition", "spam", "toxicity", "walloftext"];
 
 module.exports = {
 
