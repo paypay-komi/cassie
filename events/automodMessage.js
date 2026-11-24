@@ -1,6 +1,6 @@
 const { getLogger } = require("../lib/logger");
 const automation = require("../lib/automation");
-const { scoreToxicity, isToxicityAvailable } = require("../lib/toxicity");
+const { scoreToxicity } = require("../lib/toxicity");
 
 const log = getLogger("Automod");
 const spamTracker = new Map();
@@ -111,11 +111,11 @@ module.exports = {
 		}
 	}
 
-	// Toxicity filter (opt-in, needs HF_TOKEN). threshold = percent, default 90.
+	// Toxicity filter (opt-in, runs locally via transformers.js). threshold = percent, default 90.
 	// Defaults to "warn" unless the filter has its own punishment set.
 	let punishCfg = cfg;
 	const toxFilter = automation.getFilter(cfg, "toxicity");
-	if (toxFilter && toxFilter.enabled && !triggered && isToxicityAvailable() && content.trim()) {
+	if (toxFilter && toxFilter.enabled && !triggered && content.trim()) {
 		const result = await scoreToxicity(content);
 		if (result && result.score * 100 >= (toxFilter.threshold || 90)) {
 			triggered = true;

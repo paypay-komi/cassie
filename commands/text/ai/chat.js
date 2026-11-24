@@ -11,10 +11,9 @@ const EDIT_INTERVAL = 1000;
 const DISCORD_LIMIT = 2000;
 const TYPING_REFRESH_INTERVAL = 8000; // Discord's typing indicator expires after ~10s
 const MEMORY_WORD_LIMIT = 1000;
-const { hfChatRequest, isHfBackendEnabled } = require("../../../lib/hfChat");
 
 const OLLAMA_URL = "http://localhost:11434/api/chat";
-const MODEL = "qwen3.5:9b";
+const MODEL = process.env.OLLAMA_MODEL || "qwen3.5:9b";
 function buildTimezoneBody(tzData) {
 	const timezone = resolveTimezoneLabel(tzData);
 	const dt = DateTime.now().setZone(timezone);
@@ -364,8 +363,6 @@ async function webSearch(query) {
 		.join("\n\n");
 }
 async function ollamaRequest(messages, tools = null, stream = false) {
-	// Opt-in Hugging Face backend (AI_BACKEND=hf + HF_TOKEN); see .env.example
-	if (isHfBackendEnabled()) return hfChatRequest(messages, tools, stream);
 	const response = await fetch(OLLAMA_URL, {
 		method: "POST",
 		headers: {

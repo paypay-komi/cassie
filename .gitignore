@@ -8,3 +8,4 @@ node_modules
 public
 config.json
 start-bot.ps1
+.cache
