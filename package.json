@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node sharder.js",
+    "test": "node --test test/*.test.js",
     "dev": "node sharder.js",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
